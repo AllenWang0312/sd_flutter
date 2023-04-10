@@ -1,0 +1,128 @@
+import 'package:path/path.dart';
+import 'package:sd/sd/bean/db/Workspace.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'bean/db/History.dart';
+import 'bean/PromptStyle.dart';
+import 'bean/db/PromptStyleFileConfig.dart';
+import 'http_service.dart';
+
+String dbString(String string) {
+  return string.replaceAll(":", "_");
+}
+
+class DBController {
+  final String TAG = "DBController";
+  static final DBController _instance = DBController._internal();
+
+  static DBController get instance {
+    return _instance;
+  }
+
+  DBController._internal();
+
+  String workspace = '';
+  Database? database;
+
+  Future initDepends({String? workspace}) async {
+    if (null != workspace) {
+      this.workspace = workspace;
+      if (null == database || !database!.isOpen) {
+        var databasePath = await getDatabasesPath();
+        // String ext = workspace.isEmpty ? '' : '_$workspace';
+        var dbpath = join(databasePath, 'ai_paint.db');
+        database = await openDatabase(dbpath,
+            version: 2,
+            onCreate: (Database db, int version) async {
+              logt(TAG, "db create");
+              await db.execute(
+                  'CREATE TABLE ${Workspace.TABLE_NAME} (${Workspace.TABLE_CREATE})');
+              await db.execute(
+                  'CREATE TABLE ${PromptStyleFileConfig.TABLE_NAME} (${PromptStyleFileConfig.TABLE_CREATE})');
+              await db.execute(
+                  'CREATE TABLE ${History.TABLE_NAME} (${History.TABLE_CREATE})');
+
+              // await db.execute(
+              //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
+
+            },
+            onUpgrade: (Database db, int oldVersion, int newVersion) async {},
+            onDowngrade: (Database db, int oldVersion, int newVersion) async {
+              // logt(TAG,"db downgrade $oldVersion to $newVersion");
+              //
+              // for (int i = oldVersion; i > newVersion; i--) {
+              //   if (i == 1) {
+              //     await db.execute('DELETE TABLE ${History.TABLE_NAME}');
+              //   } else if (i == 2) {
+              //     await db.execute('DELETE TABLE ${Workspace.TABLE_NAME}');
+              //   } else if (i == 3) {
+              //     await db.execute('DELETE TABLE prompt_styles');
+              //   }
+              // }
+            });
+      }
+      var wss = await queryWorkspace(workspace);
+      if (wss?.length == 1) {
+        logt(TAG, wss![0].toString());
+        return Workspace.fromJson(wss![0]);
+      }
+    }
+    return Future.value(null);
+  }
+
+  isTableExits(String tableName) async {
+    var sql =
+        "SELECT * FROM sqlite_master WHERE TYPE = 'table' AND NAME = '$tableName'";
+    var res = await database?.rawQuery(sql);
+    return res != null && res.length > 0;
+  }
+
+  Future<void> dispose() async {
+    await database?.close();
+  }
+
+  Future<int> insertHistory(History history) {
+    // String ext = null != workspace && workspace.isNotEmpty ? '_$workspace' : '';
+
+    if (null != database && database!.isOpen) {
+      return Future.value(
+          database?.insert(History.TABLE_NAME, history.toJson()));
+    }
+    return Future.error('insert error');
+  }
+
+  Future<int> insertWorkSpace(Workspace workspace) {
+    if (null != database && database!.isOpen) {
+      return database!.insert(Workspace.TABLE_NAME, workspace.toJson());
+    }
+    return Future.value(-1);
+  }
+
+  Future<int> insertStyleFileConfig(PromptStyleFileConfig config) {
+    if (null != database && database!.isOpen) {
+      return database!
+          .insert(PromptStyleFileConfig.TABLE_NAME, config.toJson());
+    }
+    return Future.value(-1);
+  }
+
+  Future<List<dynamic>>? queryHistorys(int pageNum, int pageSize,
+      {String? order, bool asc = true}) {
+    return database?.rawQuery(
+        'SELECT * FROM ${History.TABLE_NAME} order by $order ${asc ? "asc" : "desc"} limit $pageNum ,$pageSize');
+  }
+
+  Future<List<dynamic>>? queryWorkspaces() {
+    return database?.rawQuery('SELECT * FROM ${Workspace.TABLE_NAME}');
+  }
+
+  Future<List<dynamic>>? queryWorkspace(String name) {
+    return database?.rawQuery(
+        "SELECT * FROM ${Workspace.TABLE_NAME} WHERE name = ? ", [name]);
+  }
+
+  Future<List<dynamic>>? getStyleFileConfigs() {
+    return database
+        ?.rawQuery("SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME}");
+  }
+}

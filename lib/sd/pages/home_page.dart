@@ -1,0 +1,161 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sd/sd/bean/db/Workspace.dart';
+import 'package:sd/sd/config.dart';
+import 'package:sd/sd/fragment/roll_widget.dart';
+import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/model/RollModel.dart';
+import 'package:sd/sd/playground/playground_widget.dart';
+
+import '../http_service.dart';
+import '../db_controler.dart';
+import '../fragment/mine_widget.dart';
+import '../model/HomeModel.dart';
+
+const REQUESTING = 1;
+const INIT = 0;
+const ERROR = -1;
+
+class HomePage extends StatefulWidget {
+
+  HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  static const TAG = 'HomePageState';
+  List<BottomNavigationBarItem> tabs = [
+    // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
+    const BottomNavigationBarItem(
+        icon: Icon(Icons.find_in_page_outlined), label: "Tavern"),
+
+    const BottomNavigationBarItem(
+        icon: Icon(Icons.draw_outlined), label: "Roll"),
+
+    const BottomNavigationBarItem(
+        icon: Icon(Icons.account_box_outlined), label: "Mine"),
+  ];
+
+  @override
+  void didUpdateWidget(HomePage oldWidget) {
+    logt(TAG,'didUpdateWidget');
+  }
+
+  late List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+    pages = [
+      // LoraWidget(),
+      ChangeNotifierProvider(
+        create: (_) => PlaygroundModel(),
+        child: PlaygroundWidget(),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => RollModel(),
+        child: RollWidget(),
+      ),
+      MineWidget(),
+    ];
+  }
+
+  late AIPainterModel provider;
+
+  // late IpWidget ipManager;
+  @override
+  Widget build(BuildContext context) {
+    provider = Provider.of<AIPainterModel>(context, listen: false);
+    return DefaultTabController(
+        length: tabs.length,
+        child: SafeArea(
+          child: Scaffold(
+            backgroundColor: COLOR_BACKGROUND,
+            bottomNavigationBar: Selector<HomeModel, int>(
+                selector: (_, model) => model.index,
+                shouldRebuild: (pre, next) => pre != next,
+                builder: (context, newValue, child) {
+                  return BottomNavigationBar(
+                    type: BottomNavigationBarType.fixed,
+                    currentIndex: newValue,
+                    items: tabs,
+                    onTap: (index) {
+                      Provider.of<HomeModel>(context, listen: false)
+                          .updateIndex(index);
+                    },
+                  );
+                  // return BottomAppBar(
+                  //   shape: const CircularNotchedRectangle(),
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  //     children: [
+                  //
+                  //     ],
+                  //   ),
+                  // );
+                }),
+            body: Selector<HomeModel, int>(
+              selector: (_, model) => model.index,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (context, newValue, child) => IndexedStack(
+                index: newValue,
+                children: pages,
+              ),
+            ),
+          ),
+        ));
+  }
+
+  // get("$sdHttpService$GET_STYLES").then((value) {
+  // List re = value?.data as List;
+  // styles = re.map((e) => PromptStyle.fromJson(e)).toList();
+  // });
+
+  @override
+  void reassemble() {
+    logt(TAG,'reassemble');
+  }
+
+  @override
+  void activate() {
+    logt(TAG,'activate');
+  }
+
+  @override
+  void deactivate() {
+    logt(TAG,'deactivate');
+  }
+
+  @override
+  Future<void> dispose() async {
+    logt(TAG,'dispose');
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    logt(TAG,'didChangeDependencies');
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    logt(TAG,'debugFillProperties');
+  }
+
+// Future<Map<String, dynamic>> asyncDecodeCSVFile() async {
+//   final p = ReceivePort();
+//   await Isolate.spawn(_readAndParseJson, p.sendPort);
+//   return await p.first;
+// }
+//
+// Future _readAndParseJson(SendPort p) async {
+//   final fileData = await File(filename).readAsString();
+//   final jsonData = jsonDecode(fileData);
+//   Isolate.exit(p, jsonData);
+// }
+}
