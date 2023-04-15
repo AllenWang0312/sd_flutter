@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/playground/history_widget.dart';
+
 import 'remote_history_widget.dart';
 import 'tavern_widget.dart';
 
@@ -22,31 +23,35 @@ class PlaygroundModel with ChangeNotifier, DiagnosticableTreeMixin {
 }
 
 class PlaygroundWidget extends StatelessWidget {
-
   PlaygroundWidget();
 
-  List<Tab> tabs = [
-    Tab(text: "酒馆"),
-    Tab(text: "本地"),
-    Tab(text: "远端"),
-  ];
-  List<Widget> children = [ TavernWidget(),
+  List<Widget> children = [
+    TavernWidget(),
     HistoryWidget(),
-    RemoteHistoryWidget()];
+    // ChangeNotifierProvider(
+    //   create: (_) => EasyRefreshModel(),
+    //   child:
+      RemoteHistoryWidget(),
+    // )
+  ];
 
   @override
   Widget build(BuildContext context) {
-    PlaygroundModel model = Provider.of<PlaygroundModel>(
-        context, listen: false);
+    PlaygroundModel model =
+        Provider.of<PlaygroundModel>(context, listen: false);
     return DefaultTabController(
-      length: tabs.length,
+      length: 3,
       child: Column(
         children: [
           Row(
             children: [
               Expanded(
                 child: TabBar(
-                  tabs: tabs,
+                  tabs: [
+                    Tab(text: AppLocalizations.of(context).tavern),
+                    Tab(text: AppLocalizations.of(context).local),
+                    Tab(text: AppLocalizations.of(context).remote),
+                  ],
                   dividerColor: Colors.transparent,
                 ),
               ),
@@ -67,7 +72,7 @@ class PlaygroundWidget extends StatelessWidget {
           ),
           Expanded(
             child: TabBarView(
-              children:children,
+              children: children,
             ),
           )
         ],

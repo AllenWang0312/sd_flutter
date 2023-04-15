@@ -20,7 +20,10 @@ logt(String tag, String msg) {
   //   print();
   // }
 }
+
+const HTTP_TIME_OUT = 10 * 60;
 final String TAG = "http_service";
+
 
 Future<String> download(String url, String savePath,
     {Map<String, dynamic>? queryParams,
@@ -33,31 +36,34 @@ Future<String> download(String url, String savePath,
         onReceiveProgress: onReceiveProgress);
   } on DioError catch (e) {
     if (CancelToken.isCancel(e)) {
-      logt(TAG,e.toString());
+      logt(TAG, e.toString());
       Fluttertoast.showToast(msg: '下载已取消！$e');
     } else {
-      logt(TAG,e.toString());
+      logt(TAG, e.toString());
 
       Fluttertoast.showToast(msg: '下载失败！$e');
     }
   } on Exception catch (e) {
-    logt(TAG,e.toString());
+    logt(TAG, e.toString());
 
     Fluttertoast.showToast(msg: '下载失败！$e');
   }
   return savePath;
 }
 
-Future<Response?> get(url, {formData, Function? exceptionCallback}) async {
-  logt(TAG,"get:$url");
+Future<Response?> get(url,
+    {formData,
+    int timeOutSecond = HTTP_TIME_OUT,
+    Function? exceptionCallback}) async {
+  logt(TAG, "get:$url");
   try {
     Response response;
-    Dio dio = Dio(baseOptions());
+    Dio dio = Dio(baseOptions(timeOutSecond));
     if (formData == null) {
       response = await dio.get(url);
     } else {
       response = await dio.get(url, queryParameters: formData);
-      logt(TAG,"get:$formData");
+      logt(TAG, "get:$formData");
     }
     return catchError(response, exceptionCallback);
   } catch (e) {
@@ -68,16 +74,16 @@ Future<Response?> get(url, {formData, Function? exceptionCallback}) async {
   }
 }
 
-Future<Response?> post(url, {formData, Function? exceptionCallback}) async {
-  logt(TAG,"post:$url");
+Future<Response?> post(url, {formData,int timeOut = HTTP_TIME_OUT, Function? exceptionCallback}) async {
+  logt(TAG, "post:$url");
   try {
     Response response;
-    Dio dio = Dio(baseOptions());
+    Dio dio = Dio(baseOptions(timeOut));
     if (formData == null) {
       response = await dio.post(url);
     } else {
       response = await dio.post(url, data: formData);
-      logt(TAG,"post:${formData}");
+      logt(TAG, "post:${formData}");
     }
     return catchError(response, exceptionCallback);
   } catch (e) {
@@ -118,10 +124,10 @@ void addProxy(Dio dio) {
   }
 }
 
-BaseOptions? baseOptions() {
+BaseOptions? baseOptions(int timeOutSeconds) {
   return BaseOptions(
-      sendTimeout: const Duration(seconds: 60*10),
-      receiveTimeout: const Duration(seconds: 60*10));
+      sendTimeout: Duration(seconds: timeOutSeconds),
+      receiveTimeout: Duration(seconds: timeOutSeconds));
 }
 
 // abstract class NESubscriber {

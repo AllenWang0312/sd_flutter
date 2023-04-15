@@ -19,6 +19,7 @@ import '../bean/PostPredictResult.dart';
 import '../config.dart';
 import '../model/AIPainterModel.dart';
 import '../ui_util.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 //todo 图片识别默认模型 从配置读取
 String DEFAULT_INTERROGATOR = 'wd14-vit-v2-git';
@@ -157,7 +158,7 @@ class TaggerWidget extends StatelessWidget {
               }
             },
           ),
-          Text('   出现概率大于多少显示（%） '),
+          Text(AppLocalizations.of(context).threshold+":"),
           Selector<TaggerModel, int>(
             selector: (_, model) => model.threshold,
             shouldRebuild: (pre, next) => pre != next,

@@ -8,6 +8,7 @@ import 'package:sd/sd/model/AIPainterModel.dart';
 import '../http_service.dart';
 import '../config.dart';
 import '../../common/ui_util.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SamplerWidget extends StatelessWidget {
 
@@ -34,8 +35,8 @@ class SamplerWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("采样方法（Sampler）"),
-            const Text("Sampler steps"),
+            Text(AppLocalizations.of(context).sampler),
+            Text(AppLocalizations.of(context).samplerSteps),
             SizedBox(
                 width: 40,
                 child: Selector<AIPainterModel, int>(

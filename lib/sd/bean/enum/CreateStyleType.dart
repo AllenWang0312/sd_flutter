@@ -1,0 +1,2 @@
+
+enum CreateStyleType{copyFromRemote,copyFromOtherFile,spliteOther,empty}

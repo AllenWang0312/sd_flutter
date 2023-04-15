@@ -75,4 +75,15 @@ class History extends Showable {
   String getUrl() {
     return imgUrl ?? imgPath ?? "";
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is History &&
+          runtimeType == other.runtimeType &&
+          imgPath == other.imgPath &&
+          imgUrl == other.imgUrl;
+
+  @override
+  int get hashCode => imgPath.hashCode ^ imgUrl.hashCode;
 }

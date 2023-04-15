@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
-
-import '../bean/PostPredictResult.dart';
-import '../config.dart';
-import '../http_service.dart';
-import '../mocker.dart';
 
 class PromptStylePicker extends StatelessWidget {
   PromptStylePicker();
@@ -46,7 +42,6 @@ class PromptStylePicker extends StatelessWidget {
           children: provider.checkedStyles
               .map((e) => RawChip(
                     label: Text(e),
-                    deleteIcon: Icon(Icons.delete),
                     onDeleted: () {
                       provider.unCheckStyles(e);
                     },
@@ -63,77 +58,94 @@ class PromptStylePicker extends StatelessWidget {
               showStyleDialog(context);
             },
           ),
-          Selector<AIPainterModel, String?>(
-            selector: (_, model) => model.selectWorkspace?.stylesConfigFilePath,
-            builder: (context, configPath, child) {
-              return Offstage(
-                offstage: null != configPath && configPath.isNotEmpty,
-                child: InkWell(
-                  child: const SizedBox(
-                      width: 36, height: 36, child: Icon(Icons.refresh)),
-                  onTap: () => refreshStyles(),
-                ),
-              );
-            },
-          ),
+          // Selector<AIPainterModel, List<PromptStyleFileConfig>?>(
+          //   selector: (_, model) => model.selectWorkspace?.styleConfigs,
+          //   shouldRebuild: (pre,next)=>pre?.length!=next?.length,
+          //   builder: (context, list, child) {
+          //     return Offstage(
+          //       offstage: !list!.contains(''),
+          //       child: InkWell(
+          //         child: const SizedBox(
+          //             width: 36, height: 36, child: Icon(Icons.refresh)),
+          //         onTap: () => refreshStyles(context),
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       )
     ]);
   }
 
   Future<void> showStyleDialog(BuildContext context) async {
-    var result = await showDialog(
-        context: context,
-        builder: (context) {
-          AIPainterModel provider = Provider.of<AIPainterModel>(context);
-          return AlertDialog(
-            title: Text('chose prompt styles'),
-            content: SingleChildScrollView(
-              child: Wrap(
-                children: provider.styles
-                    .map((e) => RawChip(
-                          label: Text(e.name),
-                          selected: provider.checkedStyles.contains(e.name),
-                          onSelected: (bool selected) {
-                            provider.switchChecked(e.name);
-                            // e.checked = selected;
-                          },
-                          // deleteIcon: Icon(Icons.delete),
-                          // onDeleted: () {},
-                          // showCheckmark: true,
-                        ))
-                    .toList(),
+    if (null != provider.publicStyles) {
+      var result = await showDialog(
+          context: context,
+          builder: (context) {
+            AIPainterModel provider = Provider.of<AIPainterModel>(context);
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context).choseStyles),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: generateStyles(provider.publicStyles!),
+                ),
               ),
-            ),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, "cancel");
-                  },
-                  child: Text("取消")),
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, "");
-                  },
-                  child: Text("确定")),
-            ],
-          );
-        });
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, "cancel");
+                    },
+                    child: Text(AppLocalizations.of(context).cancel)),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context, "");
+                    },
+                    child: Text(AppLocalizations.of(context).ok)),
+              ],
+            );
+          });
+    }
   }
 
-  refreshStyles() {
-    post("$sdHttpService$RUN_PREDICT",
-        formData: {"fn_index": CMD_REFRESH_STYLE}, exceptionCallback: (e) {
-      Fluttertoast.showToast(msg: "保存失败");
-    }).then((value) {
-      var result = RunPredictResult.fromJson(value?.data).data[0].choices;
-      if (null != result && result.length > 0) {
-        provider.refreshStyles(result);
+  // refreshStyles(BuildContext context) {
+  //   post("$sdHttpService$RUN_PREDICT",
+  //       formData: {"fn_index": CMD_REFRESH_STYLE}, exceptionCallback: (e) {
+  //     Fluttertoast.showToast(msg: AppLocalizations.of(context).saveFailed);
+  //   }).then((value) {
+  //     var result = RunPredictResult.fromJson(value?.data).data[0].choices;
+  //     if (null != result && result.length > 0) {
+  //       provider.refreshStyles(result);
+  //     }
+  //     // if () {
+  //     //   Navigator.pop(context, 1);
+  //     //   Fluttertoast.showToast(msg: '保存成功');
+  //     // }
+  //   });
+  // }
+
+  List<Widget> generateStyles(Map<String, List<PromptStyle>> map) {
+    List<Widget> result = [];
+    for (String key in map.keys) {
+      List<PromptStyle>? value = map[key];
+      if (value != null && value.isNotEmpty) {
+        result.add(Text(key));
+        result.add(Wrap(
+          children: value
+              .map((e) => RawChip(
+                    label: Text(e.name),
+                    selected: provider.checkedStyles.contains(e.name),
+                    onSelected: (bool selected) {
+                      provider.switchChecked(e.name);
+                      // e.checked = selected;
+                    },
+                    // deleteIcon: Icon(Icons.delete),
+                    // onDeleted: () {},
+                    // showCheckmark: true,
+                  ))
+              .toList(),
+        ));
       }
-      // if () {
-      //   Navigator.pop(context, 1);
-      //   Fluttertoast.showToast(msg: '保存成功');
-      // }
-    });
+    }
+    return result;
   }
 }

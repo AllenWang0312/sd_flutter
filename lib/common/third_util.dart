@@ -14,18 +14,16 @@ import '../sd/http_service.dart';
 final String TAG = "third_util";
 
 Future<bool> checkStoragePermission() async {
-  var status = await Permission.storage.status;
-  if (!status.isGranted) {
-    status = await Permission.storage.request();
-    return Future.error(false);
+  if (await Permission.storage.request().isGranted) {
+    return Future.value(true);
   }
-  return Future.value(true);
+  return Future.error(false);
 }
 
 
 
-dynamic saveUrlToLocal(
-    BuildContext context, String url, String fileName, String path) async {
+dynamic saveUrlToLocal(String url, String fileName, String path) async {
+  logt(TAG,"saveUrlToLocal $url $path $fileName");
   path = removeAndroidPrePathIfIsPublic(path);
   if (isAndroidAbsPath(path)) {
     logt(TAG, "$url : $path/$fileName");
@@ -33,7 +31,7 @@ dynamic saveUrlToLocal(
   } else {
     var response = await Dio()
         .get(url, options: Options(responseType: ResponseType.bytes));
-    return await saveBytesToLocal(context, response.data, fileName, path);
+    return await saveBytesToLocal( response.data, fileName, path);
   }
   // SaverGallery.saveImage(
   //     imageBytes, name: name, androidExistNotSave: androidExistNotSave)
@@ -41,14 +39,15 @@ dynamic saveUrlToLocal(
 }
 
 
-Future<String> saveBytesToLocal(
-    BuildContext context, Uint8List bytes, String fileName, String path,
+Future<String> saveBytesToLocal( Uint8List? bytes, String fileName, String path,
     {int quality = 100}) async {
   if (null != bytes && bytes.isNotEmpty) {
-
     path = removeAndroidPrePathIfIsPublic(path);
     if (isAndroidAbsPath(path)) {
-      var file = await File("$path/$fileName").create();
+      var file = File("$path/$fileName");
+      // if(!file.existsSync()){
+        file.createSync(recursive: true,exclusive: true);
+      // }
       file.writeAsBytesSync(bytes);
       return Future.value("$path/$fileName");
     } else {
@@ -63,7 +62,7 @@ Future<String> saveBytesToLocal(
         return Future.error("save failed");
       } else {
         Fluttertoast.showToast(msg: "图像保存成功：$result");
-        return Future.value("/storage/emulated/0/$path/$fileName");
+        return Future.value("$ANDROID_ROOT_DIR/$path/$fileName");
       }
     }
   } else {

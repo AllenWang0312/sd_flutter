@@ -1,0 +1,52 @@
+{
+  "helloWorld": "你好 世界!",
+  "ok": "确定",
+  "cancel": "取消",
+  "tavern": "酒馆",
+  "local": "本地",
+  "remote": "远端",
+  "roll": "Roll",
+  "prompt": "正向描述",
+  "negativePrompt": "不应包含",
+  "choseStyles": "选择风格",
+  "tagger": "内容识别",
+  "threshold": "出现概率大于多少显示（%）",
+
+
+  "clean": "清空",
+  "load": "加载",
+  "faceFix": "面部修复",
+  "tiling": "可平铺",
+
+  "sampler": "采样方法",
+  "samplerSteps": "采样步数",
+  "width": "宽(像素)",
+  "height": "高(像素)",
+  "hires": "分辨率提升",
+  "batchCount": "生成批次",
+  "batchSize": "每批数量",
+  "upscaler":"放大算法",
+  "hiresSteps":"放大步数",
+
+  "upscaleBy": "放大倍数",
+
+  "generate": "生成",
+  "sdModel": "主模型",
+  "basic": "基础",
+  "advance": "高级",
+  "plugin": "插件",
+  "mine": "我的",
+  "setting": "设置",
+  "networkAddress": "网络地址",
+  "save": "保存",
+  "saveFailed": "保存失败",
+  "autoSave": "自动保存图片",
+  "workspace": "工作空间",
+  "styleConfig": "风格文件配置",
+  "storagePromissionMsg": "请允许应用使用存储权限",
+  "wattingMsg": "正在执行其他任务 请稍后",
+  "networkNotChanged": "地址未改动",
+
+  "restartDialogTitle": "立即重启",
+  "restartDialogContent": "关键配置已变更,点击确定立即重启"
+}

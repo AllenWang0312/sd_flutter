@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/model/CreateStyleModel.dart';
 import 'package:sd/sd/model/HomeModel.dart';
+import 'package:sd/sd/model/create_wrokspace_model.dart';
 import 'package:sd/sd/pages/create_style_page.dart';
 import 'package:sd/sd/pages/create_workspace_widget.dart';
 import 'package:sd/sd/pages/home_page.dart';
@@ -26,16 +29,12 @@ void main() {
     ROUTE_CREATE_WORKSPACE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateWSModel(),
         child: CreateWorkspaceWidget(arguments['applicationPath'],
-            arguments['publicPath'], arguments['openHidePath'],
-            workspace: arguments['workspace'])),
+            publicPath:arguments['publicPath'],openHidePath: arguments['openHidePath'],
+            workspace: arguments['workspace'],
+          publicStyleConfigs: arguments['publicStyleConfigs'],)),
     ROUTE_CREATE_STYLE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateStyleModel(),
-        child: CreateStyleWidget(
-          arguments['applicationPath'],
-          arguments['publicPath'],
-          arguments['openHidePath'],
-          style: arguments['style'],
-        )),
+        child: CreateStyleWidget(arguments['style'],arguments['files'])),
     ROUTE_STYLE_EDITTING: (_, {arguments}) => StyleEditPage(
           title: arguments['title'],
           styleName: arguments['styleName'],
@@ -49,7 +48,9 @@ void main() {
         ),
     ROUTE_IMAGES_VIEWER: (_, {arguments}) => ImagesViewer(
           urls: arguments['urls'],
+          index:arguments['index'],
           datas: arguments['datas'],
+      saveDirPath: arguments['savePath'],
         )
   };
   onGenerateRoute(RouteSettings settings) {
@@ -75,9 +76,23 @@ void main() {
           ChangeNotifierProvider(create: (_) => AIPainterModel()),
         ],
         child: MaterialApp(
+          // onGenerateTitle: (context) => DemoLocalizations.of(context).title,
           debugShowCheckedModeBanner: false,
           builder: FToastBuilder(),
           title: 'Flutter Demo',
+
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          // localizationsDelegates: [
+          //   AppLocalizations.delegate,
+          //   GlobalMaterialLocalizations.delegate,
+          //   GlobalWidgetsLocalizations.delegate,
+          //   GlobalCupertinoLocalizations.delegate,
+          // ],
+          // supportedLocales: [
+          //   Locale('en'),
+          //   Locale('zh'),
+          // ],
           theme: ThemeData(
             splashColor: COLOR_BACKGROUND,
             brightness: Brightness.dark,

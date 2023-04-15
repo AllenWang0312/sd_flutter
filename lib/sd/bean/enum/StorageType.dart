@@ -1,0 +1,1 @@
+enum StorageType { Public, Hide, Private }

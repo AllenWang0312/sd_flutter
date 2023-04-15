@@ -45,10 +45,10 @@ class ImageViewer extends StatelessWidget {
                 onTap: () async {
                   if (await checkStoragePermission()) {
                     if (url != null) {
-                      saveUrlToLocal(context, url!, "${DateTime.now()}.png",
+                      saveUrlToLocal(url!, "${DateTime.now()}.png",
                           provider.selectWorkspace!.dirPath);
                     } else {
-                      saveBytesToLocal(context, bytes!, "${DateTime.now()}.png",
+                      saveBytesToLocal(bytes, "${DateTime.now()}.png",
                           provider.selectWorkspace!.dirPath);
                     }
                   } else {

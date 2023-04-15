@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../common/splash_page.dart';
 import '../bean/PromptStyle.dart';
 import '../bean/UpScaler.dart';
+import '../bean/db/PromptStyleFileConfig.dart';
 import '../bean/db/Workspace.dart';
 import '../config.dart';
 import '../db_controler.dart';
@@ -28,6 +29,47 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   static const String TAG = 'AIPainterModel';
 
   Workspace? selectWorkspace;
+
+  List<PromptStyleFileConfig>? styleConfigs;
+
+  Map<String, List<PromptStyle>>? publicStyles =
+      Map(); // '','privateFilePath'.''
+  List<String> checkedStyles = [];
+  List<PromptStyle> _styles = [];
+
+  get styles {
+    if (_styles.isEmpty) {
+      for (List<PromptStyle> values in publicStyles!.values) {
+        _styles.addAll(values);
+      }
+    }
+    return _styles;
+  }
+  loadStyles(int wsId) async {
+    List? rows = await DBController.instance.queryStyles(wsId);
+    if (null != rows && rows.isNotEmpty) {
+      styleConfigs = rows.map((e) {
+        PromptStyleFileConfig config = PromptStyleFileConfig.fromJson(e);
+        config.state = 1;
+        return config;
+      }).toList();
+      for (PromptStyleFileConfig item in styleConfigs!) {
+        if (null == item.configPath || item.configPath!.isEmpty) {
+          // publicStyles.putIfAbsent('', () =>
+          //      CsvToListConverter().convert(csv).);
+          get("$sdHttpService$GET_STYLES").then((value) {
+            List re = value?.data;
+            publicStyles?.putIfAbsent(
+                '远端配置', () => re.map((e) => PromptStyle.fromJson(e)).toList());
+          });
+        } else {
+          List<PromptStyle> styles =
+              await loadPromptStyleFromCSVFile(item.configPath!);
+          publicStyles?.putIfAbsent(item.name!, () => styles);
+        }
+      }
+    }
+  }
 
   String splashImg = "";
 
@@ -68,8 +110,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
 
-  List<PromptStyle> styles = [];
-  List<String> checkedStyles = [];
+
   Map<String, double> checkedPlugins = Map();
 
   // Map<String, double> checkedPlugins = Map(); // lora
@@ -101,10 +142,19 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
           await getAutoSaveAbsPath()); // /storage/emulated/0/Android/data/edu.tjrac.swant.sd/files/styles/$DEFAULT_WORKSPACE_NAME.csv
       int? insertResult = await DBController.instance.insertWorkSpace(ws);
       if (null != insertResult && insertResult >= 0) {
+        var config = PromptStyleFileConfig(
+            name: "远端配置",
+            belongTo: insertResult,
+            type: ConfigType.remote.index);
+        await DBController.instance.insertStyleFileConfig(config);
         selectWorkspace = ws;
       }
     } else {
       selectWorkspace = ws;
+    }
+
+    if (null != selectWorkspace?.id) {
+      loadStyles(selectWorkspace!.id!);
     }
 
     logt(TAG, "load config${selectWorkspace?.dirPath}");
@@ -253,14 +303,14 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     checkedStyles.clear();
   }
 
-  refreshStyles(List<String> choices) {
-    checkedStyles.forEach((element) {
-      if (!choices.contains(element)) {
-        checkedStyles.remove(element);
-      }
-    });
-    notifyListeners();
-  }
+  // refreshStyles(List<String> choices) {
+  //   checkedStyles.forEach((element) {
+  //     if (!choices.contains(element)) {
+  //       checkedStyles.remove(element);
+  //     }
+  //   });
+  //   notifyListeners();
+  // }
 
   countDown() {
     countdownNum--;

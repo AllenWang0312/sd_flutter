@@ -14,6 +14,7 @@ import '../http_service.dart';
 import '../db_controler.dart';
 import '../fragment/mine_widget.dart';
 import '../model/HomeModel.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const REQUESTING = 1;
 const INIT = 0;
@@ -29,17 +30,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   static const TAG = 'HomePageState';
-  List<BottomNavigationBarItem> tabs = [
-    // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
-    const BottomNavigationBarItem(
-        icon: Icon(Icons.find_in_page_outlined), label: "Tavern"),
-
-    const BottomNavigationBarItem(
-        icon: Icon(Icons.draw_outlined), label: "Roll"),
-
-    const BottomNavigationBarItem(
-        icon: Icon(Icons.account_box_outlined), label: "Mine"),
-  ];
 
   @override
   void didUpdateWidget(HomePage oldWidget) {
@@ -72,7 +62,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
     return DefaultTabController(
-        length: tabs.length,
+        length: 3,
         child: SafeArea(
           child: Scaffold(
             backgroundColor: COLOR_BACKGROUND,
@@ -83,7 +73,17 @@ class _HomePageState extends State<HomePage> {
                   return BottomNavigationBar(
                     type: BottomNavigationBarType.fixed,
                     currentIndex: newValue,
-                    items: tabs,
+                    items: [
+                      // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
+                      BottomNavigationBarItem(
+                          icon: Icon(Icons.find_in_page_outlined), label: AppLocalizations.of(context).tavern),
+
+                      BottomNavigationBarItem(
+                          icon: Icon(Icons.draw_outlined), label: AppLocalizations.of(context).roll),
+
+                      BottomNavigationBarItem(
+                          icon: Icon(Icons.account_box_outlined), label: AppLocalizations.of(context).mine),
+                    ],
                     onTap: (index) {
                       Provider.of<HomeModel>(context, listen: false)
                           .updateIndex(index);

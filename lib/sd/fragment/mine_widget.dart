@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sd/common/third_util.dart';
 import 'package:sd/sd/config.dart';
 
 class MineWidget extends StatelessWidget {
@@ -11,8 +12,10 @@ class MineWidget extends StatelessWidget {
           children: [
             IconButton(
                 icon: Icon(Icons.settings),
-                onPressed: () {
-                  Navigator.pushNamed(context, ROUTE_SETTING);
+                onPressed: () async {
+                  if (await checkStoragePermission()) {
+                    Navigator.pushNamed(context, ROUTE_SETTING);
+                  }
 
                   // HistoryWidget(dbController),
                 }),

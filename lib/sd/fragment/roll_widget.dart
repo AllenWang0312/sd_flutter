@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/GenerateResultItem.dart';
+import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 import 'package:sd/sd/model/RollModel.dart';
 import 'package:sd/sd/widget/sampler_widget.dart';
@@ -23,6 +25,8 @@ import '../widget/prompt_style_picker.dart';
 import '../widget/prompt_widget.dart';
 import '../widget/sd_model_widget.dart';
 import '../widget/upsacler_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class RollWidget extends StatelessWidget {
   final String TAG = "RollWidget";
@@ -48,8 +52,8 @@ class RollWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("   主模型："),
-                Text("工作空间：${provider.selectWorkspace?.getName()}   ")
+                Text("  ${AppLocalizations.of(context).sdModel} ："),
+                Text("${AppLocalizations.of(context).workspace}：${provider.selectWorkspace?.getName()}   ")
               ],
             ),
             SDModelWidget(),
@@ -85,25 +89,25 @@ class RollWidget extends StatelessWidget {
                                 model.updateSetIndex(value);
                               }
                             },
-                            children: const <SetType, Widget>{
+                            children: <SetType, Widget>{
                               SetType.basic: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 20),
                                 child: Text(
-                                  '基础',
+                                  AppLocalizations.of(context).basic,
                                   style: TextStyle(color: CupertinoColors.white),
                                 ),
                               ),
                               SetType.advanced: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 20),
                                 child: Text(
-                                  '高级',
+                                  AppLocalizations.of(context).advance,
                                   style: TextStyle(color: CupertinoColors.white),
                                 ),
                               ),
                               SetType.lora: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 20),
                                 child: Text(
-                                  'lora',
+                                  AppLocalizations.of(context).plugin,
                                   style: TextStyle(color: CupertinoColors.white),
                                 ),
                               ),
@@ -132,7 +136,7 @@ class RollWidget extends StatelessWidget {
                                     builder: (context, newValue, child) {
                                       return MyCheckBox(newValue, (newValue) {
                                         provider.setFaceFix(newValue!);
-                                      }, "面部修复");
+                                      }, AppLocalizations.of(context).faceFix);
                                     }),
                                 Selector<AIPainterModel, bool>(
                                     selector: (_, model) => model.tiling,
@@ -142,7 +146,7 @@ class RollWidget extends StatelessWidget {
                                         Provider.of<AIPainterModel>(context,
                                                 listen: false)
                                             .setTiling(newValue!);
-                                      }, "可平铺Tiling");
+                                      }, AppLocalizations.of(context).tiling);
                                     }),
                               ],
                             ),
@@ -231,7 +235,7 @@ class RollWidget extends StatelessWidget {
                                                 .setHiresFix(newValue!);
                                             // });
                                           }),
-                                      Text("Hires.fix"),
+                                      Text(AppLocalizations.of(context).hires),
                                       Text(newValue ? "resize:from to " : ""),
                                     ],
                                   ),
@@ -258,7 +262,7 @@ class RollWidget extends StatelessWidget {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text("生成批次"),
+                                      Text(AppLocalizations.of(context).batchCount),
                                       SizedBox(
                                           width: 40,
                                           child: TextField(
@@ -288,7 +292,7 @@ class RollWidget extends StatelessWidget {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text("每批数量"),
+                                      Text(AppLocalizations.of(context).batchSize),
                                       SizedBox(
                                           width: 40,
                                           child: TextField(
@@ -349,7 +353,7 @@ class RollWidget extends StatelessWidget {
                   },
                   child: FloatingActionButton(
                     onPressed: () => txt2img(context),
-                    child: Text("生成"),
+                    child: Text(AppLocalizations.of(context).generate),
                   ),
                 ))
           ]),
@@ -366,7 +370,7 @@ class RollWidget extends StatelessWidget {
 
   txt2img(BuildContext context) async {
     if (model.isGenerating == REQUESTING) {
-      Fluttertoast.showToast(msg: "正在执行其他任务 请稍后");
+      Fluttertoast.showToast(msg: AppLocalizations.of(context).wattingMsg);
     } else {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
@@ -418,7 +422,8 @@ class RollWidget extends StatelessWidget {
                 String now = DateTime.now().toString();
                 logt(TAG, now.substring(0, 10));
                 String fileName = "${dbString(now)}.png";
-                String result = await saveBytesToLocal(context, bytes, fileName,
+                // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
+                String result = await saveBytesToLocal( bytes, fileName,
                     provider.selectWorkspace!.dirPath);
                 int? insert = await DBController.instance.insertHistory(
                     History(
@@ -454,7 +459,6 @@ class RollWidget extends StatelessWidget {
                 dynamic item = fileProt[i];
                 String fileName = dbString("${DateTime.now()}.png");
                 String path = await saveUrlToLocal(
-                    context,
                     nameToUrl(item['name']),
                     fileName,
                     provider.selectWorkspace!.dirPath);
@@ -502,7 +506,7 @@ class RollWidget extends StatelessWidget {
           // });
         }
       } else {
-        Fluttertoast.showToast(msg: "请允许应用使用存储权限");
+        Fluttertoast.showToast(msg: AppLocalizations.of(context).storagePromissionMsg);
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,58 +10,65 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/ui_util.dart';
+import 'package:provider/provider.dart';
+import 'package:sd/android.dart';
+import 'package:sd/sd/model/AIPainterModel.dart';
 
+import '../bean/db/History.dart';
 import '../config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
-import 'abs_gallery_widget.dart';
 
-class RemoteHistoryWidget extends GalleryWidget {
+const String TAG = "RemoteHistoryWidget";
 
+class RemoteHistoryWidget extends StatefulWidget {
+  @override
+  State<RemoteHistoryWidget> createState() => _RemoteHistoryWidgetState();
+}
+
+class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
   bool dateOrder = true;
+  int userAge = 16;
 
-  final TAG = "HistoryWidget";
+  int pageNum = 0;
+
+  int pageSize = 20;
 
   List<History> history = [];
-  int viewType = 0; //list grid flot scale
 
-  late EasyRefreshController _controller = EasyRefreshController(
-    controlFinishRefresh: true,
-    controlFinishLoad: true,
-  );
+  int viewType = 0;
+
+  //list grid flot scale
+  late EasyRefreshController _controller;
 
   @override
   Widget build(BuildContext context) {
+    _controller = EasyRefreshController(
+      controlFinishRefresh: true,
+      controlFinishLoad: true,
+    );
     return EasyRefresh.builder(
+        refreshOnStart: true,
         controller: _controller,
         onRefresh: () async {
           pageNum = 0;
           history.clear();
-          loadData(pageNum, pageSize);
+          loadData(context, pageNum, pageSize);
         },
         onLoad: () async {
           pageNum += 1;
-          loadData(pageNum, pageSize);
+          loadData(context, pageNum, pageSize);
         },
         childBuilder: (context, physics) {
           return MasonryGridView.count(
             physics: physics,
             itemCount: history.length,
             itemBuilder: (context, index) {
+              logt(TAG,"create item $index");
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
               return item.imgUrl != null
                   ? GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-                            arguments: {
-                              "urls": history,
-                              "index": index,
-                              "pageSize": 36,
-                              "pageNum": index / 36,
-                              "saveDirPath": getAutoSaveAbsPath()
-                            });
-                      },
                       onLongPress: () async {
                         if (item.imgPath != null) {
                           int deleteResult = await showDialog(
@@ -83,7 +91,6 @@ class RemoteHistoryWidget extends GalleryWidget {
                                                           '删除失败${e.toString()}');
                                                   Navigator.pop(context, -1);
                                                 }).then((value) {
-                                                  logt(TAG, value.toString());
                                                   Navigator.pop(context, 1);
                                                 })
                                               },
@@ -95,13 +102,13 @@ class RemoteHistoryWidget extends GalleryWidget {
                           }
                         }
                       },
+                      onTap: () {
+                        Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
+                            arguments: {"urls": history.sublist(index,max(history.length,index+20)), "index": index,"savePath":getPublicPicturesPath()});
+                      },
                       child: userAge >= item.ageLevel
-                          ? Card(
-                              clipBehavior: Clip.antiAlias,
-                              shape: SHAPE_IMAGE_CARD,
-                              child: CachedNetworkImage(
-                                imageUrl: item.imgUrl!,
-                              ),
+                          ? CachedNetworkImage(
+                              imageUrl: item.imgUrl!,
                             )
                           : ImageFiltered(
                               imageFilter: ImageFilter.blur(
@@ -129,24 +136,15 @@ class RemoteHistoryWidget extends GalleryWidget {
         });
   }
 
-  loadData(int pageNum, int pageSize) {
-    // widget.db.queryHistorys(pageNum, pageSize)?.then((value) {
-    //   setState(() {
-    //     history.addAll(value.map((e) => History.fromJson(e)).toList());
-    //   });
-    //   print(HistoryWidget.TAG + history.length.toString());
-    //   return IndicatorResult.success;
-    // });
-    if (pageNum == 0) {
-      _controller.callRefresh();
-    } else {
-      _controller.callLoad();
+  loadData(BuildContext context, int pageNum, int pageSize) {
+    if(pageNum==0){
+      history.clear();
     }
-
     //todo 动态获取文件路径
     post("$sdHttpService$RUN_PREDICT", formData: {
       "data": [
-        "F:\\sd outputs\\txt2img-images",
+        // "F:\\sd outputs\\txt2img-images",
+        remoteTXT2IMGDir,
         pageNum + 1,
         null,
         "",
@@ -161,19 +159,23 @@ class RemoteHistoryWidget extends GalleryWidget {
       }
     }).then((value) {
       List items = value!.data['data'][2] as List;
-      logd(items.toString());
-      // setState(() {
-      history.addAll(items
+      List<History> newList = items
           .map(
               (e) => mapToHistory(pageNum + 1, items.indexOf(e) + 1, e['name']))
-          .toList());
-      // });
-      if (pageNum == 0) {
-        _controller.finishRefresh();
-        _controller.resetFooter();
-      } else if (items.length == 36) {
-        _controller.finishLoad(IndicatorResult.success);
+          .toList();
+      // List<History> newList2 =
+      //     newList.where((element) => !history.contains(element)).toList();
+      if (newList.length > 0) {
+        setState(() {
+          history.addAll(newList);
+        });
+        if (pageNum == 0) {
+          _controller.finishRefresh();
+        } else {
+          _controller.finishLoad(IndicatorResult.success);
+        }
       } else {
+        logt(TAG,"nomore");
         _controller.finishLoad(IndicatorResult.noMore);
       }
     });

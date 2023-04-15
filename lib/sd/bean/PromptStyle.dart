@@ -8,13 +8,14 @@ class PromptStyle {
   static var PROMPT = 'prompt';
   static var NEG_PROMPT = 'negative_prompt';
 
-
   PromptStyle({
     required this.name,
     this.type,
     required this.prompt,
     required this.negativePrompt,
   });
+
+  bool checked = false;
 
   PromptStyle.fromJson(dynamic json) {
     name = json['name'];
@@ -39,11 +40,50 @@ class PromptStyle {
 
   static List csvHead = ['name', 'type', 'prompt', 'negative_prompt'];
 
-  static List<List?>? convert(List re) {
-    List<List?>? result =re
-        .map((e) => [e['name'], e['type'], e['prompt'], e['negative_prompt']])
-        .toList();
-       result.insert(0, csvHead);
+  static List<List<dynamic>>? convertDynamic(List re) {
+    List<List<dynamic>>? result = re.map((e) {
+      return convertItem(e);
+    }).toList();
+    result.insert(0, csvHead);
     return result;
   }
+  static List<List<dynamic>>? convertPromptStyle(List<PromptStyle> re) {
+    List<List<dynamic>>? result = re.map((e) {
+      return convertBean(e);
+    }).toList();
+    result.insert(0, csvHead);
+    return result;
+  }
+
+  static List<dynamic> convertItem(dynamic item) {
+    return [
+      item['name'],
+      item['type'],
+      item['prompt'],
+      item['negative_prompt'],
+    ];
+  }
+
+  static List<dynamic> convertBean(PromptStyle item) {
+    return [
+      item.name,
+      item.type,
+      item.prompt,
+      item.negativePrompt,
+    ];
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PromptStyle &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          type == other.type &&
+          prompt == other.prompt &&
+          negativePrompt == other.negativePrompt;
+
+  @override
+  int get hashCode =>
+      name.hashCode ^ type.hashCode ^ prompt.hashCode ^ negativePrompt.hashCode;
 }

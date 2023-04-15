@@ -3,7 +3,6 @@ import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'bean/db/History.dart';
-import 'bean/PromptStyle.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
 import 'http_service.dart';
 
@@ -44,7 +43,6 @@ class DBController {
 
               // await db.execute(
               //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
-
             },
             onUpgrade: (Database db, int oldVersion, int newVersion) async {},
             onDowngrade: (Database db, int oldVersion, int newVersion) async {
@@ -106,6 +104,23 @@ class DBController {
     return Future.value(-1);
   }
 
+  Future<int> removeStyleFileConfigWith(int belongTo, String configPath) {
+    if (null != database && database!.isOpen) {
+      return database!.delete(PromptStyleFileConfig.TABLE_NAME,
+          where: "belongTo = ? AND configPath = ?",
+          whereArgs: [belongTo, configPath]);
+    }
+    return Future.value(-1);
+  }
+
+  Future<int> removeStyleFileConfig(int id) {
+    if (null != database && database!.isOpen) {
+      return database!.delete(PromptStyleFileConfig.TABLE_NAME,
+          where: "id = ?", whereArgs: [id]);
+    }
+    return Future.value(-1);
+  }
+
   Future<List<dynamic>>? queryHistorys(int pageNum, int pageSize,
       {String? order, bool asc = true}) {
     return database?.rawQuery(
@@ -124,5 +139,11 @@ class DBController {
   Future<List<dynamic>>? getStyleFileConfigs() {
     return database
         ?.rawQuery("SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME}");
+  }
+
+  Future<List<dynamic>>? queryStyles(int wsId) {
+    return database?.rawQuery(
+        "SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME} WHERE belongTo = ? ",
+        [wsId]);
   }
 }

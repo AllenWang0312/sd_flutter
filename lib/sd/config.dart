@@ -65,6 +65,7 @@ const SD_PORT = 7860;
 placeHolderUrl({int width = 512, int height = 720}) {
   return 'https://via.placeholder.com/$width x$height';
 }
+var remoteTXT2IMGDir = "D:";
 
 var sdHost = UniversalPlatform.isWeb
     ? SD_WIN_HOST

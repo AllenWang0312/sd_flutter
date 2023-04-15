@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_refresh/easy_refresh.dart';
@@ -7,17 +8,33 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/playground/abs_gallery_widget.dart';
 
+import '../../android.dart';
 import '../ui_util.dart';
 
-class HistoryWidget extends GalleryWidget {
+class HistoryWidget extends StatefulWidget {
   static const TAG = "HistoryWidget";
 
+  @override
+  State<HistoryWidget> createState() => _HistoryWidgetState();
+}
+
+class _HistoryWidgetState extends State<HistoryWidget> {
+  int userAge = 16;
+
+  int pageNum = 0;
+
+  int pageSize = 20;
+
   List<History> history = [];
-  int viewType = 0; //list grid flot scale
+
+  int viewType = 0;
+
+  //list grid flot scale
   bool dateOrder = true;
+
   bool asc = false;
+
   late EasyRefreshController _controller;
 
   @override
@@ -26,9 +43,8 @@ class HistoryWidget extends GalleryWidget {
       controlFinishRefresh: true,
       controlFinishLoad: true,
     );
-    loadData(pageNum, pageSize, dateOrder, asc);
-
     return EasyRefresh.builder(
+      refreshOnStart: true,
         controller: _controller,
         onRefresh: () async {
           pageNum = 0;
@@ -48,10 +64,17 @@ class HistoryWidget extends GalleryWidget {
               History item = history[index];
               var file = File(dbString(item.imgPath!));
               if (file.existsSync()) {
-                return Card(
-                    clipBehavior: Clip.antiAlias,
-                    shape: SHAPE_IMAGE_CARD,
-                    child: Image.file(file));
+                return InkWell(
+                 onTap: (){
+                   Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
+                       arguments: {"urls": history.sublist(index,min(history.length,index+20)), "index": index,"savePath":ANDROID_PUBLIC_PICTURES_PATH});
+
+                 },
+                  child: Card(
+                      clipBehavior: Clip.antiAlias,
+                      shape: SHAPE_IMAGE_CARD,
+                      child: Image.file(file)),
+                );
               } else {
                 return CachedNetworkImage(imageUrl: placeHolderUrl());
               }
@@ -67,9 +90,7 @@ class HistoryWidget extends GalleryWidget {
   loadData(int pageNum, int pageSize, bool dateOrder, bool asc,
       {bool filterNotExist = true}) {
     if (pageNum == 0) {
-      _controller.callRefresh();
-    } else {
-      _controller.callLoad();
+      history.clear();
     }
     DBController.instance
         .queryHistorys(pageNum, pageSize,
@@ -83,23 +104,19 @@ class HistoryWidget extends GalleryWidget {
         list.removeWhere((element) =>
             element.imgPath == null || !File(element.imgPath!).existsSync());
       }
-      history.addAll(list);
 
-      if (pageNum == 0) {
-        if (list.length == 0) {
-          _controller.finishRefresh(IndicatorResult.noMore);
-        } else {
-          _controller.finishRefresh(IndicatorResult.success);
-        }
-      } else {
-        if (list.length == 0) {
-          _controller.finishLoad(IndicatorResult.noMore);
+      if (list.length > 0) {
+        setState(() {
+          history.addAll(list);
+        });
+        if (pageNum == 0) {
+          _controller.finishRefresh();
         } else {
           _controller.finishLoad(IndicatorResult.success);
         }
+      } else {
+        _controller.finishLoad(IndicatorResult.noMore);
       }
-      // });
-      return IndicatorResult.success;
     });
   }
 }

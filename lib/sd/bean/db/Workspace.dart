@@ -1,7 +1,3 @@
-
-
-
-
 import 'package:sd/android.dart';
 
 const int PATH_TYPE_APP_PRIVATE = 0;
@@ -11,31 +7,30 @@ const int PATH_TYPE_PUBLIC = 2;
 class Workspace {
   static String TABLE_NAME = 'workspaces';
   static String TABLE_CREATE =
-      "id INTEGER PRIMARY KEY, name TEXT,dirPath TEXT,pathType INTEGER,stylesConfigFilePath TEXT,recordCount INTEGER,imageCount INTEGER";
+      "id INTEGER PRIMARY KEY, name TEXT,dirPath TEXT,pathType INTEGER,recordCount INTEGER,imageCount INTEGER";
 
   Workspace(
     this.name,
     this.dirPath, {
-    this.stylesConfigFilePath,
     this.recordCount,
     this.imageCount,
   });
 
   Workspace.fromJson(dynamic json) {
+    id = json['id'];
     name = json['name'];
     dirPath = json['dirPath'];
     pathType = json['pathType'];
 
-    stylesConfigFilePath = json['stylesConfigFilePath'];
     recordCount = json['recordCount'];
     imageCount = json['imageCount'];
   }
 
+  int? id;
   String name = '';
   String dirPath = '';
   int? pathType = 0;
 
-  String? stylesConfigFilePath = null; //空 代表未设置  ‘’ 代表用远端
   int? recordCount;
   int? imageCount;
 
@@ -48,10 +43,10 @@ class Workspace {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    map['id']=id;
     map['name'] = name;
     map['dirPath'] = dirPath;
     map['pathType'] = pathType;
-    map['stylesConfigFilePath'] = stylesConfigFilePath;
     map['recordCount'] = recordCount;
     map['imageCount'] = imageCount;
     return map;
@@ -69,9 +64,9 @@ class Workspace {
 
   int getPathType() {
     if (pathType == null) {
-      if (dirPath.startsWith('/Pictures')) {
+      if (dirPath.startsWith(ANDROID_PICTURES)) {
         return PATH_TYPE_PUBLIC;
-      } else if (dirPath.startsWith('/storage/emulated/0/Android/data/')) {
+      } else if (dirPath.startsWith(ANDROID_DATA)) {
         return PATH_TYPE_APP_PRIVATE;
       } else {
         return PATH_TYPE_HIDE;
@@ -93,5 +88,3 @@ class Workspace {
   @override
   int get hashCode => name.hashCode ^ dirPath.hashCode ^ pathType.hashCode;
 }
-
-

@@ -6,6 +6,7 @@ import '../../common/ui_util.dart';
 import '../http_service.dart';
 import '../bean/UpScaler.dart';
 import '../config.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UpScalerWidget extends StatelessWidget {
   var getUpScalers = get("$sdHttpService$GET_UPSCALERS");
@@ -28,7 +29,7 @@ class UpScalerWidget extends StatelessWidget {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("放大倍数"),
+                  Text(AppLocalizations.of(context).upscaleBy),
                   SizedBox(
                       width: 40,
                       child: TextFormField(
@@ -57,7 +58,7 @@ class UpScalerWidget extends StatelessWidget {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("scaler width"),
+                   Text(AppLocalizations.of(context).resizeWidthTo),
                   SizedBox(
                       width: 40,
                       child: TextFormField(
@@ -85,7 +86,7 @@ class UpScalerWidget extends StatelessWidget {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("scaler height"),
+                  Text(AppLocalizations.of(context).resizeHeightTo),
                   SizedBox(
                       width: 40,
                       child: TextFormField(
@@ -107,7 +108,7 @@ class UpScalerWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("放大算法"),
+             Text(AppLocalizations.of(context).upscaler),
             FutureBuilder(
               future: getUpScalers,
               builder: (context, snapshot) {
@@ -141,22 +142,20 @@ class UpScalerWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("Hires steps"),
+            Text(AppLocalizations.of(context).hiresSteps),
             SizedBox(
                 width: 40,
                 child: TextFormField(controller: hiresStepsController)),
-            Expanded(
-              child: Slider(
-                value: provider.hiresSteps.toDouble(),
-                min: 1,
-                max: 100,
-                divisions: 99,
-                onChanged: (double value) {
-                  // setState(() {
-                  provider.updateHiresSteps(value);
-                  // });
-                },
-              ),
+            Slider(
+              value: provider.hiresSteps.toDouble(),
+              min: 1,
+              max: 100,
+              divisions: 99,
+              onChanged: (double value) {
+                // setState(() {
+                provider.updateHiresSteps(value);
+                // });
+              },
             ),
           ],
         ),

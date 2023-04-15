@@ -6,6 +6,7 @@ import 'package:sd/sd/model/AIPainterModel.dart';
 import '../http_service.dart';
 import '../config.dart';
 import '../fragment/tagger_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PromptWidget extends StatelessWidget {
   PromptWidget();
@@ -21,7 +22,7 @@ class PromptWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("    prompt:"),
+        Text(AppLocalizations.of(context).prompt+":"),
         Row(
           children: [
             Expanded(
@@ -56,7 +57,7 @@ class PromptWidget extends StatelessWidget {
                       context: context,
                       builder: (_) {
                         return AlertDialog(
-                          title: Text("内容识别"),
+                          title: Text(AppLocalizations.of(context).tagger),
                           content: ChangeNotifierProvider(
                             create: (_) => TaggerModel(),
                             child: TaggerWidget(),
@@ -67,7 +68,7 @@ class PromptWidget extends StatelessWidget {
                 icon: Icon(Icons.image_search))
           ],
         ),
-        Text("    negative prompt:"),
+        Text(AppLocalizations.of(context).negativePrompt+":"),
         Row(
           children: [
             Expanded(
@@ -91,7 +92,7 @@ class PromptWidget extends StatelessWidget {
                     onPressed: () {
                       provider.cleanPrompts();
                     },
-                    child: Text("清空")),
+                    child: Text(AppLocalizations.of(context).clean)),
                 TextButton(
                     onPressed: () {
                       post("$sdHttpService$RUN_PREDICT",
@@ -103,7 +104,7 @@ class PromptWidget extends StatelessWidget {
                             value?.data['data'][1]['value']);
                       });
                     },
-                    child: Text("加载")),
+                    child: Text(AppLocalizations.of(context).load)),
                 TextButton(
                     onPressed: () => Navigator.pushNamed(
                             context, ROUTE_STYLE_EDITTING,
@@ -112,7 +113,7 @@ class PromptWidget extends StatelessWidget {
                               "prompt": promptController.text,
                               "negPrompt": negController.text
                             }),
-                    child: Text("保存")),
+                    child: Text(AppLocalizations.of(context).save)),
               ],
             ),
           ],

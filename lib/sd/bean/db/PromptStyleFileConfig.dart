@@ -1,17 +1,38 @@
+import 'dart:io';
+
+bool hasItem(List<PromptStyleFileConfig>? configs, String path) {
+  if (null != configs && configs.isNotEmpty) {
+    for (PromptStyleFileConfig item in configs) {
+      if (item.configPath == path) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+enum ConfigType{
+  // 0 远端接口，1 自己独立配置文件 2 开放空间配置文件引用
+  remote,private,public,
+}
 class PromptStyleFileConfig {
   static String TABLE_NAME = 'styles_file_config';
 
-  static var TABLE_CREATE ='id INTEGER PRIMARY KEY,name TEXT,type INTEGER,belongTo INTEGER,fromConfigId INTEGER,rawPath TEXT,configPath TEXT';
+  static var TABLE_CREATE =
+      'id INTEGER PRIMARY KEY,name TEXT,type INTEGER,belongTo INTEGER,fromConfigId INTEGER,rawPath TEXT,configPath TEXT';
 
   PromptStyleFileConfig({
     this.id,
-    this.name,
+    this.name = "",
+    this.state = 0,
     this.type = 0,
     this.belongTo,
     this.fromConfigId,
     this.rawPath,
     this.configPath,
   });
+
+  int state = 0; // 0 公共配置 1 存在于当前workspace  -1 需要执行删除 2 需要执行添加
 
   PromptStyleFileConfig.fromJson(dynamic json) {
     id = json['id'];
@@ -24,8 +45,15 @@ class PromptStyleFileConfig {
   }
 
   int? id;
-  String? name; // 默认 xxx的promptStyles
-  late int type = 0; // 0 远端接口，1 自己独立配置文件 2 开放空间配置文件 3 已有配置文件引用
+  String name = ""; // 默认 xxx的promptStyles
+  String getName() {
+    if (name.isEmpty && null != configPath && configPath!.isNotEmpty) {
+      name = configPath!.substring(configPath!.lastIndexOf('/') + 1);
+    }
+    return name;
+  }
+
+  late int type = 0;
   int? belongTo; // 属于某个workspace
   int? fromConfigId; // 原始数据源 本表id
   String? rawPath; // 原path 拷贝模式不需要存储
@@ -42,4 +70,15 @@ class PromptStyleFileConfig {
     map['configPath'] = configPath;
     return map;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PromptStyleFileConfig &&
+          runtimeType == other.runtimeType &&
+          state == other.state &&
+          configPath == other.configPath;
+
+  @override
+  int get hashCode => state.hashCode ^ configPath.hashCode;
 }

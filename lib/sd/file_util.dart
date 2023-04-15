@@ -6,7 +6,8 @@ import 'package:universal_platform/universal_platform.dart';
 import '../android.dart';
 import '../ios.dart';
 import 'config.dart';
-
+import 'http_service.dart';
+const TAG = "file util";
 
 String getPublicPicturesPath(){
   if(UniversalPlatform.isWeb){
@@ -17,6 +18,8 @@ String getPublicPicturesPath(){
     return "/$APP_DIR_NAME/Pictures";
   }
 }
+
+
 Future<String> getAutoSaveAbsPath() async {
   if (UniversalPlatform.isWeb) {
     return "/$APP_DIR_NAME";
@@ -55,20 +58,29 @@ Future<String> getStylesAbsPath() async {
   }
   return "/$APP_DIR_NAME/styles";
 }
-
-
 bool createDirIfNotExit(String dirPath) {
   Directory dir = Directory(dirPath);
   if (!dir.existsSync()) {
-    dir.createSync(recursive: true);
+    try {
+      dir.createSync(recursive: true);
+    } catch (e) {
+      logt(TAG, e.toString());
+    }
   }
   return dir.existsSync();
 }
 
-bool createFileIfNotExit(String filePath) {
-  File file = File(filePath);
+String getFileName(String absPath) {
+  return absPath.substring(absPath.lastIndexOf("/") + 1);
+}
+
+bool createFileIfNotExit(File file) {
   if (!file.existsSync()) {
-    file.createSync(recursive: true,exclusive: true);
+    try {
+      file.createSync(recursive: true, exclusive: true);//递归 独占
+    } catch (e) {
+      logt(TAG, e.toString());
+    }
   }
   return file.existsSync();
 }

@@ -13,3 +13,7 @@
 [ ] 本地styles 创建
 
 
+workspace 默认不带 style 创建的时候可以选择从接口复制  或者从现有ws 的 styles 复制
+独立创建的style 相当于是公共的 ws只是引用  修改会同步到其他引用的地方  不存到数据库  只以 /Pictures/sdf/style/目录为准  用户可以 在电脑端分类公共部分
+
+

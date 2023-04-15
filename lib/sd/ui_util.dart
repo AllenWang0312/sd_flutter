@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const SHAPE_IMAGE_CARD = RoundedRectangleBorder(
     borderRadius:
@@ -24,14 +25,14 @@ void showRestartDialog(BuildContext context){
         context: context,
         builder: (context) {
             return AlertDialog(
-                title: Text("立即重启"),
-                content: Text("关键配置已变更,点击确定立即重启"),
+                title: Text(AppLocalizations.of(context).restartDialogTitle),
+                content: Text(AppLocalizations.of(context).restartDialogContent),
                 actions: [
                     TextButton(
                         onPressed: () async {
                             RestartableWidget.restartApp(context);
                         },
-                        child: Text("确定"))
+                        child: Text(AppLocalizations.of(context).ok))
                 ],
             );
         });

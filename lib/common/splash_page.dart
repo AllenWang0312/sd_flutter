@@ -7,14 +7,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/sd/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../android.dart';
 import '../sd/bean/PromptStyle.dart';
 import '../sd/config.dart';
 import '../sd/http_service.dart';
 import '../sd/model/AIPainterModel.dart';
 
 const int SPLASH_WATTING_TIME = 3;
+
+Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
+  String myData = await File(csvFilePath).readAsString();
+  List<List<dynamic>> csvTable = CsvToListConverter().convert(myData);
+  List<dynamic> colums = csvTable.removeAt(0);
+  int nameIndex = colums.indexOf(PromptStyle.NAME);
+  int typeIndex = colums.indexOf(PromptStyle.TYPE);
+  int promptIndex = colums.indexOf(PromptStyle.PROMPT);
+  int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
+  return csvTable
+      .map((e) => PromptStyle(
+          name: e[nameIndex],
+          type: e[typeIndex],
+          prompt: e[promptIndex],
+          negativePrompt: e[negPromptIndex]))
+      .toList();
+}
 
 class SplashPage extends StatelessWidget {
   static const String TAG = "SplashPage";
@@ -27,6 +46,7 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    createDirIfNotExit(ANDROID_PUBLIC_PICTURES_PATH);
     logt(TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
     provider.load();
@@ -142,44 +162,15 @@ class SplashPage extends StatelessWidget {
   }
 
   void getSettings() async {
-    printDir(await getTemporaryDirectory());
-    printDir(await getApplicationSupportDirectory());
-    printDir(await getApplicationDocumentsDirectory());
-
+    printDir(await getTemporaryDirectory());// /data/user/0/edu.tjrac.swant.sd/cache
+    printDir(await getApplicationSupportDirectory());// /data/user/0/edu.tjrac.swant.sd/files
+    printDir(await getApplicationDocumentsDirectory());// /data/user/0/edu.tjrac.swant.sd/app_flutter
     // printDir(await getExternalStorageDirectory());  //only for android
     // printDirs(await getExternalCacheDirectories()); // only for android
     // printDirs(await getExternalStorageDirectories()); //only for android
     // printDir(await getDownloadsDirectory()); //only for not android
 
-    // if(provider.workspace)
-
-    if (null != provider.selectWorkspace?.stylesConfigFilePath &&
-        provider.selectWorkspace!.stylesConfigFilePath!.isNotEmpty) {
-      String myData =
-          await File(provider.selectWorkspace!.stylesConfigFilePath!)
-              .readAsString();
-      List<List<dynamic>> csvTable = CsvToListConverter().convert(myData);
-      List<dynamic> colums = csvTable.removeAt(0);
-      int nameIndex = colums.indexOf(PromptStyle.NAME);
-      int typeIndex = colums.indexOf(PromptStyle.TYPE);
-      int promptIndex = colums.indexOf(PromptStyle.PROMPT);
-      int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
-
-      provider.styles = csvTable
-          .map((e) => PromptStyle(
-              name: e[nameIndex],
-              type: e[typeIndex],
-              prompt: e[promptIndex],
-              negativePrompt: e[negPromptIndex]))
-          .toList();
-      logt(TAG, csvTable.toString());
-    } else {
-      get("$sdHttpService$GET_STYLES").then((value) {
-        List re = value?.data as List;
-        provider.styles = re.map((e) => PromptStyle.fromJson(e)).toList();
-      });
-    }
-
+      // if(provider.workspace)
     // get("$sdHttpService$RUN_PREDICT", exceptionCallback: (e) {
     //   getSettingSuccess = -1;
     // }).then((value) {
@@ -189,11 +180,14 @@ class SplashPage extends StatelessWidget {
     //       .updateSDModel(modelName.substring(0, modelName.lastIndexOf('.')));
     //   getSettingSuccess = 1;
     // });
-    get("$sdHttpService$GET_OPTIONS", exceptionCallback: (e) {
+    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 10,
+        exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) {
       // Options op = Options.fromJson(value.data);
       String modelName = value?.data['sd_model_checkpoint'];
+      remoteTXT2IMGDir = value?.data['outdir_txt2img_samples'];
+
       provider.updateSDModel(modelName);
       getSettingSuccess = 1;
     });
