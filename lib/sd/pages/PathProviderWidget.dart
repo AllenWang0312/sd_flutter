@@ -7,13 +7,13 @@ enum StyleResType { reomote, copy, empty }
 abstract class PathProviderWidget extends StatelessWidget {
   late String applicationPath;
 
-  late String publicPath;
-  late String openHidePath;
+  String? publicPath;
+  String? openHidePath;
 
   PathProviderWidget(
     this.applicationPath,
-    this.publicPath,
-    this.openHidePath,
+  {  this.publicPath,
+    this.openHidePath,}
   );
 
   String getStoragePath(StorageType? value, String name) {

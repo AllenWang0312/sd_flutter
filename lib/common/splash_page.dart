@@ -145,15 +145,19 @@ class SplashPage extends StatelessWidget {
     printDir(await getTemporaryDirectory());
     printDir(await getApplicationSupportDirectory());
     printDir(await getApplicationDocumentsDirectory());
-    printDir(await getExternalStorageDirectory());
-    printDirs(await getExternalCacheDirectories());
-    printDirs(await getExternalStorageDirectories());
+
+    // printDir(await getExternalStorageDirectory());  //only for android
+    // printDirs(await getExternalCacheDirectories()); // only for android
+    // printDirs(await getExternalStorageDirectories()); //only for android
+    // printDir(await getDownloadsDirectory()); //only for not android
+
     // if(provider.workspace)
 
     if (null != provider.selectWorkspace?.stylesConfigFilePath &&
         provider.selectWorkspace!.stylesConfigFilePath!.isNotEmpty) {
-      String myData = await File(provider.selectWorkspace!.stylesConfigFilePath!)
-          .readAsString();
+      String myData =
+          await File(provider.selectWorkspace!.stylesConfigFilePath!)
+              .readAsString();
       List<List<dynamic>> csvTable = CsvToListConverter().convert(myData);
       List<dynamic> colums = csvTable.removeAt(0);
       int nameIndex = colums.indexOf(PromptStyle.NAME);
@@ -166,7 +170,8 @@ class SplashPage extends StatelessWidget {
               name: e[nameIndex],
               type: e[typeIndex],
               prompt: e[promptIndex],
-              negativePrompt: e[negPromptIndex])).toList();
+              negativePrompt: e[negPromptIndex]))
+          .toList();
       logt(TAG, csvTable.toString());
     } else {
       get("$sdHttpService$GET_STYLES").then((value) {

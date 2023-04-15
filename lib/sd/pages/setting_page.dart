@@ -9,6 +9,7 @@ import 'package:sd/sd/config.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 import '../../android.dart';
 import '../bean/db/Workspace.dart';
@@ -198,22 +199,22 @@ class SettingPage extends StatelessWidget {
       {int? type = 0, Workspace? workspace}) async {
     try {
       var applicationPath = await getAutoSaveAbsPath();
-      var publicPath = ANDROID_PUBLIC_PICTURES_PATH;
-      var openHidePath = "$publicPath/nomedia";
-      logt(TAG, applicationPath + publicPath + openHidePath);
+      // var publicPath = getAutoSaveAbsPath();
+      // var openHidePath = "$publicPath/nomedia";
+      // logt(TAG, applicationPath + publicPath + openHidePath);
 
-      if (!await Directory(openHidePath).exists()) {
-        await Directory(openHidePath).create();
-        if (!await File(openHidePath + "/.nomedia").exists()) {
-          await File(openHidePath + "/.nomedia").create();
-        }
-      }
+      // if (!await Directory(publicPath).exists()) {
+      //   Directory(publicPath).createSync(recursive: true);
+        // if (UniversalPlatform.isAndroid&&!await File(openHidePath + "/.nomedia").exists()) {
+        //   await File(openHidePath + "/.nomedia").create();
+        // }
+      // }
 
       Workspace? ws = await Navigator.pushNamed(context, ROUTE_CREATE_WORKSPACE,
           arguments: {
             "applicationPath": applicationPath,
-            "publicPath": publicPath,
-            "openHidePath": openHidePath,
+            // "publicPath": publicPath,
+            // "openHidePath": openHidePath,
             "workspace": workspace
           }) as Workspace?;
 
@@ -240,22 +241,22 @@ class SettingPage extends StatelessWidget {
       BuildContext context, PromptStyleFileConfig? style) async {
     try {
       var applicationPath = await getAutoSaveAbsPath();
-      var publicPath = ANDROID_PUBLIC_PICTURES_PATH;
-      var openHidePath = "$publicPath/nomedia";
-      logt(TAG, applicationPath + publicPath + openHidePath);
+      // var publicPath = getPublicPicturesPath();
+      // var openHidePath = "$publicPath/nomedia";
+      // logt(TAG, applicationPath + publicPath + openHidePath);
 
-      if (!await Directory(openHidePath).exists()) {
-        await Directory(openHidePath).create();
-        if (!await File(openHidePath + "/.nomedia").exists()) {
-          await File(openHidePath + "/.nomedia").create();
-        }
-      }
+      // if (!await Directory(openHidePath).exists()) {
+      //   await Directory(openHidePath).create();
+      //   if (!await File(openHidePath + "/.nomedia").exists()) {
+      //     await File(openHidePath + "/.nomedia").create();
+      //   }
+      // }
 
       PromptStyleFileConfig? ws =
           await Navigator.pushNamed(context, ROUTE_CREATE_STYLE, arguments: {
         "applicationPath": applicationPath,
-        "publicPath": publicPath,
-        "openHidePath": openHidePath,
+        // "publicPath": publicPath,
+        // "openHidePath": openHidePath,
         "style": style
       }) as PromptStyleFileConfig?;
     } catch (e) {

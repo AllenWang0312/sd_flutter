@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sd/sd/bean/db/History.dart';
+import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/ui_util.dart';
 
 import '../config.dart';
@@ -57,7 +58,7 @@ class RemoteHistoryWidget extends GalleryWidget {
                               "index": index,
                               "pageSize": 36,
                               "pageNum": index / 36,
-                              "saveDirPath": "/storage/emulated/0/Pictures/"
+                              "saveDirPath": getAutoSaveAbsPath()
                             });
                       },
                       onLongPress: () async {
@@ -153,11 +154,14 @@ class RemoteHistoryWidget extends GalleryWidget {
       ], //data path_name
       "fn_index": CMD_GET_REMOTE_HISTORY
     }, exceptionCallback: (e) {
-      _controller.finishRefresh();
-      _controller.finishLoad(IndicatorResult.fail);
+      if(pageNum ==0){
+        _controller.finishRefresh(IndicatorResult.fail);
+      }else{
+        _controller.finishLoad(IndicatorResult.fail);
+      }
     }).then((value) {
       List items = value!.data['data'][2] as List;
-      // logd(items.toString());
+      logd(items.toString());
       // setState(() {
       history.addAll(items
           .map(

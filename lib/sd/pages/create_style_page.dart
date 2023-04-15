@@ -30,7 +30,7 @@ class CreateStyleWidget extends PathProviderWidget {
   CreateStyleWidget(
       String applicationPath, String publicPath, String openHidePath,
       {this.style})
-      : super(applicationPath, publicPath, openHidePath);
+      : super(applicationPath, publicPath:publicPath, openHidePath:openHidePath);
   late CreateStyleModel model;
 
   late TextEditingController controller;

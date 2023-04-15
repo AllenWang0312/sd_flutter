@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:sd/android.dart';
+import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/fragment/tagger_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -97,7 +98,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     Workspace? ws = await DBController.instance.initDepends(workspace: name);
     if (ws == null) {
       ws = Workspace(DEFAULT_WORKSPACE_NAME,
-          '$ANDROID_PUBLIC_PICTURES_PATH/$DEFAULT_WORKSPACE_NAME'); // /storage/emulated/0/Android/data/edu.tjrac.swant.sd/files/styles/$DEFAULT_WORKSPACE_NAME.csv
+          await getAutoSaveAbsPath()); // /storage/emulated/0/Android/data/edu.tjrac.swant.sd/files/styles/$DEFAULT_WORKSPACE_NAME.csv
       int? insertResult = await DBController.instance.insertWorkSpace(ws);
       if (null != insertResult && insertResult >= 0) {
         selectWorkspace = ws;

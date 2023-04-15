@@ -1,13 +1,14 @@
 class Progress {
   Progress({
-      this.active, 
-      this.queued, 
-      this.completed, 
-      this.progress, 
-      this.eta, 
-      this.livePreview, 
-      this.idLivePreview, 
-      this.textinfo,});
+    this.active,
+    this.queued,
+    this.completed,
+    this.progress,
+    this.eta,
+    this.livePreview,
+    this.idLivePreview,
+    this.textinfo,
+  });
 
   Progress.fromJson(dynamic json) {
     active = json['active'];
@@ -19,14 +20,14 @@ class Progress {
     idLivePreview = json['id_live_preview'];
     textinfo = json['textinfo'];
   }
-  bool active;
-  bool queued;
-  bool completed;
-  double progress;
-  double eta;
-  String livePreview;
-  int idLivePreview;
-  dynamic textinfo;
+  bool? active;
+  bool? queued;
+  bool? completed;
+  double? progress;
+  double? eta;
+  String? livePreview;
+  int? idLivePreview;
+  dynamic? textinfo;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -36,9 +37,8 @@ class Progress {
     map['progress'] = progress;
     map['eta'] = eta;
     map['live_preview'] = livePreview;
-    map['id_live_preview'] = idLivePreview;//data:image/png;base64,datas...
+    map['id_live_preview'] = idLivePreview; //data:image/png;base64,datas...
     map['textinfo'] = textinfo;
     return map;
   }
-
 }

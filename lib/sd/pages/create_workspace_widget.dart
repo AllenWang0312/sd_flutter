@@ -43,7 +43,8 @@ class CreateWorkspaceWidget extends PathProviderWidget {
   CreateWorkspaceWidget(
       String applicationPath, String publicPath, String openHidePath,
       {this.workspace, this.otherWorkspaces})
-      : super(applicationPath, publicPath, openHidePath);
+      : super(applicationPath,
+            publicPath: publicPath, openHidePath: publicPath);
 
   late CreateWSModel model;
   late TextEditingController controller;
@@ -240,7 +241,7 @@ class CreateWorkspaceWidget extends PathProviderWidget {
   }
 
   void onRadioChanged(StorageType? value) {
-    logt(TAG,value.toString());
+    logt(TAG, value.toString());
     if (workspace == null) {
       pathController.text = getStoragePath(value, controller.text);
     } else {}
