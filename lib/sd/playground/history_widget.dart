@@ -8,8 +8,9 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/db_controler.dart';
+import 'package:sd/sd/file_util.dart';
 
-import '../../android.dart';
+import '../android.dart';
 import '../ui_util.dart';
 
 class HistoryWidget extends StatefulWidget {
@@ -44,7 +45,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
       controlFinishLoad: true,
     );
     return EasyRefresh.builder(
-      refreshOnStart: true,
+        refreshOnStart: true,
         controller: _controller,
         onRefresh: () async {
           pageNum = 0;
@@ -65,11 +66,15 @@ class _HistoryWidgetState extends State<HistoryWidget> {
               var file = File(dbString(item.imgPath!));
               if (file.existsSync()) {
                 return InkWell(
-                 onTap: (){
-                   Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-                       arguments: {"urls": history.sublist(index,min(history.length,index+20)), "index": index,"savePath":ANDROID_PUBLIC_PICTURES_PATH});
-
-                 },
+                  onTap: () {
+                    Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
+                        arguments: {
+                          "urls": history.sublist(
+                              index, min(history.length, index + 20)),
+                          "index": index,
+                          "savePath": getImageAutoSaveAbsPath(),
+                        });
+                  },
                   child: Card(
                       clipBehavior: Clip.antiAlias,
                       shape: SHAPE_IMAGE_CARD,
@@ -115,6 +120,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           _controller.finishLoad(IndicatorResult.success);
         }
       } else {
+        _controller.finishRefresh(IndicatorResult.fail);
         _controller.finishLoad(IndicatorResult.noMore);
       }
     });

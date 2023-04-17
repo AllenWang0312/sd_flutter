@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:sd/sd/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../android.dart';
+import '../sd/android.dart';
 import '../sd/bean/PromptStyle.dart';
 import '../sd/config.dart';
 import '../sd/http_service.dart';
@@ -46,7 +46,7 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    createDirIfNotExit(ANDROID_PUBLIC_PICTURES_PATH);
+    // createDirIfNotExit(getAutoSaveAbsPath());
     logt(TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
     provider.load();

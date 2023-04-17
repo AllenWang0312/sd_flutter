@@ -440,7 +440,7 @@ class RollWidget extends StatelessWidget {
             }
             if (!provider.autoSave) {
               Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-                  arguments: {"datas": datas});
+                  arguments: {"datas": datas,"savePath":provider.selectWorkspace!.dirPath});
             }
           });
         } else {
@@ -474,8 +474,8 @@ class RollWidget extends StatelessWidget {
             } else {
               Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
                 "urls":
-                    fileProt.map((e) => GenerateResultItem.fromJson(e)).toList()
-              });
+                    fileProt.map((e) => GenerateResultItem.fromJson(e)).toList(),
+                "savePath":provider.selectWorkspace!.dirPath});
             }
 
             model.isBusy(INIT);

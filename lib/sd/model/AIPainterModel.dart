@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:sd/android.dart';
+import 'package:sd/sd/android.dart';
 import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/fragment/tagger_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,8 +124,9 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     sp = await SharedPreferences.getInstance();
     sdHost = sp.getString(SP_HOST) ??
         (Platform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
-    splashImg = 'http://$sdHost:$SD_PORT/favicon.ico';
-
+    // splashImg = 'http://$sdHost:$SD_PORT/favicon.ico';
+    splashImg = 'https://stability.ai/favicon.ico'; // ios 第一次https 调用才会触发授权弹框
+    // splashImg = 'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
     selectedSampler = sp.getString(SP_SAMPLER) ?? DEFAULT_SAMPLER;
     samplerSteps = sp.getInt(SP_SAMPLER_STEPS) ?? DEFAULT_SAMPLER_STEPS;
     width = sp.getInt(SP_WIDTH) ?? DEFAULT_WIDTH;
@@ -139,7 +140,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     Workspace? ws = await DBController.instance.initDepends(workspace: name);
     if (ws == null) {
       ws = Workspace(DEFAULT_WORKSPACE_NAME,
-          await getAutoSaveAbsPath()); // /storage/emulated/0/Android/data/edu.tjrac.swant.sd/files/styles/$DEFAULT_WORKSPACE_NAME.csv
+          await getImageAutoSaveAbsPath());
       int? insertResult = await DBController.instance.insertWorkSpace(ws);
       if (null != insertResult && insertResult >= 0) {
         var config = PromptStyleFileConfig(

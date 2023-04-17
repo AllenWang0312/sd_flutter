@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 import 'package:sd/sd/pages/setting_page.dart';
+import 'package:universal_platform/universal_platform.dart';
 
-import '../../android.dart';
+import '../android.dart';
 import '../../common/third_util.dart';
 import '../bean/db/PromptStyleFileConfig.dart';
 import '../bean/db/Workspace.dart';
@@ -24,7 +25,8 @@ import 'create_style_page.dart';
 final String TAG = "CreateWorkspaceWidget";
 
 class CreateWorkspaceWidget extends StatefulWidget {
-  late String applicationPath;
+  late String imgSavePath;
+  late String styleSavePath;
 
   late String? publicPath;
   late String? openHidePath;
@@ -33,7 +35,7 @@ class CreateWorkspaceWidget extends StatefulWidget {
   List<FileSystemEntity>? publicStyleConfigs;
 
   CreateWorkspaceWidget(
-      String applicationPath,
+      this.imgSavePath,this.styleSavePath,
       {this.publicPath,this.openHidePath,this.workspace, this.publicStyleConfigs});
 
   @override
@@ -41,13 +43,14 @@ class CreateWorkspaceWidget extends StatefulWidget {
 }
 
 class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
+
   String getStoragePath(StorageType? value, String name) {
     if (value == StorageType.Public) {
       return "${widget.publicPath}/$name";
     } else if (value == StorageType.Hide) {
       return "${widget.openHidePath}/$name";
     } else {
-      return "${widget.applicationPath}/$name";
+      return "${widget.imgSavePath}/$name";
     }
   }
 
@@ -69,7 +72,9 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
     // openHidePath = removePrePathIfIsPublic(openHidePath);
     provider = Provider.of<AIPainterModel>(context, listen: false);
     model = Provider.of<CreateWSModel>(context, listen: false);
-    model.noMediaFileExist = File("$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia").existsSync();
+    if(UniversalPlatform.isAndroid){
+      model.noMediaFileExist = File("$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia").existsSync();
+    }
     pathController = TextEditingController(
         text: widget.workspace == null ? '' : widget.workspace?.dirPath);
 
@@ -78,7 +83,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
     controller.addListener(() {
       pathController.text = getStoragePath(model.storageType, controller.text);
       model.updateStyleResType(model.styleResType,
-          "${widget.applicationPath}/${controller.text}/styles.csv");
+          "${widget.styleSavePath}/${controller.text}/styles.csv");
     });
     return Scaffold(
       appBar: AppBar(
@@ -235,7 +240,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                           model.updateStyleResType(
                               value,
                               // "$applicationPath/${controller.text}/styles.csv"// todo default styles config file path
-                              "${widget.applicationPath}/${controller.text}/styles.csv" // todo default styles config file path
+                              "${widget.styleSavePath}/${controller.text}/styles.csv" // todo default styles config file path
                               );
                         }),
                     Offstage(

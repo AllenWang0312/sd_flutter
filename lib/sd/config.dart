@@ -8,6 +8,7 @@ import 'package:universal_platform/universal_platform.dart';
 
 import 'bean/db/History.dart';
 
+const String PACKAGE_NAME = "edu.tjrac.swant.sd";
 
 // theme
 const COLOR_BACKGROUND = Color(0xFF0b0b19);
@@ -45,10 +46,11 @@ const String ROUTE_HOME = "/home";
 const String ROUTE_PLUGINS = "/home/plugins";
 const String ROUTE_SETTING = "/setting";
 const String ROUTE_STYLE_EDITTING = "/styles/edit";
-const String ROUTE_IMAGE_VIEWER = "/viewer";
+// const String ROUTE_IMAGE_VIEWER = "/viewer";
 const String ROUTE_IMAGES_VIEWER = "/viewers";
 const String ROUTE_CREATE_WORKSPACE = "/setting/workspace/create";
 const String ROUTE_CREATE_STYLE = "/setting/style/create";
+const String ROUTE_EDIT_STYLE= "/setting/style/edit";
 // file system
 
 const String APP_DIR_NAME = 'sdf';

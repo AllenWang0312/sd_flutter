@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import '../../android.dart';
+import '../android.dart';
 import '../bean/db/Workspace.dart';
 import '../config.dart';
 import '../db_controler.dart';
@@ -40,16 +40,13 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   void initState() {
+    createDir();
+
     super.initState();
-    createDirIfNotExit(ANDROID_PUBLIC_STYLES_PATH);
-    publicStyleConfigs = Directory(ANDROID_PUBLIC_STYLES_PATH).listSync();
-    logt("$ANDROID_PUBLIC_STYLES_PATH", publicStyleConfigs!.length.toString());
   }
 
   @override
   Widget build(BuildContext context) {
-
-
     provider = Provider.of<AIPainterModel>(context);
     TextEditingController hostController = TextEditingController(text: sdHost);
 
@@ -197,12 +194,12 @@ class _SettingPageState extends State<SettingPage> {
                 IconButton(
                   icon: Icon(Icons.add),
                   onPressed: () {
-                    editOrCreatePromptStyle(context);
+                    createPromptStyle(context);
                   },
                 )
               ],
             ),
-            getPublicStyles(context, publicStyleConfigs),
+            getPublicStyles(context),
           ],
         ),
       ),
@@ -217,7 +214,8 @@ class _SettingPageState extends State<SettingPage> {
   Future<void> editOrCreateWorkspace(BuildContext context,
       {int? type = 0, Workspace? workspace}) async {
     try {
-      var applicationPath = await getAutoSaveAbsPath();
+      var applicationPath = await getImageAutoSaveAbsPath();
+      var stylePath = await getStylesAbsPath();
       // var publicPath = getAutoSaveAbsPath();
       // var openHidePath = "$publicPath/nomedia";
       // logt(TAG, applicationPath + publicPath + openHidePath);
@@ -231,10 +229,12 @@ class _SettingPageState extends State<SettingPage> {
 
       dynamic ws = await Navigator.pushNamed(context, ROUTE_CREATE_WORKSPACE,
           arguments: {
-            "applicationPath": applicationPath,
+            "imgSavePath": applicationPath,
+            "styleSavePath":stylePath,
             // "publicPath": publicPath,
             // "openHidePath": openHidePath,
-            "workspace": workspace
+            "workspace": workspace,
+            "publicStyleConfigs":publicStyleConfigs
           }) as Workspace?;
 
       if (ws is Workspace && ws != null) {
@@ -258,55 +258,60 @@ class _SettingPageState extends State<SettingPage> {
     }
   }
 
-  Future<void> editOrCreatePromptStyle(BuildContext context,
-      {FileSystemEntity? style}) async {
-    try {
-      var applicationPath = await getAutoSaveAbsPath();
-      // var publicPath = getPublicPicturesPath();
-      // var openHidePath = "$publicPath/nomedia";
-      // logt(TAG, applicationPath + publicPath + openHidePath);
+  Future<void> createPromptStyle(BuildContext context) async {
+    var applicationPath = await getStylesAbsPath();
 
-      // if (!await Directory(openHidePath).exists()) {
-      //   await Directory(openHidePath).create();
-      //   if (!await File(openHidePath + "/.nomedia").exists()) {
-      //     await File(openHidePath + "/.nomedia").create();
-      //   }
-      // }
-
-      File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
-          arguments: {"style": style, "files": publicStyleConfigs}) as File?;
-      if (null != file) {
-        setState(() {
-          publicStyleConfigs?.add(file);
-        });
-      }
-    } catch (e) {
-      print(e);
+    File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
+        arguments: {"autoSaveAbsPath":applicationPath, "files": publicStyleConfigs}) as File?;
+    if (null != file) {
+      setState(() {
+        publicStyleConfigs?.add(file);
+      });
     }
   }
 
   Widget getPublicStyles(
-      BuildContext context, List<FileSystemEntity>? publicStyles) {
+      BuildContext context) {
     // List<PromptStyleFileConfig>? data = snapshot.data!
     //     .map((e) => PromptStyleFileConfig.fromJson(e))
     //     .toList();
-    if (null != publicStyles && publicStyles!.isNotEmpty) {
-      return Column(
-        children: publicStyles.map((e) {
-          String fileName = e.path.substring(e.path.lastIndexOf("/"));
-          return ListTile(
-            // 需要重写泛型类的 == 方法
-            title: Text(fileName),
-            subtitle: Text(e.path),
-            trailing: InkWell(
-              onTap: () => editOrCreatePromptStyle(context, style: e),
-              child: Icon(Icons.edit),
-            ),
+    return FutureBuilder(
+      future: createDir(),
+      builder: (context,snapshot){
+        if (snapshot.hasData) {
+          publicStyleConfigs = snapshot.data;
+          return Column(
+            children: publicStyleConfigs!.map((e) {
+              String fileName = e.path.substring(e.path.lastIndexOf("/"));
+              return ListTile(
+                // 需要重写泛型类的 == 方法
+                title: Text(fileName),
+                subtitle: Text(e.path),
+                trailing: InkWell(
+                  onTap: () => editPromptStyle(context,e),
+                  child: Icon(Icons.edit),
+                ),
+              );
+            }).toList(),
           );
-        }).toList(),
-      );
-    }
+        }
 
-    return Column();
+        return Column();
+      },
+
+    );
+
+  }
+
+  Future<List<FileSystemEntity>?> createDir() async {
+    var publicStylePath = await getStylesAbsPath();
+    if(createDirIfNotExit(publicStylePath)){
+      return Directory(publicStylePath).listSync();
+    }
+    return null;
+  }
+
+  editPromptStyle(BuildContext context, FileSystemEntity e) {
+    Navigator.pushNamed(context, ROUTE_EDIT_STYLE,arguments: e.path);
   }
 }

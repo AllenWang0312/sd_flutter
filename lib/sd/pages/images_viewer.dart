@@ -28,8 +28,8 @@ class ImagesViewer<T extends Showable> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AIPainterModel provider = Provider.of<AIPainterModel>(context);
-    PageController controller = PageController();
+    // AIPainterModel provider = Provider.of<AIPainterModel>(context);
+    PageController controller = PageController(initialPage: 2);
 
     controller.addListener(() {});
     var content = Scaffold(
@@ -55,6 +55,7 @@ class ImagesViewer<T extends Showable> extends StatelessWidget {
                             : Image.file(File(data.getUrl()));
                       })
                   : PageView.builder(
+
                       onPageChanged: (page) async {
                         logt(TAG, page.toString());
                       },

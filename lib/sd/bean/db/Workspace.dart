@@ -1,4 +1,5 @@
-import 'package:sd/android.dart';
+import 'package:sd/sd/android.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 const int PATH_TYPE_APP_PRIVATE = 0;
 const int PATH_TYPE_HIDE = 1;
@@ -64,16 +65,16 @@ class Workspace {
 
   int getPathType() {
     if (pathType == null) {
-      if (dirPath.startsWith(ANDROID_PICTURES)) {
-        return PATH_TYPE_PUBLIC;
+      if (UniversalPlatform.isIOS||dirPath.startsWith(ANDROID_PICTURES)) {
+        pathType =  PATH_TYPE_PUBLIC;
       } else if (dirPath.startsWith(ANDROID_DATA)) {
-        return PATH_TYPE_APP_PRIVATE;
+        pathType = PATH_TYPE_APP_PRIVATE;
       } else {
-        return PATH_TYPE_HIDE;
+        pathType = PATH_TYPE_HIDE;
       }
-    } else {
-      return pathType!;
     }
+      return pathType!;
+
   }
 
   @override

@@ -10,6 +10,7 @@ import 'package:sd/sd/model/HomeModel.dart';
 import 'package:sd/sd/model/create_wrokspace_model.dart';
 import 'package:sd/sd/pages/create_style_page.dart';
 import 'package:sd/sd/pages/create_workspace_widget.dart';
+import 'package:sd/sd/pages/edit_style_page.dart';
 import 'package:sd/sd/pages/home_page.dart';
 import 'package:sd/sd/pages/image_viewer.dart';
 import 'package:sd/sd/pages/images_viewer.dart';
@@ -28,24 +29,28 @@ void main() {
     ROUTE_SETTING: (_) => SettingPage(),
     ROUTE_CREATE_WORKSPACE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateWSModel(),
-        child: CreateWorkspaceWidget(arguments['applicationPath'],
-            publicPath:arguments['publicPath'],openHidePath: arguments['openHidePath'],
+        child: CreateWorkspaceWidget(arguments['imgSavePath'],arguments['styleSavePath'],
+            // publicPath:arguments['publicPath'],openHidePath: arguments['openHidePath'],
             workspace: arguments['workspace'],
           publicStyleConfigs: arguments['publicStyleConfigs'],)),
     ROUTE_CREATE_STYLE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateStyleModel(),
-        child: CreateStyleWidget(arguments['style'],arguments['files'])),
+        child: CreateStyleWidget(arguments['style'],arguments['autoSaveAbsPath'],arguments['files'])),
     ROUTE_STYLE_EDITTING: (_, {arguments}) => StyleEditPage(
           title: arguments['title'],
           styleName: arguments['styleName'],
           prompt: arguments['prompt'],
           negPrompt: arguments['negPrompt'],
         ),
-    ROUTE_IMAGE_VIEWER: (_, {arguments}) => ImageViewer(
-          url: arguments['url'],
-          filePath: arguments['filePath'],
-          bytes: arguments['bytes'],
-        ),
+    ROUTE_EDIT_STYLE:(_,{arguments})=>StyleConfigPage(
+      arguments
+    ),
+    // ROUTE_IMAGE_VIEWER: (_, {arguments}) => ImageViewer(
+    //       url: arguments['url'],
+    //       filePath: arguments['filePath'],
+    //       bytes: arguments['bytes'],
+    //   savePath: arguments['savePath'],
+    //     ),
     ROUTE_IMAGES_VIEWER: (_, {arguments}) => ImagesViewer(
           urls: arguments['urls'],
           index:arguments['index'],

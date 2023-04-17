@@ -59,6 +59,7 @@ Future<Response?> get(url,
   try {
     Response response;
     Dio dio = Dio(baseOptions(timeOutSecond));
+    if(PROXY)addProxy(dio);
     if (formData == null) {
       response = await dio.get(url);
     } else {
@@ -79,6 +80,7 @@ Future<Response?> post(url, {formData,int timeOut = HTTP_TIME_OUT, Function? exc
   try {
     Response response;
     Dio dio = Dio(baseOptions(timeOut));
+    if(PROXY)addProxy(dio);
     if (formData == null) {
       response = await dio.post(url);
     } else {
@@ -110,18 +112,16 @@ Future<Response?> catchError(Response response, Function? callback) async {
 }
 
 void addProxy(Dio dio) {
-  if (PROXY) {
     (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
         (HttpClient client) {
       client.findProxy = (uri) {
         //proxy all request to localhost:8888
-        return "PROXY 10.10.2.22:8888";
-        // return "PROXY 192.168.0.110:8888";
+        // return "PROXY 10.10.2.22:8888";
+        return "PROXY 192.168.0.110:8888";
       };
       client.badCertificateCallback =
           (X509Certificate cert, String host, int port) => true;
     };
-  }
 }
 
 BaseOptions? baseOptions(int timeOutSeconds) {

@@ -8,7 +8,7 @@ import 'package:sd/common/splash_page.dart';
 import 'package:sd/common/third_util.dart';
 import 'package:sd/sd/file_util.dart';
 
-import '../../android.dart';
+import '../android.dart';
 import '../../common/ui_util.dart';
 import '../bean/PromptStyle.dart';
 import '../bean/enum/CreateStyleType.dart';
@@ -32,7 +32,7 @@ Future<File> saveRemoteStylesToLocalFile(String styleConfigPath) {
     // }
     File f = File(styleConfigPath);
     if (createFileIfNotExit(f)) {
-      logt(TAG,"style file create success $styleConfigPath");
+      logt(TAG, "style file create success $styleConfigPath");
       List re = value?.data as List;
       // provider.styles = re.map((e) => PromptStyle.fromJson(e)).toList();
       // 生成csv文件，csv文件路径：缓存目录下的 ble文件夹下
@@ -51,29 +51,30 @@ Future<File> saveRemoteStylesToLocalFile(String styleConfigPath) {
 final String TAG = "CreateStyleWidget";
 
 class CreateStyleWidget extends StatelessWidget {
-  FileSystemEntity? style;
 
-  CreateStyleWidget(this.style,this.publicStylesFiles){
+  late bool _existPublicStylesFiles;
+  List<FileSystemEntity> publicStylesFiles; // todo 从上个页面传过来
+  FileSystemEntity? style;
+  String autoSaveAbsPath;
+
+  CreateStyleWidget(this.style, this.autoSaveAbsPath, this.publicStylesFiles) {
     _existPublicStylesFiles = publicStylesFiles.isNotEmpty;
   }
+
   late CreateStyleModel model;
 
   late TextEditingController controller;
   late TextEditingController pathController;
 
-  late bool _existPublicStylesFiles;
-  List<FileSystemEntity> publicStylesFiles; // todo 从上个页面传过来
 
   @override
   Widget build(BuildContext context) {
-
     model = Provider.of<CreateStyleModel>(context, listen: false);
     controller = TextEditingController(text: '');
     pathController = TextEditingController(text: '');
     controller.addListener(() {
       model.updateFileName(controller.text);
-      pathController.text =
-          "$ANDROID_PUBLIC_STYLES_PATH/${controller.text}.csv";
+      pathController.text = "$autoSaveAbsPath/${controller.text}.csv";
     });
 
     return Scaffold(
@@ -85,8 +86,9 @@ class CreateStyleWidget extends StatelessWidget {
               onPressed: () async {
                 if (controller.text.isNotEmpty) {
                   if (model.resType == CreateStyleType.copyFromRemote) {
-                    if(await checkStoragePermission()){
-                      File file = await saveRemoteStylesToLocalFile(pathController.text);
+                    if (await checkStoragePermission()) {
+                      dynamic file = await saveRemoteStylesToLocalFile(
+                          pathController.text);
                       Navigator.pop(context, file);
                     }
                   } else if (model.resType == CreateStyleType.empty) {
@@ -297,8 +299,8 @@ class CreateStyleWidget extends StatelessWidget {
           // provider.styles = re.map((e) => PromptStyle.fromJson(e)).toList();
           // 生成csv文件，csv文件路径：缓存目录下的 ble文件夹下
           try {
-            String csv =
-                const ListToCsvConverter().convert(PromptStyle.convertDynamic(re));
+            String csv = const ListToCsvConverter()
+                .convert(PromptStyle.convertDynamic(re));
             File csvFile = await f.writeAsString(csv);
             Navigator.pop(context, csvFile);
           } catch (e) {}

@@ -30,9 +30,10 @@ class PluginsWidget extends StatelessWidget {
         appBar: AppBar(
           automaticallyImplyLeading: true,
           title: TabBar(
+            indicator: null,
             tabs: tabs,
             labelStyle: TextStyle(
-              fontSize: 10,
+              fontSize: 16,
             ),
             dividerColor: Colors.transparent,
           ),

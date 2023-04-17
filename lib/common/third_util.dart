@@ -7,7 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:saver_gallery/saver_gallery.dart';
 
-import '../android.dart';
+import '../sd/android.dart';
 import '../sd/file_util.dart';
 import '../sd/http_service.dart';
 
@@ -62,7 +62,7 @@ Future<String> saveBytesToLocal( Uint8List? bytes, String fileName, String path,
         return Future.error("save failed");
       } else {
         Fluttertoast.showToast(msg: "图像保存成功：$result");
-        return Future.value("$ANDROID_ROOT_DIR/$path/$fileName");
+        return Future.value("$path/$fileName");
       }
     }
   } else {

@@ -11,7 +11,7 @@ import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/ui_util.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/android.dart';
+import 'package:sd/sd/android.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 
 import '../bean/db/History.dart';
@@ -64,7 +64,7 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
             physics: physics,
             itemCount: history.length,
             itemBuilder: (context, index) {
-              logt(TAG,"create item $index");
+              logt(TAG, "create item $index");
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
               return item.imgUrl != null
@@ -102,9 +102,14 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
                           }
                         }
                       },
-                      onTap: () {
+                      onTap: () async {
                         Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-                            arguments: {"urls": history.sublist(index,max(history.length,index+20)), "index": index,"savePath":getPublicPicturesPath()});
+                            arguments: {
+                              "urls": history.sublist(
+                                  index, min(history.length, index + 20)),
+                              "index": index,
+                              "savePath": await getImageAutoSaveAbsPath(),
+                            });
                       },
                       child: userAge >= item.ageLevel
                           ? CachedNetworkImage(
@@ -137,7 +142,7 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
   }
 
   loadData(BuildContext context, int pageNum, int pageSize) {
-    if(pageNum==0){
+    if (pageNum == 0) {
       history.clear();
     }
     //todo 动态获取文件路径
@@ -152,9 +157,9 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
       ], //data path_name
       "fn_index": CMD_GET_REMOTE_HISTORY
     }, exceptionCallback: (e) {
-      if(pageNum ==0){
+      if (pageNum == 0) {
         _controller.finishRefresh(IndicatorResult.fail);
-      }else{
+      } else {
         _controller.finishLoad(IndicatorResult.fail);
       }
     }).then((value) {
@@ -175,7 +180,7 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
           _controller.finishLoad(IndicatorResult.success);
         }
       } else {
-        logt(TAG,"nomore");
+        logt(TAG, "nomore");
         _controller.finishLoad(IndicatorResult.noMore);
       }
     });
