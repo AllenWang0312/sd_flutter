@@ -13,7 +13,7 @@ import '../config.dart';
 import '../db_controler.dart';
 import '../../common/util/file_util.dart';
 import '../http_service.dart';
-import '../model/AIPainterModel.dart';
+import '../AIPainterModel.dart';
 import '../../common/util/ui_util.dart';
 
 final String TAG = "SettingPage";

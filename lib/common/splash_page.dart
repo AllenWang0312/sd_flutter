@@ -11,11 +11,11 @@ import 'package:sd/common/util/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import '../sd/android.dart';
+import 'android.dart';
 import '../sd/bean/PromptStyle.dart';
 import '../sd/config.dart';
 import '../sd/http_service.dart';
-import '../sd/model/AIPainterModel.dart';
+import '../sd/AIPainterModel.dart';
 
 const int SPLASH_WATTING_TIME = 3;
 

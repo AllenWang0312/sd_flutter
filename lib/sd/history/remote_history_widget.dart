@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:math';
-import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_refresh/easy_refresh.dart';
@@ -9,7 +7,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/bean/db/History.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/AIPainterModel.dart';
 
 import '../../common/util/ui_util.dart';
 import '../config.dart';

@@ -1,21 +1,21 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/bean/UserInfo.dart';
-import 'package:sd/sd/fragment/tagger_widget.dart';
+import 'package:sd/sd/roll/tagger_widget.dart';
+import 'package:sd/sd/tavern/bean/ImageSize.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import '../../common/splash_page.dart';
-import '../bean/Configs.dart';
-import '../bean/PromptStyle.dart';
-import '../bean/UpScaler.dart';
-import '../bean/db/PromptStyleFileConfig.dart';
-import '../bean/db/Workspace.dart';
-import '../config.dart';
-import '../db_controler.dart';
-import '../http_service.dart';
+import 'bean/Configs.dart';
+import 'bean/PromptStyle.dart';
+import 'bean/db/PromptStyleFileConfig.dart';
+import 'bean/db/Workspace.dart';
+import 'bean4json/UpScaler.dart';
+import 'config.dart';
+import 'db_controler.dart';
+import 'http_service.dart';
 
 //存放需要在闪屏页初始化的配置
 
@@ -33,7 +33,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
 
 
   late Map<String,int> limit = {};
-
+  late Map<String,ImageSize?> imgSize = {};
   List<String> checkedStyles = [];
   List<PromptStyle> _styles = [];
 

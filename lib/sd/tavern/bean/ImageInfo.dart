@@ -5,11 +5,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:exif/exif.dart';
+import 'package:sd/common/util/file_util.dart';
+import 'package:sd/sd/http_service.dart';
+import 'package:sd/sd/tavern/bean/Showable.dart';
 
-import '../../common/util/file_util.dart';
-import '../android.dart';
-import '../http_service.dart';
-import 'Showable.dart';
+import '../../../common/android.dart';
 
 const TAG = "ImageInfo";
 abstract class ImageInfo extends Showable{

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'plugin_widget.dart';
 
-import '../config.dart';
+import '../../config.dart';
 
 class PluginsWidget extends StatelessWidget {
 

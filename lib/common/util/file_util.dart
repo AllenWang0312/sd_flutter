@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
 
-import '../../sd/android.dart';
+import '../android.dart';
 import '../../sd/config.dart';
 import '../../sd/http_service.dart';
 

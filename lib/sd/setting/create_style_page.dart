@@ -8,13 +8,13 @@ import 'package:sd/common/splash_page.dart';
 import 'package:sd/common/third_util.dart';
 import 'package:sd/common/util/file_util.dart';
 
-import '../android.dart';
+import '../../common/android.dart';
 import '../../common/ui_util.dart';
 import '../bean/PromptStyle.dart';
 import '../bean/enum/CreateStyleType.dart';
 import '../config.dart';
 import '../http_service.dart';
-import '../model/CreateStyleModel.dart';
+import 'CreateStyleModel.dart';
 import '../../common/util/ui_util.dart';
 
 Future<File> saveRemoteStylesToLocalFile(String styleConfigPath) {

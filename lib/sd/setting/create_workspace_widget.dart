@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/AIPainterModel.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import '../../common/third_util.dart';
-import '../android.dart';
+import '../../common/android.dart';
 import '../bean/db/PromptStyleFileConfig.dart';
 import '../bean/db/Workspace.dart';
 import '../bean/enum/StorageType.dart';
 import '../bean/enum/StyleResType.dart';
 import '../../common/util/file_util.dart';
 import '../http_service.dart';
-import '../model/create_wrokspace_model.dart';
+import 'CreateWrokspaceModel.dart';
 import '../../common/util/ui_util.dart';
 import 'create_style_page.dart';
 

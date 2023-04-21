@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-import 'package:sd/sd/model/AIPainterModel.dart';
-import '../UniqueSign.dart';
+import 'package:sd/sd/AIPainterModel.dart';
+import '../../tavern/bean/UniqueSign.dart';
 
 class History extends UniqueSign{
   int? page;

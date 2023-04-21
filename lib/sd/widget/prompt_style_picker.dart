@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/AIPainterModel.dart';
 
 import '../../common/util/string_util.dart';
 
@@ -89,7 +89,7 @@ class PromptStylePicker extends StatelessWidget {
               title: Text(AppLocalizations.of(context).choseStyles),
               content: SingleChildScrollView(
                 child: Column(
-                  children: generateStyles(provider.publicStyles!),
+                  children: generateStyles(provider.publicStyles!!),
                 ),
               ),
               actions: [
@@ -125,7 +125,7 @@ class PromptStylePicker extends StatelessWidget {
   //   });
   // }
 
-  List<Widget> generateStyles(Map<String, List<PromptStyle>> map) {
+  List<Widget> generateStyles(Map<String, List<PromptStyle>?> map) {
     List<Widget> result = [];
     for (String key in map.keys) {
       List<PromptStyle>? value = map[key];

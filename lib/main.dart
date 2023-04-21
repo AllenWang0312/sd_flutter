@@ -5,18 +5,18 @@ import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/common/webview_page.dart';
 import 'package:sd/sd/config.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
-import 'package:sd/sd/model/CreateStyleModel.dart';
-import 'package:sd/sd/model/HomeModel.dart';
-import 'package:sd/sd/model/create_wrokspace_model.dart';
-import 'package:sd/sd/pages/create_style_page.dart';
-import 'package:sd/sd/pages/create_workspace_widget.dart';
-import 'package:sd/sd/pages/edit_style_page.dart';
+import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/setting/CreateStyleModel.dart';
+import 'package:sd/sd/HomeModel.dart';
+import 'package:sd/sd/setting/CreateWrokspaceModel.dart';
+import 'package:sd/sd/setting/create_style_page.dart';
+import 'package:sd/sd/setting/create_workspace_widget.dart';
+import 'package:sd/sd/setting/edit_style_page.dart';
 import 'package:sd/sd/pages/home_page.dart';
 import 'package:sd/sd/pages/images_viewer.dart';
-import 'package:sd/sd/pages/setting_page.dart';
-import 'package:sd/sd/pages/style_edit_page.dart';
-import 'package:sd/sd/plgins/plugins_widget.dart';
+import 'package:sd/sd/setting/setting_page.dart';
+import 'package:sd/sd/setting/style_edit_page.dart';
+import 'package:sd/sd/roll/plgins/plugins_widget.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
 
 void main() {

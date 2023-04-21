@@ -1,4 +1,4 @@
-import 'package:sd/sd/android.dart';
+import 'package:sd/common/android.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 const int PATH_TYPE_APP_PRIVATE = 0;

@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/bean/UniqueSign.dart';
+import 'package:sd/sd/tavern/bean/UniqueSign.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/fragment/tagger_widget.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/roll/tagger_widget.dart';
+import 'package:sd/sd/AIPainterModel.dart';
 
 import '../../common/third_util.dart';
-import '../bean/Showable.dart';
+import '../tavern/bean/Showable.dart';
 import '../http_service.dart';
 
 class ImagesModel with ChangeNotifier, DiagnosticableTreeMixin {

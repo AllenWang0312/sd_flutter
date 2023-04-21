@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../../common/bean/StringIndicator.dart';
 import '../config.dart';
 import '../http_service.dart';
-import 'SDConst.dart';
+import '../const/SDConst.dart';
 
 class Configs {
   static const String TAG = "Prompt";

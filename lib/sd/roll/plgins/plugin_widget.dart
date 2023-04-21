@@ -2,10 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/empty_view.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/AIPainterModel.dart';
 
-import '../http_service.dart';
-import '../config.dart';
+import '../../http_service.dart';
+import '../../config.dart';
 
 class PluginWidget extends StatelessWidget {
   String prefix;

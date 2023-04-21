@@ -14,11 +14,11 @@ import '../../common/third_util.dart';
 import '../../common/ui_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
-import '../bean/PostPredictResult.dart';
+import '../bean4json/PostPredictResult.dart';
 import '../config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
-import '../model/AIPainterModel.dart';
+import '../AIPainterModel.dart';
 
 //todo 图片识别默认模型 从配置读取
 String DEFAULT_INTERROGATOR = 'wd14-vit-v2-git';

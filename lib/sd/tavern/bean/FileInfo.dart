@@ -1,12 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:exif/exif.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
-
-import '../../common/util/file_util.dart';
-import '../../common/util/string_util.dart';
+import '../../../common/util/file_util.dart';
+import '../../../common/util/string_util.dart';
 import 'UniqueSign.dart';
 
 const TAG = "FileInfo";

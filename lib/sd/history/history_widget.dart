@@ -10,7 +10,7 @@ import 'package:sd/sd/config.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/common/util/file_util.dart';
 
-import '../android.dart';
+import '../../common/android.dart';
 import '../../common/util/ui_util.dart';
 
 class HistoryWidget extends StatefulWidget {

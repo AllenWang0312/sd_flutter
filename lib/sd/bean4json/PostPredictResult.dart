@@ -1,4 +1,5 @@
-import 'Data.dart';
+
+import '../bean/Data.dart';
 
 class RunPredictResult {
   RunPredictResult({

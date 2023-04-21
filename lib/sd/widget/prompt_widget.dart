@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/mocker.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
+import 'package:sd/sd/AIPainterModel.dart';
 
 import '../bean/Configs.dart';
 import '../config.dart';
-import '../fragment/tagger_widget.dart';
+import '../roll/tagger_widget.dart';
 import '../http_service.dart';
 
 

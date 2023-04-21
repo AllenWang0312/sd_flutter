@@ -1,8 +1,4 @@
-import 'dart:typed_data';
-
-import 'package:sd/sd/bean/Showable.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
-
+import 'package:sd/sd/tavern/bean/Showable.dart';
 import '../config.dart';
 
 class GenerateResultItem extends Showable{

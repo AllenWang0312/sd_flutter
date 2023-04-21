@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
-import 'package:sd/sd/bean/FileInfo.dart';
+import 'package:sd/sd/tavern/bean/FileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'bean/UniqueSign.dart';
+import 'tavern/bean/UniqueSign.dart';
 import 'bean/db/History.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
 import 'http_service.dart';

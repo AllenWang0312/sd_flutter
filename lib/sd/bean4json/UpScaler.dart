@@ -1,4 +1,5 @@
-import 'package:sd/sd/bean/Named.dart';
+
+import 'Named.dart';
 
 class UpScaler implements Named {
 

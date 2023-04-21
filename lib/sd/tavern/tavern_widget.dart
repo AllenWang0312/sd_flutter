@@ -2,23 +2,23 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/common/android.dart';
 import 'package:sd/common/util/ui_util.dart';
-import 'package:sd/sd/android.dart';
+import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/HomeModel.dart';
 import 'package:sd/sd/config.dart';
-import 'package:sd/sd/model/AIPainterModel.dart';
-import 'package:sd/sd/model/HomeModel.dart';
+import 'package:sd/sd/tavern/bean/ImageSize.dart';
 
 import '../../common/third_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/string_util.dart';
 import '../bean/Configs.dart';
-import '../bean/FileInfo.dart';
 import '../http_service.dart';
 import '../platform.dart';
+import 'bean/FileInfo.dart';
 
 List<FileInfo> downloadRoot = [
   FileInfo(name: 'huggingface.co', isDir: true, url: 'https://huggingface.co'),
@@ -50,7 +50,6 @@ class _TavernWidgetState extends State<TavernWidget>
   List<List<FileInfo>> stacks = [];
   List<double> offsets = [];
 
-
   int editModel = 0; // 1 pick 2 cut 3 copy
   Set<FileInfo> checkedFiles = Set();
   Set<FileInfo> cutFiles = Set();
@@ -81,10 +80,12 @@ class _TavernWidgetState extends State<TavernWidget>
       setState(() {});
     }
   }
+
   late ScrollController controller;
+
   @override
   Widget build(BuildContext context) {
-     controller = ScrollController(keepScrollOffset: false);
+    controller = ScrollController(keepScrollOffset: false);
 
     provider = Provider.of<AIPainterModel>(context, listen: false);
     home = Provider.of<HomeModel>(context, listen: false);
@@ -253,6 +254,7 @@ class _TavernWidgetState extends State<TavernWidget>
   Widget ageLevelCover(FileInfo info, {bool? needInfoLogo = true}) {
     File image = File(info.getLocalPath());
     Uint8List bytes = image.readAsBytesSync();
+    Image img = Image.memory(bytes);
 
     // String sign = info.getSign(bytes);
     return Card(
@@ -271,9 +273,17 @@ class _TavernWidgetState extends State<TavernWidget>
                       ? ImageFiltered(imageFilter: AGE_LEVEL_BLUR, child: child)
                       : child!;
                 },
-                child: Image.memory(bytes),
+                child: Selector<AIPainterModel, ImageSize?>(
+                  selector: (_, model) => model.imgSize[info.sign],
+                  builder: (context, value, child) {
+                    return img;
+                  },
+                ),
               ),
-              if (null!=snapshot.data&&snapshot.data!.isNotEmpty&&null != needInfoLogo && needInfoLogo)
+              if (null != snapshot.data &&
+                  snapshot.data!.isNotEmpty &&
+                  null != needInfoLogo &&
+                  needInfoLogo)
                 Positioned(
                     right: 0,
                     top: 0,
@@ -314,11 +324,11 @@ class _TavernWidgetState extends State<TavernWidget>
 
   dirContent(FileInfo info) {
     int? count = info.fileCount;
-    logt(TAG,info.name! + info.localPath!+ count.toString());
+    logt(TAG, info.name! + info.localPath! + count.toString());
     return InkWell(
       onTap: () {
         if (info.isExist) {
-          if (count != null && count> 0) {
+          if (count != null && count > 0) {
             setState(() {
               dir = Directory(info.getLocalPath());
               currentDir = info.images!;

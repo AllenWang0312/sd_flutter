@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sd/common/util/file_util.dart';
 
-import '../sd/bean/Named.dart';
+import '../sd/bean4json/Named.dart';
 
 
 List<DropdownMenuItem> getStringItems(List<String> nameds) {

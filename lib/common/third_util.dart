@@ -6,7 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:saver_gallery/saver_gallery.dart';
 
-import '../sd/android.dart';
+import 'android.dart';
 import '../sd/http_service.dart';
 import 'util/string_util.dart';
 

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/bean/PostPredictResult.dart';
-import 'package:sd/sd/bean/SDModel.dart';
-import 'package:sd/sd/model/RollModel.dart';
+import 'package:sd/sd/bean4json/SDModel.dart';
+import 'package:sd/sd/roll/RollModel.dart';
 import 'package:sd/sd/pages/home_page.dart';
 
 import '../../common/ui_util.dart';
+import '../bean4json/PostPredictResult.dart';
 import '../http_service.dart';
 import '../config.dart';
 import '../mocker.dart';
-import '../model/AIPainterModel.dart';
+import '../AIPainterModel.dart';
 
 class SDModelWidget extends StatelessWidget {
   String getModel(String name) {
