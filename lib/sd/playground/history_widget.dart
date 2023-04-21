@@ -8,10 +8,10 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/file_util.dart';
+import 'package:sd/common/util/file_util.dart';
 
 import '../android.dart';
-import '../ui_util.dart';
+import '../../common/util/ui_util.dart';
 
 class HistoryWidget extends StatefulWidget {
   static const TAG = "HistoryWidget";
@@ -63,7 +63,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
             itemBuilder: (context, index) {
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
-              var file = File(dbString(item.imgPath!));
+              var file = File(dbString(item.localPath!));
               if (file.existsSync()) {
                 return InkWell(
                   onTap: () {
@@ -107,7 +107,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
 
       if (filterNotExist) {
         list.removeWhere((element) =>
-            element.imgPath == null || !File(element.imgPath!).existsSync());
+            element.localPath == null || !File(element.localPath!).existsSync());
       }
 
       if (list.length > 0) {

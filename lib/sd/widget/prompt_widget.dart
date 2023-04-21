@@ -1,14 +1,20 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/mocker.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 
-import '../http_service.dart';
+import '../bean/Configs.dart';
 import '../config.dart';
 import '../fragment/tagger_widget.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../http_service.dart';
+
 
 class PromptWidget extends StatelessWidget {
+  static const String TAG = "PromptWidget";
+
   PromptWidget();
 
   late AIPainterModel provider;
@@ -22,15 +28,17 @@ class PromptWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(AppLocalizations.of(context).prompt+":"),
+        Text(AppLocalizations
+            .of(context)
+            .prompt + ":"),
         Row(
           children: [
             Expanded(
               child: Selector<AIPainterModel, String>(
-                selector: (_, model) => model.prompt,
+                selector: (_, model) => model.config.prompt,
                 builder: (context, newValue, child) {
                   promptController = TextEditingController(text: newValue);
-                  return TextField(
+                  return TextFormField(
                     // initialValue: newValue,
                     // focusNode: FocusNode(
                     //   onKey: (_,keyEvent){
@@ -51,29 +59,48 @@ class PromptWidget extends StatelessWidget {
                 },
               ),
             ),
-            IconButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (_) {
-                        return AlertDialog(
-                          title: Text(AppLocalizations.of(context).tagger),
-                          content: ChangeNotifierProvider(
-                            create: (_) => TaggerModel(),
-                            child: TaggerWidget(),
-                          ),
-                        );
-                      });
-                },
-                icon: Icon(Icons.image_search))
+            Column(
+              children: [
+                IconButton(
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (_) {
+                            return AlertDialog(
+                              title: Text(AppLocalizations
+                                  .of(context)
+                                  .tagger),
+                              content: ChangeNotifierProvider(
+                                create: (_) => TaggerModel(),
+                                child: TaggerWidget(),
+                              ),
+                            );
+                          });
+                    },
+                    icon: Icon(Icons.image_search)),
+                IconButton(
+                    onPressed: () {
+                      var prompt = promptController.text;
+                      Configs dec = Configs.fromString(prompt);
+                      // provider.updatePrompt(dec.prompt);
+                      provider.updateConfigs(dec);
+                    },
+                    icon: Transform.rotate(
+                      angle: -pi / 4,
+                      child: Icon(Icons.arrow_back),
+                    ))
+              ],
+            )
           ],
         ),
-        Text(AppLocalizations.of(context).negativePrompt+":"),
+        Text(AppLocalizations
+            .of(context)
+            .negativePrompt + ":"),
         Row(
           children: [
             Expanded(
               child: Selector<AIPainterModel, String>(
-                  selector: (_, model) => model.negPrompt,
+                  selector: (_, model) => model.config.negativePrompt,
                   builder: (context, newValue, child) {
                     negController = TextEditingController(text: newValue);
                     return TextField(
@@ -81,7 +108,7 @@ class PromptWidget extends StatelessWidget {
                       maxLines: 4,
                       controller: negController,
                       onEditingComplete: () {
-                        provider.updatePrompt(promptController.text);
+                        provider.updateNegPrompt(negController.text);
                       },
                     );
                   }),
@@ -92,11 +119,13 @@ class PromptWidget extends StatelessWidget {
                     onPressed: () {
                       provider.cleanPrompts();
                     },
-                    child: Text(AppLocalizations.of(context).clean)),
+                    child: Text(AppLocalizations
+                        .of(context)
+                        .clean)),
                 TextButton(
                     onPressed: () {
                       post("$sdHttpService$RUN_PREDICT",
-                              formData: getLastPrompt())
+                          formData: getLastPrompt())
                           .then((value) {
                         // promptController.text = value?.data['data'][0]['value'];
                         // provider.cleanCheckedStyles();
@@ -104,16 +133,21 @@ class PromptWidget extends StatelessWidget {
                             value?.data['data'][1]['value']);
                       });
                     },
-                    child: Text(AppLocalizations.of(context).load)),
+                    child: Text(AppLocalizations
+                        .of(context)
+                        .load)),
                 TextButton(
-                    onPressed: () => Navigator.pushNamed(
+                    onPressed: () =>
+                        Navigator.pushNamed(
                             context, ROUTE_STYLE_EDITTING,
                             arguments: {
                               "title": "新建style",
                               "prompt": promptController.text,
                               "negPrompt": negController.text
                             }),
-                    child: Text(AppLocalizations.of(context).save)),
+                    child: Text(AppLocalizations
+                        .of(context)
+                        .save)),
               ],
             ),
           ],

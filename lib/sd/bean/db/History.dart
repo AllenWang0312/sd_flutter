@@ -1,6 +1,8 @@
-import 'package:sd/sd/bean/Showable.dart';
+import 'dart:typed_data';
+import 'package:sd/sd/model/AIPainterModel.dart';
+import '../UniqueSign.dart';
 
-class History extends Showable {
+class History extends UniqueSign{
   int? page;
   int? offset;
 
@@ -13,33 +15,34 @@ class History extends Showable {
       'id INTEGER PRIMARY KEY, workspace TEXT,prompt TEXT,negativePrompt TEXT, seed INTEGER,width INTEGER,height INTEGER,date TEXT,time TEXT,errMsg TEXT,imgPath TEXT,imgUrl TEXT';
   String? prompt = '';
   String? negativePrompt = '';
-  int ageLevel = 0;
+  int ageLevel = 18;
   int? seed = -1;
   int? width = 512;
   int? height = 512;
   String? date = '';
   String? time = '';
   String? errMsg;
-  String? imgPath = '';
-  String? imgUrl;
   String? workspace = '';
 
   History({
     this.prompt,
     this.negativePrompt,
-    this.ageLevel = 0,
+    this.ageLevel = 18,
     this.width,
     this.height,
-    this.imgPath,
+    String? imgPath,
     this.date,
     this.time,
     this.seed,
     this.errMsg,
-    this.imgUrl,
+    String? imgUrl,
     this.page,
     this.offset,
     this.workspace,
-  });
+  }){
+    this.localPath = imgPath;
+    this.url = imgUrl;
+  }
 
   History.fromJson(dynamic json) {
     prompt = json['prompt'];
@@ -50,8 +53,8 @@ class History extends Showable {
     date = json['date'];
     time = json['time'];
     errMsg = json['errMsg'];
-    imgPath = json['imgPath'];
-    imgUrl = json['imgUrl'];
+    localPath = json['imgPath'];
+    url = json['imgUrl'];
     workspace = json['workspace'];
   }
 
@@ -65,15 +68,15 @@ class History extends Showable {
     map['date'] = date;
     map['time'] = time;
     map['errMsg'] = errMsg;
-    map['imgPath'] = imgPath;
-    map['imgUrl'] = imgUrl;
-    map['workspace']=workspace;
+    map['imgPath'] = localPath;
+    map['imgUrl'] = url;
+    map['workspace'] = workspace;
     return map;
   }
 
   @override
-  String getUrl() {
-    return imgUrl ?? imgPath ?? "";
+  String getFileLocation() {
+    return url ?? localPath ?? "";
   }
 
   @override
@@ -81,9 +84,10 @@ class History extends Showable {
       identical(this, other) ||
       other is History &&
           runtimeType == other.runtimeType &&
-          imgPath == other.imgPath &&
-          imgUrl == other.imgUrl;
+          localPath == other.localPath &&
+          url == other.url;
 
   @override
-  int get hashCode => imgPath.hashCode ^ imgUrl.hashCode;
+  int get hashCode => localPath.hashCode ^ url.hashCode;
+
 }

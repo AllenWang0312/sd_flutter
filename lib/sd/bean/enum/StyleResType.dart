@@ -1,1 +1,1 @@
-enum StyleResType { reomote, copy }
+enum StyleResType { reomote, private, public }

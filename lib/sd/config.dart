@@ -36,6 +36,9 @@ const String SP_SAMPLER = "sampler";
 const String SP_SAMPLER_STEPS = "sampler_steps";
 const String SP_CHECKED_STYLES = "checked_styles";
 const String SP_AUTO_SAVE = "auto_save";
+const String SP_HIDE_NSFW = "hide_nsfw";
+const String SP_CHECK_IDENTITY = "check_identity";
+
 const String SP_FACE_FIX = "face_fix";
 const String SP_HIRES_FIX = "hires_fix";
 const String SP_BATCH_COUNT = "batch_count";
@@ -45,6 +48,8 @@ const String SP_BATCH_SIZE = "batch_size";
 const String ROUTE_HOME = "/home";
 const String ROUTE_PLUGINS = "/home/plugins";
 const String ROUTE_SETTING = "/setting";
+const String ROUTE_WEBVIEW = "/webview";
+
 const String ROUTE_STYLE_EDITTING = "/styles/edit";
 // const String ROUTE_IMAGE_VIEWER = "/viewer";
 const String ROUTE_IMAGES_VIEWER = "/viewers";
@@ -133,11 +138,12 @@ const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
 
 //todo imgPath 是否有效 为何无法删除
 final String TAG = "config";
+
 History mapToHistory(int page, int offset, String name) {
   String url = nameToUrl(name);
   logt(TAG,url + " " + name);
   return History(
-      ageLevel: name.contains('18x') ? 18 : 16,
+      // ageLevel: name.contains('18x') ? 18 : 16,
       page: page,
       offset: offset,
       imgUrl: url,

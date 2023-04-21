@@ -6,7 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/common/third_util.dart';
-import 'package:sd/sd/file_util.dart';
+import 'package:sd/common/util/file_util.dart';
 
 import '../android.dart';
 import '../../common/ui_util.dart';
@@ -15,7 +15,7 @@ import '../bean/enum/CreateStyleType.dart';
 import '../config.dart';
 import '../http_service.dart';
 import '../model/CreateStyleModel.dart';
-import '../ui_util.dart';
+import '../../common/util/ui_util.dart';
 
 Future<File> saveRemoteStylesToLocalFile(String styleConfigPath) {
   get("$sdHttpService$GET_STYLES", exceptionCallback: (e) {
@@ -114,7 +114,7 @@ class CreateStyleWidget extends StatelessWidget {
                     Navigator.pop(context, file);
                   }
                 } else {
-                  Fluttertoast.showToast(msg: "请输入风格（Style）名");
+                  Fluttertoast.showToast(msg: "请输入风格（Style）名",gravity: ToastGravity.CENTER);
                 }
               },
               icon: Icon(Icons.add))

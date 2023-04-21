@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:sd/sd/android.dart';
-import 'package:sd/sd/file_util.dart';
+import 'package:sd/common/util/file_util.dart';
+import 'package:sd/sd/bean/UserInfo.dart';
 import 'package:sd/sd/fragment/tagger_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 import '../../common/splash_page.dart';
+import '../bean/Configs.dart';
 import '../bean/PromptStyle.dart';
 import '../bean/UpScaler.dart';
 import '../bean/db/PromptStyleFileConfig.dart';
@@ -15,25 +17,23 @@ import '../config.dart';
 import '../db_controler.dart';
 import '../http_service.dart';
 
-String appendCommaIfNotExist(String str) {
-  if (str.isEmpty || str.endsWith(",") || str.endsWith("，")) {
-    return str;
-  } else {
-    return "$str,";
-  }
-}
-
 //存放需要在闪屏页初始化的配置
 
 class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   static const String TAG = 'AIPainterModel';
 
-  Workspace? selectWorkspace;
+  UserInfo userInfo = UserInfo();
 
+  bool sdServiceAvailable = false;
+  Workspace? selectWorkspace;
   List<PromptStyleFileConfig>? styleConfigs;
 
   Map<String, List<PromptStyle>>? publicStyles =
       Map(); // '','privateFilePath'.''
+
+
+  late Map<String,int> limit = {};
+
   List<String> checkedStyles = [];
   List<PromptStyle> _styles = [];
 
@@ -45,7 +45,114 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     }
     return _styles;
   }
-  loadStyles(int wsId) async {
+
+  // String _cover =
+  //     'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
+
+  // String _cover = 'http://$sdHost:$SD_PORT/static/img/api-logo.svg';
+  String? splashImg;
+
+  int countdownNum = SPLASH_WATTING_TIME;
+  bool https = false;
+
+  double denoisingStrength = 0.3;
+
+  int resizeWidth = 0;
+  int resizeHeight = 0;
+
+  int batchCount = 1;
+  int batchSize = 1;
+
+  // String host =
+  bool autoSave = true;
+  bool hideNSFW = true;
+  bool checkIdentityWhenReEnter = true;
+
+  // String selectedSDModel = "";
+  String selectedSDModel = "";
+
+  List<UpScaler> upScalers = [];
+  String selectedUpScale = DEFAULT_UPSCALE;
+
+  bool faceFix = DEFAULT_FACE_FIX;
+  bool tiling = false;
+  bool hiresFix = false;
+  int hiresSteps = 30;
+
+  double upscale = 2;
+
+  int scalerWidth = DEFAULT_WIDTH;
+  int scalerHeight = DEFAULT_HEIGHT;
+
+  Map<String, double> checkedPlugins = Map();
+
+  // Map<String, double> checkedPlugins = Map(); // lora
+
+  String selectedInterrogator = DEFAULT_INTERROGATOR;
+
+  Configs config = Configs();
+
+  late SharedPreferences sp;
+
+  load() async {
+    sp = await SharedPreferences.getInstance();
+    sdHost = sp.getString(SP_HOST) ??
+        (Platform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
+    if (!UniversalPlatform.isIOS) {
+      splashImg = 'http://$sdHost:$SD_PORT/favicon.ico';
+    } else {
+      splashImg = 'https://stability.ai/favicon.ico'; // ios 第一次https 调用才会触发授权弹框
+    }
+    // splashImg = 'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
+    config.sampler = sp.getString(SP_SAMPLER) ?? DEFAULT_SAMPLER;
+    config.steps = sp.getInt(SP_SAMPLER_STEPS) ?? DEFAULT_SAMPLER_STEPS;
+    config.width = sp.getInt(SP_WIDTH) ?? DEFAULT_WIDTH;
+    config.height = sp.getInt(SP_HEIGHT) ?? DEFAULT_HEIGHT;
+
+    faceFix = sp.getBool(SP_FACE_FIX) ?? DEFAULT_FACE_FIX;
+    hiresFix = sp.getBool(SP_HIRES_FIX) ?? DEFAULT_HIRES_FIX;
+    checkedStyles = sp.getStringList(SP_CHECKED_STYLES) ?? [];
+    batchCount = sp.getInt(SP_BATCH_COUNT) ?? 1;
+    batchSize = sp.getInt(SP_BATCH_SIZE) ?? 1;
+    autoSave = sp.getBool(SP_AUTO_SAVE) ?? true;
+    hideNSFW = sp.getBool(SP_HIDE_NSFW) ?? true;
+    checkIdentityWhenReEnter = sp.getBool(SP_CHECK_IDENTITY)??true;
+
+    String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
+
+// DBController 操作必须在此之后
+    Workspace? ws = await DBController.instance.initDepends(workspace: name);
+    if (ws == null) {
+      ws = Workspace(DEFAULT_WORKSPACE_NAME, await getImageAutoSaveAbsPath());
+      int? insertResult = await DBController.instance.insertWorkSpace(ws);
+      if (null != insertResult && insertResult >= 0) {
+        var config = PromptStyleFileConfig(
+            name: "远端配置",
+            belongTo: insertResult,
+            type: ConfigType.remote.index);
+        await DBController.instance.insertStyleFileConfig(config);
+        selectWorkspace = ws;
+      }
+    } else {
+      selectWorkspace = ws;
+    }
+   await DBController.instance.queryAgeLevelRecord()?.then((value){
+     logt(TAG,"limit size${value.length}");
+     value.forEach((element) {
+        logt(TAG,"ageLevelRecord $element");
+        limit.putIfAbsent(element['sign'],()=> element['ageLevel']);
+      });
+      logt(TAG,"limit size${limit.keys}");
+    });
+    if (null != selectWorkspace?.id) {
+      loadStylesFromDB(selectWorkspace!.id!);
+    }
+
+    logt(TAG, "load config${selectWorkspace?.dirPath}");
+    notifyListeners();
+  }
+
+  loadStylesFromDB(int wsId) async {
     List? rows = await DBController.instance.queryStyles(wsId);
     if (null != rows && rows.isNotEmpty) {
       styleConfigs = rows.map((e) {
@@ -60,7 +167,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
           get("$sdHttpService$GET_STYLES").then((value) {
             List re = value?.data;
             publicStyles?.putIfAbsent(
-                '远端配置', () => re.map((e) => PromptStyle.fromJson(e)).toList());
+                '远端配置', () => re.where((element) => null!=element).toList().map((e) => PromptStyle.fromJson(e)).toList());
           });
         } else {
           List<PromptStyle> styles =
@@ -71,103 +178,12 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     }
   }
 
-  String splashImg = "";
-
-  int countdownNum = SPLASH_WATTING_TIME;
-  bool https = false;
-
-  double denoisingStrength = 0.3;
-
-  int resizeWidth = 0;
-  int resizeHeight = 0;
-
-  int batchCount = 1;
-  int batchSize = 1;
-  double CFGScale = 7.0;
-  int seed = -1;
-
-  // String host =
-  bool autoSave = true;
-
-  // String selectedSDModel = "";
-  String selectedSDModel = "";
-  String selectedSampler = DEFAULT_SAMPLER;
-  int samplerSteps = DEFAULT_SAMPLER_STEPS;
-
-  List<UpScaler> upScalers = [];
-  String selectedUpScale = DEFAULT_UPSCALE;
-
-  bool faceFix = DEFAULT_FACE_FIX;
-  bool tiling = false;
-  bool hiresFix = false;
-  int hiresSteps = 30;
-
-  int width = DEFAULT_WIDTH;
-  int height = DEFAULT_HEIGHT;
-
-  double upscale = 2;
-
-  int scalerWidth = DEFAULT_WIDTH;
-  int scalerHeight = DEFAULT_HEIGHT;
-
-
-  Map<String, double> checkedPlugins = Map();
-
-  // Map<String, double> checkedPlugins = Map(); // lora
-
-  String selectedInterrogator = DEFAULT_INTERROGATOR;
-  String prompt = "";
-  String negPrompt = "";
-  late SharedPreferences sp;
-
-  load() async {
-    sp = await SharedPreferences.getInstance();
-    sdHost = sp.getString(SP_HOST) ??
-        (Platform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
-    // splashImg = 'http://$sdHost:$SD_PORT/favicon.ico';
-    splashImg = 'https://stability.ai/favicon.ico'; // ios 第一次https 调用才会触发授权弹框
-    // splashImg = 'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
-    selectedSampler = sp.getString(SP_SAMPLER) ?? DEFAULT_SAMPLER;
-    samplerSteps = sp.getInt(SP_SAMPLER_STEPS) ?? DEFAULT_SAMPLER_STEPS;
-    width = sp.getInt(SP_WIDTH) ?? DEFAULT_WIDTH;
-    height = sp.getInt(SP_HEIGHT) ?? DEFAULT_HEIGHT;
-    faceFix = sp.getBool(SP_FACE_FIX) ?? DEFAULT_FACE_FIX;
-    hiresFix = sp.getBool(SP_HIRES_FIX) ?? DEFAULT_HIRES_FIX;
-    checkedStyles = sp.getStringList(SP_CHECKED_STYLES) ?? [];
-    batchCount = sp.getInt(SP_BATCH_COUNT) ?? 1;
-    batchSize = sp.getInt(SP_BATCH_SIZE) ?? 1;
-    String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
-    Workspace? ws = await DBController.instance.initDepends(workspace: name);
-    if (ws == null) {
-      ws = Workspace(DEFAULT_WORKSPACE_NAME,
-          await getImageAutoSaveAbsPath());
-      int? insertResult = await DBController.instance.insertWorkSpace(ws);
-      if (null != insertResult && insertResult >= 0) {
-        var config = PromptStyleFileConfig(
-            name: "远端配置",
-            belongTo: insertResult,
-            type: ConfigType.remote.index);
-        await DBController.instance.insertStyleFileConfig(config);
-        selectWorkspace = ws;
-      }
-    } else {
-      selectWorkspace = ws;
-    }
-
-    if (null != selectWorkspace?.id) {
-      loadStyles(selectWorkspace!.id!);
-    }
-
-    logt(TAG, "load config${selectWorkspace?.dirPath}");
-    notifyListeners();
-  }
-
   save() async {
     SharedPreferences sp = await SharedPreferences.getInstance();
-    await sp.setString(SP_SAMPLER, selectedSampler);
-    await sp.setInt(SP_SAMPLER_STEPS, samplerSteps);
-    await sp.setInt(SP_WIDTH, width);
-    await sp.setInt(SP_HEIGHT, height);
+    await sp.setString(SP_SAMPLER, config.sampler);
+    await sp.setInt(SP_SAMPLER_STEPS, config.steps);
+    await sp.setInt(SP_WIDTH, config.width);
+    await sp.setInt(SP_HEIGHT, config.height);
     await sp.setBool(SP_FACE_FIX, faceFix);
     await sp.setBool(SP_HIRES_FIX, hiresFix);
     await sp.setStringList(SP_CHECKED_STYLES, checkedStyles);
@@ -191,26 +207,31 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void removePluginPrompt(String prefix, String name) {
-    prompt.replaceAll(getPluginMarch(prefix, name), "");
+    config.prompt.replaceAll(getPluginMarch(prefix, name), "");
   }
 
   void addPluginPrompt(String prefix, String name) {
-    prompt += "<$prefix:$name:1.0>";
+    config.prompt += "<$prefix:$name:1.0>";
   }
 
   void updatePrompt(String prompt) {
-    this.prompt = prompt;
+    this.config.prompt = prompt;
     notifyListeners();
   }
 
   void updatePrompts(String prompt, String negPrompt) {
-    this.prompt = prompt;
-    this.negPrompt = negPrompt;
+    this.config.prompt = prompt;
+    this.config.negativePrompt = negPrompt;
+    notifyListeners();
+  }
+
+  void updateConfigs(Configs prompt) {
+    this.config = prompt;
     notifyListeners();
   }
 
   void updateNegPrompt(String negPrompt) {
-    this.negPrompt = negPrompt;
+    this.config.negativePrompt = negPrompt;
     notifyListeners();
   }
 
@@ -250,7 +271,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void updateSteps(double value) {
-    samplerSteps = value.toInt();
+    config.steps = value.toInt();
     notifyListeners();
   }
 
@@ -260,7 +281,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void selectSampler(String newValue) {
-    selectedSampler = newValue;
+    config.sampler = newValue;
     notifyListeners();
   }
 
@@ -274,17 +295,17 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void updateWidth(double value) {
-    width = value.toInt();
+    config.width = value.toInt();
     if (hiresFix) {
-      scalerWidth = (upscale * width).toInt();
+      scalerWidth = (upscale * config.width).toInt();
     }
     notifyListeners();
   }
 
   void updateHeight(double value) {
-    height = value.toInt();
+    config.height = value.toInt();
     if (hiresFix) {
-      scalerHeight = (upscale * height).toInt();
+      scalerHeight = (upscale * config.height).toInt();
     }
     notifyListeners();
   }
@@ -335,8 +356,8 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
 
   void updateScale(double value) {
     upscale = value;
-    scalerWidth = (width * upscale).toInt();
-    scalerHeight = (height * upscale).toInt();
+    scalerWidth = (config.width * upscale).toInt();
+    scalerHeight = (config.height * upscale).toInt();
     notifyListeners();
   }
 
@@ -349,8 +370,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void cleanPrompts() {
-    prompt = '';
-    negPrompt = '';
+    config = Configs();
     notifyListeners();
   }
 
@@ -358,5 +378,14 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     selectWorkspace = value;
     sp.setString(SP_CURRENT_WS, value.name);
     notifyListeners();
+  }
+
+  void updateHideNSFW(bool value) {
+    hideNSFW = value;
+    notifyListeners();
+  }
+
+  int limitedUrl(String imgUrl) {
+   return limit[imgUrl]??0;
   }
 }

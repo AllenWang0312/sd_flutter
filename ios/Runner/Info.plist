@@ -29,6 +29,10 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 
+
+    <key>NSFaceIDUsageDescription</key>
+    <string>当浏览私密内容时需要核实您的身份</string>
+
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>应用需要访问系统图库</string>
 	<key>NSCameraUsageDescription</key>

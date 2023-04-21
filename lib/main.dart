@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
+import 'package:sd/common/webview_page.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 import 'package:sd/sd/model/CreateStyleModel.dart';
@@ -12,7 +13,6 @@ import 'package:sd/sd/pages/create_style_page.dart';
 import 'package:sd/sd/pages/create_workspace_widget.dart';
 import 'package:sd/sd/pages/edit_style_page.dart';
 import 'package:sd/sd/pages/home_page.dart';
-import 'package:sd/sd/pages/image_viewer.dart';
 import 'package:sd/sd/pages/images_viewer.dart';
 import 'package:sd/sd/pages/setting_page.dart';
 import 'package:sd/sd/pages/style_edit_page.dart';
@@ -27,35 +27,46 @@ void main() {
         ),
     ROUTE_PLUGINS: (_) => PluginsWidget(),
     ROUTE_SETTING: (_) => SettingPage(),
+    ROUTE_WEBVIEW: (_, {arguments}) => WebViewStatefulPage(
+          arguments['title'],
+          arguments['url'],
+          savePath: arguments['savePath'],
+        ),
     ROUTE_CREATE_WORKSPACE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateWSModel(),
-        child: CreateWorkspaceWidget(arguments['imgSavePath'],arguments['styleSavePath'],
-            // publicPath:arguments['publicPath'],openHidePath: arguments['openHidePath'],
-            workspace: arguments['workspace'],
-          publicStyleConfigs: arguments['publicStyleConfigs'],)),
+        child: CreateWorkspaceWidget(
+          arguments['imgSavePath'], arguments['styleSavePath'],
+          // publicPath:arguments['publicPath'],openHidePath: arguments['openHidePath'],
+          workspace: arguments['workspace'],
+          configs: arguments['configs'],
+          publicStyleConfigs: arguments['publicStyleConfigs'],
+        )),
     ROUTE_CREATE_STYLE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateStyleModel(),
-        child: CreateStyleWidget(arguments['style'],arguments['autoSaveAbsPath'],arguments['files'])),
+        child: CreateStyleWidget(arguments['style'],
+            arguments['autoSaveAbsPath'], arguments['files'])),
     ROUTE_STYLE_EDITTING: (_, {arguments}) => StyleEditPage(
           title: arguments['title'],
           styleName: arguments['styleName'],
           prompt: arguments['prompt'],
           negPrompt: arguments['negPrompt'],
         ),
-    ROUTE_EDIT_STYLE:(_,{arguments})=>StyleConfigPage(
-      arguments
-    ),
+    ROUTE_EDIT_STYLE: (_, {arguments}) => StyleConfigPage(arguments),
     // ROUTE_IMAGE_VIEWER: (_, {arguments}) => ImageViewer(
     //       url: arguments['url'],
     //       filePath: arguments['filePath'],
     //       bytes: arguments['bytes'],
     //   savePath: arguments['savePath'],
     //     ),
-    ROUTE_IMAGES_VIEWER: (_, {arguments}) => ImagesViewer(
-          urls: arguments['urls'],
-          index:arguments['index'],
-          datas: arguments['datas'],
-      saveDirPath: arguments['savePath'],
+    ROUTE_IMAGES_VIEWER: (_, {arguments}) => ChangeNotifierProvider(
+          create: (_) => ImagesModel(),
+          child: ImagesViewer(
+            urls: arguments['urls'],
+            index: arguments['index'],
+            datas: arguments['datas'],
+            saveDirPath: arguments['savePath'],
+            scanServiceAvailable: arguments['scanAvailable']??false,
+          ),
         )
   };
   onGenerateRoute(RouteSettings settings) {

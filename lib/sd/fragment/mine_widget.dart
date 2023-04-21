@@ -10,15 +10,7 @@ class MineWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            IconButton(
-                icon: Icon(Icons.settings),
-                onPressed: () async {
-                  if (await checkStoragePermission()) {
-                    Navigator.pushNamed(context, ROUTE_SETTING);
-                  }
 
-                  // HistoryWidget(dbController),
-                }),
           ],
         ),
         Expanded(child: Container())

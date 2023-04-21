@@ -44,7 +44,7 @@ dynamic multiGenerateBody(dynamic data,int pi ,int times) {
       0,
       0,
       [],
-      "None",
+      "None",//脚本 X/Y/Z plot
       false,
       "MultiDiffusion",
       false,
@@ -143,8 +143,8 @@ dynamic multiGenerateBody(dynamic data,int pi ,int times) {
       false,
       false,
       "",
-      "Seed",
-      "",
+      "Seed",//Checkpoint name
+      "",//args
       "Nothing",
       "",
       "Nothing",

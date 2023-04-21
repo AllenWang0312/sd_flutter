@@ -3,6 +3,7 @@
   "ok": "确定",
   "cancel": "取消",
   "tavern": "酒馆",
+  "history": "历史",
   "local": "本地",
   "remote": "远端",
   "roll": "Roll",
@@ -41,6 +42,8 @@
   "save": "保存",
   "saveFailed": "保存失败",
   "autoSave": "自动保存图片",
+  "hideNSFW": "限制内容模糊",
+  "checkIdentity": "重新唤醒时检查身份",
   "workspace": "工作空间",
   "styleConfig": "风格文件配置",
   "storagePromissionMsg": "请允许应用使用存储权限",
@@ -48,5 +51,7 @@
   "networkNotChanged": "地址未改动",
 
   "restartDialogTitle": "立即重启",
-  "restartDialogContent": "关键配置已变更,点击确定立即重启"
+  "restartDialogContent": "关键配置已变更,点击确定立即重启",
+  "restartNowContent": "点击确定立即重启"
+
 }

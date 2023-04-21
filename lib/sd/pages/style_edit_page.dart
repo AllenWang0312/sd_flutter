@@ -36,12 +36,12 @@ class StyleEditPage extends StatelessWidget {
                   ],
                   "fn_index": CMD_SAVE_STYLE
                 }, exceptionCallback: (e) {
-                  Fluttertoast.showToast(msg: "保存失败");
+                  Fluttertoast.showToast(msg: "保存失败",gravity: ToastGravity.CENTER);
                 }).then((value) {
                   var result = RunPredictResult.fromJson(value?.data);
                   if (result.duration > 0) {
                     Navigator.pop(context, 1);
-                    Fluttertoast.showToast(msg: '保存成功');
+                    Fluttertoast.showToast(msg: '保存成功',gravity: ToastGravity.CENTER);
                   }
                 });
               },

@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/GenerateResultItem.dart';
-import 'package:sd/sd/file_util.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 import 'package:sd/sd/model/RollModel.dart';
 import 'package:sd/sd/widget/sampler_widget.dart';
@@ -21,12 +20,11 @@ import '../db_controler.dart';
 import '../http_service.dart';
 import '../mocker.dart';
 import '../pages/home_page.dart';
+import '../../common/util/string_util.dart';
 import '../widget/prompt_style_picker.dart';
 import '../widget/prompt_widget.dart';
 import '../widget/sd_model_widget.dart';
 import '../widget/upsacler_widget.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
 
 class RollWidget extends StatelessWidget {
   final String TAG = "RollWidget";
@@ -53,7 +51,8 @@ class RollWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("  ${AppLocalizations.of(context).sdModel} ："),
-                Text("${AppLocalizations.of(context).workspace}：${provider.selectWorkspace?.getName()}   ")
+                Text(
+                    "${AppLocalizations.of(context).workspace}：${provider.selectWorkspace?.getName()}   ")
               ],
             ),
             SDModelWidget(),
@@ -94,23 +93,36 @@ class RollWidget extends StatelessWidget {
                                 padding: EdgeInsets.symmetric(horizontal: 20),
                                 child: Text(
                                   AppLocalizations.of(context).basic,
-                                  style: TextStyle(color: CupertinoColors.white),
+                                  style:
+                                      TextStyle(color: CupertinoColors.white),
                                 ),
                               ),
                               SetType.advanced: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 20),
                                 child: Text(
                                   AppLocalizations.of(context).advance,
-                                  style: TextStyle(color: CupertinoColors.white),
+                                  style:
+                                      TextStyle(color: CupertinoColors.white),
                                 ),
                               ),
                               SetType.lora: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 20),
-                                child: Text(
-                                  AppLocalizations.of(context).plugin,
-                                  style: TextStyle(color: CupertinoColors.white),
-                                ),
-                              ),
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  child: Selector<AIPainterModel, int?>(
+                                      selector: (_, model) =>
+                                          model.checkedPlugins.values.length,
+                                      builder: (context, value, child) {
+                                        return value == null || value == 0
+                                            ? child!
+                                            : Badge(
+                                                child: child,
+                                                label: Text(value.toString()),
+                                              );
+                                      },
+                                      child: Text(
+                                        AppLocalizations.of(context).plugin,
+                                        style: TextStyle(
+                                            color: CupertinoColors.white),
+                                      ))),
                               // SetType.hyp: Padding(
                               //   padding: EdgeInsets.symmetric(horizontal: 20),
                               //   child: Text(
@@ -152,7 +164,7 @@ class RollWidget extends StatelessWidget {
                             ),
                             samplerManager,
                             Selector<AIPainterModel, int>(
-                                selector: (_, model) => model.width,
+                                selector: (_, model) => model.config.width,
                                 shouldRebuild: (pre, next) => pre != next,
                                 builder: (context, newValue, child) {
                                   AIPainterModel provider =
@@ -160,7 +172,7 @@ class RollWidget extends StatelessWidget {
 
                                   TextEditingController widthController =
                                       TextEditingController(
-                                          text: provider.width.toString());
+                                          text: newValue.toString());
                                   return Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -172,7 +184,7 @@ class RollWidget extends StatelessWidget {
                                               // initialValue: provider.samplerSteps.toString(),
                                               controller: widthController)),
                                       Slider(
-                                        value: provider.width.toDouble(),
+                                        value: newValue.toDouble(),
                                         min: 512,
                                         max: 2560,
                                         divisions: 16,
@@ -186,7 +198,7 @@ class RollWidget extends StatelessWidget {
                                   );
                                 }),
                             Selector<AIPainterModel, int>(
-                                selector: (_, model) => model.height,
+                                selector: (_, model) => model.config.height,
                                 shouldRebuild: (pre, next) => pre != next,
                                 builder: (context, newValue, child) {
                                   AIPainterModel provider =
@@ -262,7 +274,8 @@ class RollWidget extends StatelessWidget {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(AppLocalizations.of(context).batchCount),
+                                      Text(AppLocalizations.of(context)
+                                          .batchCount),
                                       SizedBox(
                                           width: 40,
                                           child: TextField(
@@ -292,7 +305,8 @@ class RollWidget extends StatelessWidget {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(AppLocalizations.of(context).batchSize),
+                                      Text(AppLocalizations.of(context)
+                                          .batchSize),
                                       SizedBox(
                                           width: 40,
                                           child: TextField(
@@ -370,20 +384,20 @@ class RollWidget extends StatelessWidget {
 
   txt2img(BuildContext context) async {
     if (model.isGenerating == REQUESTING) {
-      Fluttertoast.showToast(msg: AppLocalizations.of(context).wattingMsg);
+      Fluttertoast.showToast(msg: AppLocalizations.of(context).wattingMsg,gravity: ToastGravity.CENTER);
     } else {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
         model.isBusy(REQUESTING);
-        String prompt = getPrompt(provider.prompt);
-        String negativePrompt = getNegtivePrompt(provider.negPrompt);
+        String prompt = getPrompt(provider.config.prompt);
+        String negativePrompt = getNegtivePrompt(provider.config.negativePrompt);
         var from = {
           "prompt": prompt + provider.getCheckedPluginsString(),
           "negative_prompt": negativePrompt,
-          "steps": provider.samplerSteps,
+          "steps": provider.config.steps,
           "denoising_strength": 0.3,
-          "firstphase_width": provider.width,
-          "firstphase_height": provider.height,
+          "firstphase_width": provider.config.width,
+          "firstphase_height": provider.config.height,
           "enable_hr": provider.hiresFix,
           "hr_scale": provider.upscale,
           "hr_upscaler": provider.selectedUpScale,
@@ -396,11 +410,11 @@ class RollWidget extends StatelessWidget {
           // "height": 1440,
           "restore_faces": provider.faceFix,
           "tiling": provider.tiling,
-          "sampler_name": provider.selectedSampler,
+          "sampler_name": provider.config.sampler,
           // "sampler_index": provider.selectedSampler,
           // "script_name": sdModelManager.getModel(provider.selectedSDModel),
           // "save_images": true
-          "seed": provider.seed,
+          "seed": provider.config.seed,
         };
         // if (true) {
         if (provider.batchCount == 1) {
@@ -408,7 +422,7 @@ class RollWidget extends StatelessWidget {
               exceptionCallback: (e) {
             model.isBusy(ERROR);
             Fluttertoast.showToast(
-                msg: e.toString(), toastLength: Toast.LENGTH_LONG);
+                msg: e.toString(), toastLength: Toast.LENGTH_LONG,gravity: ToastGravity.CENTER);
           }).then((value) async {
             model.isBusy(INIT);
             provider.save();
@@ -423,24 +437,26 @@ class RollWidget extends StatelessWidget {
                 logt(TAG, now.substring(0, 10));
                 String fileName = "${dbString(now)}.png";
                 // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
-                String result = await saveBytesToLocal( bytes, fileName,
-                    provider.selectWorkspace!.dirPath);
+                String result = await saveBytesToLocal(
+                    bytes, fileName, provider.selectWorkspace!.dirPath);
                 int? insert = await DBController.instance.insertHistory(
-                    History(
-                        prompt: prompt,
-                        negativePrompt: negativePrompt,
-                        width: provider.width,
-                        height: provider.height,
-                        imgPath: result,
-                        date: now.substring(0, 10),
-                        time: now.substring(10),
-                        workspace: provider.selectWorkspace?.name),
-                    );
+                  History(
+                      prompt: prompt,
+                      negativePrompt: negativePrompt,
+                      width: provider.config.width,
+                      height: provider.config.height,
+                      imgPath: result,
+                      date: now.substring(0, 10),
+                      time: now.substring(10),
+                      workspace: provider.selectWorkspace?.name),
+                );
               }
             }
             if (!provider.autoSave) {
-              Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-                  arguments: {"datas": datas,"savePath":provider.selectWorkspace!.dirPath});
+              Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
+                "datas": datas,
+                "savePath": provider.selectWorkspace!.dirPath
+              });
             }
           });
         } else {
@@ -450,7 +466,7 @@ class RollWidget extends StatelessWidget {
               exceptionCallback: (e) {
             model.isBusy(ERROR);
             Fluttertoast.showToast(
-                msg: e.toString(), toastLength: Toast.LENGTH_LONG);
+                msg: e.toString(), toastLength: Toast.LENGTH_LONG,gravity: ToastGravity.CENTER);
           }).then((value) async {
             List fileProt = value?.data['data'][0];
             if (provider.autoSave) {
@@ -458,24 +474,24 @@ class RollWidget extends StatelessWidget {
                 //tode 默认不保存grid
                 dynamic item = fileProt[i];
                 String fileName = dbString("${DateTime.now()}.png");
-                String path = await saveUrlToLocal(
-                    nameToUrl(item['name']),
-                    fileName,
-                    provider.selectWorkspace!.dirPath);
+                String path = await saveUrlToLocal(nameToUrl(item['name']),
+                    fileName, provider.selectWorkspace!.dirPath);
                 int insert = await DBController.instance.insertHistory(History(
                     prompt: prompt,
                     negativePrompt: negativePrompt,
-                    width: provider.width,
-                    height: provider.height,
+                    width: provider.config.width,
+                    height: provider.config.height,
                     imgPath: path,
                     workspace: provider.selectWorkspace?.name));
                 print('insert:$insert');
               }
             } else {
               Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-                "urls":
-                    fileProt.map((e) => GenerateResultItem.fromJson(e)).toList(),
-                "savePath":provider.selectWorkspace!.dirPath});
+                "urls": fileProt
+                    .map((e) => GenerateResultItem.fromJson(e))
+                    .toList(),
+                "savePath": provider.selectWorkspace!.dirPath
+              });
             }
 
             model.isBusy(INIT);
@@ -506,7 +522,8 @@ class RollWidget extends StatelessWidget {
           // });
         }
       } else {
-        Fluttertoast.showToast(msg: AppLocalizations.of(context).storagePromissionMsg);
+        Fluttertoast.showToast(
+            msg: AppLocalizations.of(context).storagePromissionMsg,gravity: ToastGravity.CENTER);
       }
     }
   }

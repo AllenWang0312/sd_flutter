@@ -1,17 +1,15 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/Sampler.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 
-import '../http_service.dart';
-import '../config.dart';
 import '../../common/ui_util.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../config.dart';
+import '../http_service.dart';
 
 class SamplerWidget extends StatelessWidget {
-
   // get selectedSampler {
   //   if (samplers.isEmpty) {
   //     return null;
@@ -28,7 +26,6 @@ class SamplerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AIPainterModel provider = Provider.of<AIPainterModel>(context);
-    TextEditingController samplerStepsController = TextEditingController(text: provider.samplerSteps.toString());
 
     return Column(
       children: [
@@ -40,11 +37,16 @@ class SamplerWidget extends StatelessWidget {
             SizedBox(
                 width: 40,
                 child: Selector<AIPainterModel, int>(
-                  selector: (context, model) => model.samplerSteps,
+                  selector: (context, model) => model.config.steps,
                   shouldRebuild: (pre, next) => pre != next,
-                  builder: (context, steps, child) => TextFormField(
-                      // initialValue: provider.samplerSteps.toString(),
-                      controller: samplerStepsController),
+                  builder: (context, steps, child) {
+                    TextEditingController samplerStepsController =
+                        TextEditingController(text: steps.toString());
+
+                    return TextFormField(
+                        // initialValue: provider.samplerSteps.toString(),
+                        controller: samplerStepsController);
+                  },
                 ))
           ],
         ),
@@ -58,7 +60,7 @@ class SamplerWidget extends StatelessWidget {
                     samplers = re.map((e) => Sampler.fromJson(e)).toList();
                     // samplers = ;
                     return Selector<AIPainterModel, String>(
-                      selector: (context, model) => model.selectedSampler,
+                      selector: (context, model) => model.config.sampler,
                       shouldRebuild: (pre, next) => next != pre,
                       builder: (context, sampler, child) => DropdownButton(
                           value: sampler,
@@ -79,10 +81,10 @@ class SamplerWidget extends StatelessWidget {
                 }),
             Expanded(
               child: Selector<AIPainterModel, int>(
-                selector: (context, model) => model.samplerSteps,
+                selector: (context, model) => model.config.steps,
                 shouldRebuild: (pre, next) => pre != next,
                 builder: (context, steps, child) => Slider(
-                  value: provider.samplerSteps.toDouble(),
+                  value: steps.toDouble(),
                   min: 1,
                   max: 100,
                   divisions: 99,

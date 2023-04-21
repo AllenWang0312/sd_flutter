@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 
+import '../../common/util/string_util.dart';
+
 class PromptStylePicker extends StatelessWidget {
   PromptStylePicker();
 

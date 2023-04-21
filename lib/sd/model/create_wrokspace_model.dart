@@ -30,7 +30,6 @@ bool needAddConfig(List<PromptStyleFileConfig> all, String path) {
 class CreateWSModel with ChangeNotifier, DiagnosticableTreeMixin {
   StorageType? storageType = StorageType.Private;
   StyleResType? styleResType = StyleResType.reomote;
-  String styleConfigPath = "";
 
   List<PromptStyleFileConfig> allConfig = [];
 
@@ -42,8 +41,7 @@ class CreateWSModel with ChangeNotifier, DiagnosticableTreeMixin {
     notifyListeners();
   }
 
-  void updateStyleResType(StyleResType? value, String path) {
-    this.styleConfigPath = path;
+  void updateStyleResType(StyleResType? value) {
     this.styleResType = value!;
     notifyListeners();
   }

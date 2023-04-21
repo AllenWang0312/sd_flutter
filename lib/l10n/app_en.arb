@@ -6,6 +6,8 @@
   "ok": "OK",
   "cancel": "Cancel",
   "tavern": "Tavern",
+  "history": "History",
+
   "local": "Local",
   "remote": "Remote",
   "roll": "Roll",
@@ -41,8 +43,10 @@
   "setting": "Setting",
   "networkAddress": "Network Address",
   "save": "Save",
-  "saveFailed": "Save Failed",
+  "saveFailed": "Save failed",
 
+  "hideNSFW": "Hide NSFW content",
+  "checkIdentity": "Check identity when waking up again",
   "autoSave": "Auto Save Image",
   "workspace": "Workspace",
   "styleConfig": "Styles Config",
@@ -51,5 +55,6 @@
   "networkNotChanged": "network has not changed",
 
   "restartDialogTitle": "Restart",
-  "restartDialogContent": "The key configuration has been changed. Click OK to restart immediately"
+  "restartDialogContent": "The key configuration has been changed. Click OK to restart immediately",
+  "restartNowContent": "Click OK to restart immediately"
 }

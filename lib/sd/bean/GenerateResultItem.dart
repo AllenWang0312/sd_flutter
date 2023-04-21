@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:sd/sd/bean/Showable.dart';
+import 'package:sd/sd/model/AIPainterModel.dart';
 
 import '../config.dart';
 
@@ -26,7 +29,7 @@ class GenerateResultItem extends Showable{
   }
 
   @override
-  String getUrl() {
+  String getFileLocation() {
     return nameToUrl(name);
   }
 

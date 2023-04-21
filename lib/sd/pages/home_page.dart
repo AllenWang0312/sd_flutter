@@ -2,38 +2,37 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/fragment/roll_widget.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 import 'package:sd/sd/model/RollModel.dart';
 import 'package:sd/sd/playground/playground_widget.dart';
+import 'package:sd/sd/playground/tavern_widget.dart';
 
-import '../http_service.dart';
-import '../db_controler.dart';
+
 import '../fragment/mine_widget.dart';
+import '../http_service.dart';
 import '../model/HomeModel.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const REQUESTING = 1;
 const INIT = 0;
 const ERROR = -1;
 
 class HomePage extends StatefulWidget {
-
   HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>{
   static const TAG = 'HomePageState';
 
   @override
   void didUpdateWidget(HomePage oldWidget) {
-    logt(TAG,'didUpdateWidget');
+    logt(TAG, 'didUpdateWidget');
   }
 
   late List<Widget> pages;
@@ -41,28 +40,33 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
     pages = [
       // LoraWidget(),
-      ChangeNotifierProvider(
-        create: (_) => PlaygroundModel(),
-        child: PlaygroundWidget(),
-      ),
+      TavernWidget(),
+
       ChangeNotifierProvider(
         create: (_) => RollModel(),
         child: RollWidget(),
       ),
-      MineWidget(),
+      ChangeNotifierProvider(
+        create: (_) => RecordsModel(),
+        child: RecordsWidget(),
+      ),
+      // MineWidget(),
     ];
   }
 
   late AIPainterModel provider;
+  // late HomeModel home;
 
   // late IpWidget ipManager;
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
+    // home = Provider.of<HomeModel>(context, listen: false);
     return DefaultTabController(
-        length: 3,
+        length: 4,
         child: SafeArea(
           child: Scaffold(
             backgroundColor: COLOR_BACKGROUND,
@@ -76,13 +80,18 @@ class _HomePageState extends State<HomePage> {
                     items: [
                       // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
                       BottomNavigationBarItem(
-                          icon: Icon(Icons.find_in_page_outlined), label: AppLocalizations.of(context).tavern),
+                          icon: const Icon(Icons.find_in_page_outlined),
+                          label: AppLocalizations.of(context).tavern),
 
                       BottomNavigationBarItem(
-                          icon: Icon(Icons.draw_outlined), label: AppLocalizations.of(context).roll),
-
+                          icon: const Icon(Icons.draw_outlined),
+                          label: AppLocalizations.of(context).roll),
                       BottomNavigationBarItem(
-                          icon: Icon(Icons.account_box_outlined), label: AppLocalizations.of(context).mine),
+                          icon: const Icon(Icons.find_in_page_outlined),
+                          label: AppLocalizations.of(context).history),
+                      // BottomNavigationBarItem(
+                      //     icon: const Icon(Icons.account_box_outlined),
+                      //     label: AppLocalizations.of(context).mine),
                     ],
                     onTap: (index) {
                       Provider.of<HomeModel>(context, listen: false)
@@ -118,33 +127,33 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void reassemble() {
-    logt(TAG,'reassemble');
+    logt(TAG, 'reassemble');
   }
 
   @override
   void activate() {
-    logt(TAG,'activate');
+    logt(TAG, 'activate');
   }
 
   @override
   void deactivate() {
-    logt(TAG,'deactivate');
+    logt(TAG, 'deactivate');
   }
 
   @override
   Future<void> dispose() async {
-    logt(TAG,'dispose');
+    logt(TAG, 'dispose');
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
-    logt(TAG,'didChangeDependencies');
+    logt(TAG, 'didChangeDependencies');
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    logt(TAG,'debugFillProperties');
+    logt(TAG, 'debugFillProperties');
   }
 
 // Future<Map<String, dynamic>> asyncDecodeCSVFile() async {

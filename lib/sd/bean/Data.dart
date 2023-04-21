@@ -5,7 +5,7 @@ class Data {
       this.type,});
 
   Data.fromJson(dynamic json) {
-    choices = json['choices'] != null ? json['choices'].cast<String>() : [];
+    choices = json['choices'] != null ? json['choices'].cast<List<String>>() : [];
     value = json['value'];
     type = json['__type__'];
   }

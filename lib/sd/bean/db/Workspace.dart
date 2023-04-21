@@ -44,7 +44,7 @@ class Workspace {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['id']=id;
+    map['id'] = id;
     map['name'] = name;
     map['dirPath'] = dirPath;
     map['pathType'] = pathType;
@@ -65,16 +65,15 @@ class Workspace {
 
   int getPathType() {
     if (pathType == null) {
-      if (UniversalPlatform.isIOS||dirPath.startsWith(ANDROID_PICTURES)) {
-        pathType =  PATH_TYPE_PUBLIC;
+      if (UniversalPlatform.isIOS || dirPath.startsWith(ANDROID_PICTURES)) {
+        pathType = PATH_TYPE_PUBLIC;
       } else if (dirPath.startsWith(ANDROID_DATA)) {
         pathType = PATH_TYPE_APP_PRIVATE;
       } else {
         pathType = PATH_TYPE_HIDE;
       }
     }
-      return pathType!;
-
+    return pathType!;
   }
 
   @override
@@ -88,4 +87,9 @@ class Workspace {
 
   @override
   int get hashCode => name.hashCode ^ dirPath.hashCode ^ pathType.hashCode;
+
+  @override
+  String toString() {
+    return 'Workspace{id: $id, name: $name, dirPath: $dirPath}';
+  }
 }

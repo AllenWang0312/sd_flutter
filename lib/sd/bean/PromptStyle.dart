@@ -26,8 +26,8 @@ class PromptStyle {
 
   String name = "";
   String? type;
-  String prompt = "";
-  String negativePrompt = "";
+  String? prompt = "";
+  String? negativePrompt = "";
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

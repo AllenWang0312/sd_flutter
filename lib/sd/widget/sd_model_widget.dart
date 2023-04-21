@@ -55,23 +55,23 @@ class SDModelWidget extends StatelessWidget {
                           "fn_index": CMD_SWITCH_MD_MODEL
                         }, exceptionCallback: (e) {
                           roll.isBusy(ERROR);
-                          Fluttertoast.showToast(msg: "模型切换失败");
+                          Fluttertoast.showToast(msg: "模型切换失败",gravity: ToastGravity.CENTER);
                         }).then((value) {
                           if (null != value?.data) {
                             RunPredictResult result =
                                 RunPredictResult.fromJson(value?.data);
                             if (result.duration > 0) {
                               roll.isBusy(INIT);
-                              Fluttertoast.showToast(msg: "模型切换成功");
+                              Fluttertoast.showToast(msg: "模型切换成功",gravity: ToastGravity.CENTER);
                               Provider.of<AIPainterModel>(context, listen: false)
-                                  .updateSDModel(newValue);
+                                  .updateSDModel(result.data[0].value!);
                             } else {
                               roll.isBusy(ERROR);
-                              Fluttertoast.showToast(msg: "模型切换失败");
+                              Fluttertoast.showToast(msg: "模型切换失败",gravity: ToastGravity.CENTER);
                             }
                           } else {
                             roll.isBusy(ERROR);
-                            Fluttertoast.showToast(msg: "模型切换失败");
+                            Fluttertoast.showToast(msg: "模型切换失败",gravity: ToastGravity.CENTER);
                           }
                         });
                       });

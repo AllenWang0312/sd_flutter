@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:path/path.dart';
+import 'package:sd/sd/bean/FileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'bean/UniqueSign.dart';
 import 'bean/db/History.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
 import 'http_service.dart';
@@ -31,7 +35,7 @@ class DBController {
         // String ext = workspace.isEmpty ? '' : '_$workspace';
         var dbpath = join(databasePath, 'ai_paint.db');
         database = await openDatabase(dbpath,
-            version: 2,
+            version: 3,
             onCreate: (Database db, int version) async {
               logt(TAG, "db create");
               await db.execute(
@@ -40,11 +44,18 @@ class DBController {
                   'CREATE TABLE ${PromptStyleFileConfig.TABLE_NAME} (${PromptStyleFileConfig.TABLE_CREATE})');
               await db.execute(
                   'CREATE TABLE ${History.TABLE_NAME} (${History.TABLE_CREATE})');
+              await db.execute(
+                  'CREATE TABLE ${FileInfo.TABLE_NAME} (${FileInfo.TABLE_CREATE})');
 
               // await db.execute(
               //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
             },
-            onUpgrade: (Database db, int oldVersion, int newVersion) async {},
+            onUpgrade: (Database db, int oldVersion, int newVersion) async {
+              await db.execute(
+                  'CREATE TABLE ${FileInfo.TABLE_NAME} (${FileInfo.TABLE_CREATE})');
+
+
+            },
             onDowngrade: (Database db, int oldVersion, int newVersion) async {
               // logt(TAG,"db downgrade $oldVersion to $newVersion");
               //
@@ -87,6 +98,38 @@ class DBController {
           database?.insert(History.TABLE_NAME, history.toJson()));
     }
     return Future.error('insert error');
+  }
+  Future<int> insertAgeLevelRecord(UniqueSign info,Uint8List? data,int ageLevel) async {
+    // String ext = null != workspace && workspace.isNotEmpty ? '_$workspace' : '';
+
+    if (null != database && database!.isOpen) {
+      return Future.value(
+          database?.insert(FileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel)));
+    }
+    return Future.error('insert error');
+  }
+
+  Future<int> updateAgeLevelRecord(UniqueSign info,Uint8List? data,int ageLevel) async {
+    // String ext = null != workspace && workspace.isNotEmpty ? '_$workspace' : '';
+
+    if (null != database && database!.isOpen) {
+      return Future.value(
+          database?.update(FileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel),where: "sign = ? ",whereArgs: [info.getSign(data)]));
+    }
+    return Future.error('insert error');
+  }
+  Future<int> removetAgeLevelRecord(UniqueSign info,Uint8List? data) async {
+    if (null != database && database!.isOpen) {
+      return database!.delete(FileInfo.TABLE_NAME,
+          where: "sign = ?",
+          whereArgs: [info.getSign(data)]);
+    }
+    return Future.value(-1);
+  }
+
+  Future<List<dynamic>>? queryAgeLevelRecord() {
+    return database?.rawQuery(
+        'SELECT * FROM ${FileInfo.TABLE_NAME} ORDER BY ageLevel DESC');
   }
 
   Future<int> insertWorkSpace(Workspace workspace) {

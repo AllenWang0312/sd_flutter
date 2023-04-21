@@ -5,17 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/sd/bean/db/PromptStyleFileConfig.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:universal_platform/universal_platform.dart';
 
-import '../android.dart';
 import '../bean/db/Workspace.dart';
 import '../config.dart';
 import '../db_controler.dart';
-import '../file_util.dart';
+import '../../common/util/file_util.dart';
 import '../http_service.dart';
 import '../model/AIPainterModel.dart';
-import '../ui_util.dart';
+import '../../common/util/ui_util.dart';
 
 final String TAG = "SettingPage";
 
@@ -27,8 +26,6 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-
-
   List<FileSystemEntity>? publicStyleConfigs;
 
   List<Workspace>? workspaces;
@@ -37,12 +34,12 @@ class _SettingPageState extends State<SettingPage> {
 
   TextStyle settingTitle =
       const TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
-
+  late SharedPreferences sp;
   @override
   void initState() {
     createDir();
-
     super.initState();
+    init();
   }
 
   @override
@@ -56,6 +53,14 @@ class _SettingPageState extends State<SettingPage> {
         title: Text(
           AppLocalizations.of(context).setting,
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              showRestartNowDialog(context);
+            },
+            child: Text("立即重启"),
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -84,16 +89,13 @@ class _SettingPageState extends State<SettingPage> {
                   TextButton(
                       onPressed: () async {
                         if (hostController.text != sdHost) {
-                          SharedPreferences sp =
-                              await SharedPreferences.getInstance();
-
                           sp.setString(SP_HOST, hostController.text);
                           sdHost = hostController.text;
                           showRestartDialog(context);
                         } else {
                           Fluttertoast.showToast(
-                              msg:
-                                  AppLocalizations.of(context).networkNotChanged);
+                              msg: AppLocalizations.of(context)
+                                  .networkNotChanged,gravity: ToastGravity.CENTER);
                         }
                       },
                       child: Text(AppLocalizations.of(context).save))
@@ -116,8 +118,60 @@ class _SettingPageState extends State<SettingPage> {
                       CupertinoSwitch(
                           value: newValue,
                           onChanged: (value) {
+                            sp.setBool(SP_AUTO_SAVE,value);
                             Provider.of<AIPainterModel>(context, listen: false)
                                 .updateAutoSave(value);
+
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.hideNSFW,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return Container(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context).hideNSFW,
+                        style: settingTitle,
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_HIDE_NSFW,value);
+                            Provider.of<AIPainterModel>(context, listen: false)
+                                .updateHideNSFW(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.checkIdentityWhenReEnter,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return Container(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context).checkIdentity,
+                        style: settingTitle,
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_CHECK_IDENTITY,value);
+                            Provider.of<AIPainterModel>(context, listen: false)
+                                .updateHideNSFW(value);
                           })
                     ],
                   ),
@@ -168,7 +222,8 @@ class _SettingPageState extends State<SettingPage> {
                                         groupValue: selected,
                                         onChanged: (value) {
                                           logt(TAG, value.toString());
-                                          provider.updateSelectWorkspace(value!);
+                                          provider
+                                              .updateSelectWorkspace(value!);
                                           showRestartDialog(context);
                                         });
                                   },
@@ -222,23 +277,33 @@ class _SettingPageState extends State<SettingPage> {
 
       // if (!await Directory(publicPath).exists()) {
       //   Directory(publicPath).createSync(recursive: true);
-        // if (UniversalPlatform.isAndroid&&!await File(openHidePath + "/.nomedia").exists()) {
-        //   await File(openHidePath + "/.nomedia").create();
-        // }
+      // if (UniversalPlatform.isAndroid&&!await File(openHidePath + "/.nomedia").exists()) {
+      //   await File(openHidePath + "/.nomedia").create();
       // }
+      // }
+      List<PromptStyleFileConfig>? wsStyleConfigs;
 
+      if (null != workspace) {
+        logt(TAG, "ws not null" + workspace.toString());
+
+        var map = await DBController.instance.queryStyles(workspace.id!);
+        wsStyleConfigs = map!
+            .map((e) => PromptStyleFileConfig.fromJson(e, state: 1))
+            .toList();
+      }
+      logt(TAG, wsStyleConfigs.toString() ?? "null");
       dynamic ws = await Navigator.pushNamed(context, ROUTE_CREATE_WORKSPACE,
           arguments: {
             "imgSavePath": applicationPath,
-            "styleSavePath":stylePath,
+            "styleSavePath": stylePath,
             // "publicPath": publicPath,
             // "openHidePath": openHidePath,
             "workspace": workspace,
-            "publicStyleConfigs":publicStyleConfigs
+            "configs": wsStyleConfigs,
+            "publicStyleConfigs": publicStyleConfigs
           }) as Workspace?;
 
       if (ws is Workspace && ws != null) {
-        SharedPreferences sp = await SharedPreferences.getInstance();
         sp.setString(SP_CURRENT_WS, ws.name);
         showRestartDialog(context);
       } else if (ws is bool && ws) {
@@ -262,7 +327,10 @@ class _SettingPageState extends State<SettingPage> {
     var applicationPath = await getStylesAbsPath();
 
     File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
-        arguments: {"autoSaveAbsPath":applicationPath, "files": publicStyleConfigs}) as File?;
+        arguments: {
+          "autoSaveAbsPath": applicationPath,
+          "files": publicStyleConfigs
+        }) as File?;
     if (null != file) {
       setState(() {
         publicStyleConfigs?.add(file);
@@ -270,26 +338,46 @@ class _SettingPageState extends State<SettingPage> {
     }
   }
 
-  Widget getPublicStyles(
-      BuildContext context) {
+  Widget getPublicStyles(BuildContext context) {
     // List<PromptStyleFileConfig>? data = snapshot.data!
     //     .map((e) => PromptStyleFileConfig.fromJson(e))
     //     .toList();
     return FutureBuilder(
       future: createDir(),
-      builder: (context,snapshot){
+      builder: (context, snapshot) {
         if (snapshot.hasData) {
           publicStyleConfigs = snapshot.data;
           return Column(
             children: publicStyleConfigs!.map((e) {
               String fileName = e.path.substring(e.path.lastIndexOf("/"));
-              return ListTile(
-                // 需要重写泛型类的 == 方法
-                title: Text(fileName),
-                subtitle: Text(e.path),
-                trailing: InkWell(
-                  onTap: () => editPromptStyle(context,e),
-                  child: Icon(Icons.edit),
+              return GestureDetector(
+                onLongPress: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            title: Text("确认删除"),
+                            content: Text("点击确认删除文件${e.path}"),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    File(e.path).delete(recursive: true);
+                                    setState(() {
+                                      publicStyleConfigs!.remove(e);
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('确认'))
+                            ],
+                          ));
+                },
+                child: ListTile(
+                  // 需要重写泛型类的 == 方法
+                  title: Text(fileName),
+                  subtitle: Text(e.path),
+                  trailing: InkWell(
+                    onTap: () => editPromptStyle(context, e),
+                    child: Icon(Icons.edit),
+                  ),
                 ),
               );
             }).toList(),
@@ -298,20 +386,23 @@ class _SettingPageState extends State<SettingPage> {
 
         return Column();
       },
-
     );
-
   }
 
   Future<List<FileSystemEntity>?> createDir() async {
+
     var publicStylePath = await getStylesAbsPath();
-    if(createDirIfNotExit(publicStylePath)){
+    if (createDirIfNotExit(publicStylePath)) {
       return Directory(publicStylePath).listSync();
     }
     return null;
   }
 
   editPromptStyle(BuildContext context, FileSystemEntity e) {
-    Navigator.pushNamed(context, ROUTE_EDIT_STYLE,arguments: e.path);
+    Navigator.pushNamed(context, ROUTE_EDIT_STYLE, arguments: e.path);
+  }
+
+  Future<void> init() async {
+    sp = await SharedPreferences.getInstance();
   }
 }

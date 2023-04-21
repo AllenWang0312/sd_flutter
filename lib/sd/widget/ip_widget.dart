@@ -43,12 +43,12 @@ class _IpWidgetState extends State<IpWidget>{
                 await value.setString(KEY_HOST, ipController.text);
                 if (suc) {
                   print("save host success $sdHost");
-                  Fluttertoast.showToast(msg: '保存成功');
+                  Fluttertoast.showToast(msg: '保存成功',gravity: ToastGravity.CENTER);
                   // initConfig();
                 }
               });
             } else {
-              Fluttertoast.showToast(msg: '无需重复保存');
+              Fluttertoast.showToast(msg: '无需重复保存',gravity: ToastGravity.CENTER);
             }
           },
         )

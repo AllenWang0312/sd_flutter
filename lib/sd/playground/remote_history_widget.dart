@@ -6,15 +6,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sd/sd/bean/db/History.dart';
-import 'package:sd/sd/file_util.dart';
-import 'package:sd/sd/ui_util.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/android.dart';
+import 'package:sd/common/util/file_util.dart';
+import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
 
-import '../bean/db/History.dart';
+import '../../common/util/ui_util.dart';
 import '../config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
@@ -28,7 +25,6 @@ class RemoteHistoryWidget extends StatefulWidget {
 
 class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
   bool dateOrder = true;
-  int userAge = 16;
 
   int pageNum = 0;
 
@@ -40,9 +36,12 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
 
   //list grid flot scale
   late EasyRefreshController _controller;
+  late AIPainterModel provider;
 
   @override
   Widget build(BuildContext context) {
+    provider = Provider.of<AIPainterModel>(context, listen: false);
+
     _controller = EasyRefreshController(
       controlFinishRefresh: true,
       controlFinishLoad: true,
@@ -67,69 +66,42 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
               logt(TAG, "create item $index");
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
-              return item.imgUrl != null
+              return item.url != null
                   ? GestureDetector(
                       onLongPress: () async {
-                        if (item.imgPath != null) {
-                          int deleteResult = await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                    title: Text("确认删除"),
-                                    content: Text("点击确认删除文件${item.imgPath}"),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () => {
-                                                post(
-                                                    "$sdHttpService$RUN_PREDICT",
-                                                    formData: delateFile(
-                                                        item.imgPath!,
-                                                        item.page!,
-                                                        item.offset!),
-                                                    exceptionCallback: (e) {
-                                                  Fluttertoast.showToast(
-                                                      msg:
-                                                          '删除失败${e.toString()}');
-                                                  Navigator.pop(context, -1);
-                                                }).then((value) {
-                                                  Navigator.pop(context, 1);
-                                                })
-                                              },
-                                          child: Text('确认'))
-                                    ],
-                                  ));
-                          if (deleteResult == 1) {
-                            //todo 删除item 并刷新
-                          }
-                        }
+                        if (item.localPath != null) {}
                       },
                       onTap: () async {
                         Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
                             arguments: {
-                              "urls": history.sublist(
-                                  index, min(history.length, index + 20)),
+                              "urls": history,
                               "index": index,
                               "savePath": await getImageAutoSaveAbsPath(),
                             });
                       },
-                      child: userAge >= item.ageLevel
-                          ? CachedNetworkImage(
-                              imageUrl: item.imgUrl!,
-                            )
-                          : ImageFiltered(
-                              imageFilter: ImageFilter.blur(
-                                  sigmaX: 2,
-                                  sigmaY: 2,
-                                  tileMode: TileMode.decal),
-                              child: CachedNetworkImage(
-                                imageUrl: item.imgUrl!,
-                              ),
-                            ))
+                      child: Selector<AIPainterModel, int>(
+                        selector: (_, model) => provider.hideNSFW?model.limitedUrl(item.url!):0,
+                        builder: (context, value, child) {
+                          return value>=18
+                              ? ClipRect(
+                                  child: ImageFiltered(
+                                    imageFilter: AGE_LEVEL_BLUR,
+                                    child: CachedNetworkImage(
+                                      imageUrl: item.url!,
+                                    ),
+                                  ),
+                                )
+                              : CachedNetworkImage(
+                                  imageUrl: item.url!,
+                                );
+                        },
+                      ))
                   : Row(
                       children: [
                         SizedBox(
                           width: 120,
                           height: 160,
-                          child: Image.file(File(item.imgPath!)),
+                          child: Image.file(File(item.localPath!)),
                         )
                       ],
                     );

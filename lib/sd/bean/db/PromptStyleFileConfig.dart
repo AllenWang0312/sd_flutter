@@ -1,5 +1,3 @@
-import 'dart:io';
-
 bool hasItem(List<PromptStyleFileConfig>? configs, String path) {
   if (null != configs && configs.isNotEmpty) {
     for (PromptStyleFileConfig item in configs) {
@@ -11,10 +9,14 @@ bool hasItem(List<PromptStyleFileConfig>? configs, String path) {
 
   return false;
 }
-enum ConfigType{
+
+enum ConfigType {
   // 0 远端接口，1 自己独立配置文件 2 开放空间配置文件引用
-  remote,private,public,
+  remote,
+  private,
+  public,
 }
+
 class PromptStyleFileConfig {
   static String TABLE_NAME = 'styles_file_config';
 
@@ -34,7 +36,8 @@ class PromptStyleFileConfig {
 
   int state = 0; // 0 公共配置 1 存在于当前workspace  -1 需要执行删除 2 需要执行添加
 
-  PromptStyleFileConfig.fromJson(dynamic json) {
+  PromptStyleFileConfig.fromJson(dynamic json, {int state = 0}) {
+    this.state = state;
     id = json['id'];
     name = json['name'];
     type = json['type'];
@@ -81,4 +84,9 @@ class PromptStyleFileConfig {
 
   @override
   int get hashCode => state.hashCode ^ configPath.hashCode;
+
+  @override
+  String toString() {
+    return 'PromptStyleFileConfig{state: $state, id: $id, name: $name, type: $type, belongTo: $belongTo, configPath: $configPath}';
+  }
 }

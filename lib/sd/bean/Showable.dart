@@ -1,4 +1,8 @@
 
+
 abstract class Showable {
-  String getUrl();
+  String getFileLocation();
+  String? getPrompts(){ // prompts
+    return null;
+  }
 }

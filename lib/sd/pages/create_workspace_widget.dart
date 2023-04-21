@@ -5,22 +5,19 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/model/AIPainterModel.dart';
-import 'package:sd/sd/pages/setting_page.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import '../android.dart';
 import '../../common/third_util.dart';
+import '../android.dart';
 import '../bean/db/PromptStyleFileConfig.dart';
 import '../bean/db/Workspace.dart';
 import '../bean/enum/StorageType.dart';
 import '../bean/enum/StyleResType.dart';
-import '../file_util.dart';
+import '../../common/util/file_util.dart';
 import '../http_service.dart';
 import '../model/create_wrokspace_model.dart';
-import '../ui_util.dart';
+import '../../common/util/ui_util.dart';
 import 'create_style_page.dart';
-
-
 
 final String TAG = "CreateWorkspaceWidget";
 
@@ -32,18 +29,21 @@ class CreateWorkspaceWidget extends StatefulWidget {
   late String? openHidePath;
 
   Workspace? workspace;
+  List<PromptStyleFileConfig>? configs;
   List<FileSystemEntity>? publicStyleConfigs;
 
-  CreateWorkspaceWidget(
-      this.imgSavePath,this.styleSavePath,
-      {this.publicPath,this.openHidePath,this.workspace, this.publicStyleConfigs});
+  CreateWorkspaceWidget(this.imgSavePath, this.styleSavePath,
+      {this.publicPath,
+      this.openHidePath,
+      this.workspace,
+      this.configs,
+      this.publicStyleConfigs});
 
   @override
   State<CreateWorkspaceWidget> createState() => _CreateWorkspaceWidgetState();
 }
 
 class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
-
   String getStoragePath(StorageType? value, String name) {
     if (value == StorageType.Public) {
       return "${widget.publicPath}/$name";
@@ -61,19 +61,25 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
 
   @override
   void reassemble() {
-    logt(TAG,"reassemble");
+    logt(TAG, "reassemble");
   }
 
   @override
   Widget build(BuildContext context) {
-    logt(TAG,"build");
-
+    logt(TAG, "build");
+    logt(TAG, widget.configs?.toString() ?? "null");
     // publicPath = removePrePathIfIsPublic(publicPath);
     // openHidePath = removePrePathIfIsPublic(openHidePath);
     provider = Provider.of<AIPainterModel>(context, listen: false);
     model = Provider.of<CreateWSModel>(context, listen: false);
-    if(UniversalPlatform.isAndroid){
-      model.noMediaFileExist = File("$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia").existsSync();
+    if (null != widget.configs) {
+      model.allConfig = widget.configs!;
+      model.styleResType = StyleResType.public;
+      model.notifyListeners();
+    }
+    if (UniversalPlatform.isAndroid) {
+      model.noMediaFileExist =
+          File("$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia").existsSync();
     }
     pathController = TextEditingController(
         text: widget.workspace == null ? '' : widget.workspace?.dirPath);
@@ -82,8 +88,6 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
         text: widget.workspace == null ? '' : widget.workspace?.getName());
     controller.addListener(() {
       pathController.text = getStoragePath(model.storageType, controller.text);
-      model.updateStyleResType(model.styleResType,
-          "${widget.styleSavePath}/${controller.text}/styles.csv");
     });
     return Scaffold(
       appBar: AppBar(
@@ -98,66 +102,55 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                       if (createDirIfNotExit(pathController.text)) {
                         var nw =
                             Workspace(controller.text, pathController.text);
+                        int id =
+                            await DBController.instance.insertWorkSpace(nw);
+
                         if (model.styleResType == StyleResType.reomote) {
+                          //远端
                           if (await DBController.instance.insertWorkSpace(nw) >
                               0) {
                             Navigator.pop(context, nw);
                           }
                         } else {
-                          File? csvFile = await saveRemoteStylesToLocalFile(model.styleConfigPath);
-
-                          // select source
-                          // File? csvFile = await showModalBottomSheet(
-                          //     useRootNavigator: true,
-                          //     context: context,
-                          //     constraints:
-                          //         const BoxConstraints.expand(height: 98),
-                          //     builder: (context) {
-                          //       return Column(
-                          //         children: optionsDataFrom(
-                          //             context, model.styleConfigPath),
-                          //       );
-                          //     });
-                          if (null != csvFile) {
-                            // nw.stylesConfigFilePath = csvFile.path;
-                            if (pathController.text
-                                .startsWith(ANDROID_PUBLIC_PICTURES_NOMEDIA)) {
-                              createFileIfNotExit(File(
-                                  "$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia"));
-                            }
-                            int id =
-                                await DBController.instance.insertWorkSpace(nw);
-                            logt(TAG,"insert workspace success $id");
-                            if (id > 0 &&
-                                await DBController.instance
-                                        .insertStyleFileConfig(
-                                            PromptStyleFileConfig(
-                                                name: "${nw.name}的配置文件",
-                                                type: 1,
-                                                belongTo: id,
-                                                configPath: csvFile.path)) >
-                                    0) {
-                              Navigator.pop(context, nw);
+                          //现有引用
+                          for (PromptStyleFileConfig config
+                              in model.allConfig) {
+                            if (config.state == -1) {
+                              DBController.instance.removeStyleFileConfigWith(
+                                  config.belongTo!, config.configPath!);
+                            } else if (config.state == 2) {
+                              if (id > 0 &&
+                                  await DBController.instance
+                                          .insertStyleFileConfig(
+                                              PromptStyleFileConfig(
+                                                  name: config.name,
+                                                  type: ConfigType.public.index,
+                                                  belongTo: id,
+                                                  configPath:
+                                                      config.configPath)) >
+                                      0) {}
                             }
                           }
+                          Navigator.pop(context, nw);
                         }
                       } else {
-                        Fluttertoast.showToast(msg: "文件夹创建失败");
+                        Fluttertoast.showToast(msg: "文件夹创建失败",gravity: ToastGravity.CENTER);
                       }
                     }
-                  }else{
-                    Fluttertoast.showToast(msg: "文件夹创建失败");
+                  } else {
+                    Fluttertoast.showToast(msg: "文件夹创建失败",gravity: ToastGravity.CENTER);
                   }
                 } else {
                   var needRestart = false;
                   model.allConfig.forEach((element) async {
                     if (element.state == 2) {
-                      int result = await DBController.instance.insertStyleFileConfig(element);
-                      logt(TAG,"${element.configPath!}insert $result");
+                      int result = await DBController.instance
+                          .insertStyleFileConfig(element);
+                      // logt(TAG, "${element.configPath!}insert $result");
                     } else if (element.state == -1) {
-                      int result = await DBController.instance.removeStyleFileConfig(element.id!);
-                      logt(TAG,"${element.configPath!}removed $result");
-
+                      int result = await DBController.instance
+                          .removeStyleFileConfig(element.id!);
+                      // logt(TAG, "${element.configPath!}removed $result");
                     }
                   });
                   Navigator.pop(context, needRestart);
@@ -191,7 +184,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                         value: StorageType.Hide,
                         groupValue: value,
                         onChanged: null),
-                   child!,
+                    child!,
                     RadioListTile<StorageType>(
                         title: Text('应用私有(应用卸载即删除)'),
                         value: StorageType.Private,
@@ -200,8 +193,10 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                   ],
                 );
               },
-              child:  Selector<CreateWSModel, bool>(
-                selector: (_, model) => model.storageType!=StorageType.Hide||model.noMediaFileExist,
+              child: Selector<CreateWSModel, bool>(
+                selector: (_, model) =>
+                    model.storageType != StorageType.Hide ||
+                    model.noMediaFileExist,
                 builder: (context, value, child) {
                   return Offstage(
                     offstage: value,
@@ -229,22 +224,20 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                         value: StyleResType.reomote,
                         groupValue: value,
                         onChanged: (value) {
-                          model.updateStyleResType(value, "");
+                          model.updateStyleResType(value);
                         }),
                     RadioListTile<StyleResType>(
                         title: Text('公共Styles'),
-                        value: StyleResType.copy,
+                        value: StyleResType.public,
                         groupValue: value,
                         onChanged: (value) {
                           //todo 选择工作空间
                           model.updateStyleResType(
-                              value,
-                              // "$applicationPath/${controller.text}/styles.csv"// todo default styles config file path
-                              "${widget.styleSavePath}/${controller.text}/styles.csv" // todo default styles config file path
-                              );
+                            value,
+                          );
                         }),
                     Offstage(
-                        offstage: value != StyleResType.copy, child: child!),
+                        offstage: value != StyleResType.public, child: child!),
                   ],
                 );
               },
@@ -273,7 +266,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
   }
 
   void onRadioChanged(StorageType? value) {
-    logt(TAG, value.toString());
+    // logt(TAG, value.toString());
     if (widget.workspace == null) {
       pathController.text = getStoragePath(value, controller.text);
     } else {}
@@ -306,12 +299,12 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
           selector: (_, model) => model.allConfig[i].state,
           shouldRebuild: (pre, next) {
             bool hasChange = pre != next;
-            logt(TAG, "change notified$hasChange");
+            // logt(TAG, "change notified$hasChange");
             return hasChange;
           },
           builder: (context, state, child) {
             bool checked = state >= 1;
-            logt(TAG, "checkbox rebuild$checked");
+            // logt(TAG, "checkbox rebuild$checked");
             return Checkbox(
               value: checked,
               onChanged: (bool? value) {

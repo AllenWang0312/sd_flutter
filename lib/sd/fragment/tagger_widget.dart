@@ -1,28 +1,28 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:exif/exif.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
 import 'package:provider/provider.dart';
-import 'package:sd/sd/model/HomeModel.dart';
-import 'package:sd/sd/model/RollModel.dart';
 
 import '../../common/third_util.dart';
 import '../../common/ui_util.dart';
-import '../http_service.dart';
-import '../mocker.dart';
+import '../../common/util/file_util.dart';
+import '../../common/util/ui_util.dart';
 import '../bean/PostPredictResult.dart';
 import '../config.dart';
+import '../http_service.dart';
+import '../mocker.dart';
 import '../model/AIPainterModel.dart';
-import '../ui_util.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 //todo 图片识别默认模型 从配置读取
 String DEFAULT_INTERROGATOR = 'wd14-vit-v2-git';
+
 
 class TaggerModel with ChangeNotifier, DiagnosticableTreeMixin {
   String generate_prompt = "";
@@ -54,8 +54,12 @@ class TaggerModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 }
 
+final String TAG = "TaggerWidget";
+
+
 class TaggerWidget extends StatelessWidget {
-  final String TAG = "TaggerWidget";
+
+
   TaggerWidget();
 
   List<String>? interrogators;
@@ -65,8 +69,7 @@ class TaggerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    provider =
-        Provider.of<AIPainterModel>(context, listen: false);
+    provider = Provider.of<AIPainterModel>(context, listen: false);
     model = Provider.of<TaggerModel>(context, listen: false);
     return SingleChildScrollView(
       child: Column(
@@ -158,7 +161,7 @@ class TaggerWidget extends StatelessWidget {
               }
             },
           ),
-          Text(AppLocalizations.of(context).threshold+":"),
+          Text(AppLocalizations.of(context).threshold + ":"),
           Selector<TaggerModel, int>(
             selector: (_, model) => model.threshold,
             shouldRebuild: (pre, next) => pre != next,
@@ -216,7 +219,9 @@ class TaggerWidget extends StatelessWidget {
                             onPressed: () {
                               Clipboard.setData(
                                   ClipboardData(text: model.generate_prompt));
-                              Fluttertoast.showToast(msg: "关键词已复制到剪切板");
+                              Fluttertoast.showToast(
+                                  msg: "关键词已复制到剪切板",
+                                  gravity: ToastGravity.CENTER);
                             },
                             icon: const Icon(Icons.copy_all)),
                       ],
@@ -249,7 +254,9 @@ class TaggerWidget extends StatelessWidget {
                           onPressed: () {
                             Clipboard.setData(
                                 ClipboardData(text: model.taggerText));
-                            Fluttertoast.showToast(msg: "关键词已复制到剪切板");
+                            Fluttertoast.showToast(
+                                msg: "关键词已复制到剪切板",
+                                gravity: ToastGravity.CENTER);
                           },
                           icon: const Icon(Icons.copy_all)),
                     ]),
@@ -264,18 +271,6 @@ class TaggerWidget extends StatelessWidget {
     );
   }
 
-  getImageTagger(Uint8List? bytes, int threshold) {
-    if (null != bytes) {
-      String encode = Base64Encoder().convert(bytes);
-      post("$sdHttpService$RUN_PREDICT",
-              formData: tagger(encode, threshold / 100),
-              exceptionCallback: (e) {})
-          .then((value) {
-        model.updateTaggerText(value?.data['data'][0]);
-      });
-    }
-  }
-
   Future<String> loadFileToImage(ImageSource source) async {
     if (await checkStoragePermission()) {
       ImagePicker picker = ImagePicker();
@@ -283,26 +278,33 @@ class TaggerWidget extends StatelessWidget {
       if (null != file) {
         Uint8List bytes = await file.readAsBytes();
         model.updateBytes(bytes);
-        getImageTagger(model.selectedBytes, model.threshold);
+        model.updateTaggerText(await getImageTagger(model.selectedBytes,
+            threshold: model.threshold));
 
         if (file.name.endsWith(".png") || file.name.endsWith(".PNG")) {
-          var chunks = pngExtract.extractChunks(bytes);
-          var scanChunkName = "tEXt";
-
-          for (Map chunk in chunks) {
-            for (String key in chunk.keys) {
-              if (chunk[key].toString() == scanChunkName) {
-                return Future.value(String.fromCharCodes(chunk['data']));
-              }
-            }
-          }
+          return Future.value(getPNGExtData(bytes));
         } else {
           var exif = await readExifFromBytes(bytes);
-          logt(TAG,"jpeg exif:" + exif.toString());
+          logt(TAG, "jpeg exif:" + exif.toString());
+          return Future.value(exif.toString());
         }
-        return Future.value("");
       }
     }
     return Future.error("");
   }
+}
+
+Future<String> getImageTagger(Uint8List? bytes, {int threshold = 30}) {
+  if (null != bytes) {
+    String encode = const Base64Encoder().convert(bytes);
+    post("$sdHttpService$RUN_PREDICT",
+            formData: tagger(encode, threshold / 100.0),
+            exceptionCallback: (e) {
+      logt(TAG,e.toString());
+            })
+        .then((value) {
+      return Future.value(value?.data['data'][0]);
+    });
+  }
+  return Future.error('');
 }

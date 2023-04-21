@@ -45,7 +45,7 @@ class StyleConfigPage extends StatelessWidget{
                   children: snapshot.data!.map((e) => TableRow(
                     children: [
                       TableCell(child: InkWell(onTap:(){
-                        Fluttertoast.showToast(msg: e.name);
+                        Fluttertoast.showToast(msg: e.name,gravity: ToastGravity.CENTER);
                       },child: TextFormField(initialValue:e.name))),
                       TableCell(child: TextFormField(
 
@@ -53,12 +53,12 @@ class StyleConfigPage extends StatelessWidget{
                       TableCell(child: TextFormField(
                           keyboardType: TextInputType.multiline,
                           maxLines: 5,
-                          initialValue:e.prompt.trim())),
+                          initialValue:e.prompt?.trim())),
                       TableCell(
                           child: TextFormField(
                               keyboardType: TextInputType.multiline,
                               maxLines: 5,
-                              initialValue:e.negativePrompt.trim())),
+                              initialValue:e.negativePrompt?.trim())),
                     ]
                   )).toList(),
                 ),

@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/file_util.dart';
+import 'package:sd/common/util/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 import '../sd/android.dart';
 import '../sd/bean/PromptStyle.dart';
@@ -39,19 +40,21 @@ class SplashPage extends StatelessWidget {
   static const String TAG = "SplashPage";
   late SharedPreferences sp;
   bool canSkip = false;
-  int getSettingSuccess = 0;
+  int? getSettingSuccess;
 
   late AIPainterModel provider;
   Timer? _countdownTimer;
 
   @override
   Widget build(BuildContext context) {
-    // createDirIfNotExit(getAutoSaveAbsPath());
+    if (UniversalPlatform.isAndroid) {
+      createDirIfNotExit(ANDROID_APP_DOWNLOAD_DIR);
+    }
     logt(TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
     provider.load();
 
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (provider.countdownNum <= 0) {
         jumpAndCancelTimerIfSettingIsReady(context, null);
       }
@@ -60,44 +63,36 @@ class SplashPage extends StatelessWidget {
       }
       provider.countDown();
     });
-    // String _cover =
-    //     'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
 
-    // String _cover = 'http://$sdHost:$SD_PORT/static/img/api-logo.svg';
     return Scaffold(
-      body: Selector<AIPainterModel, String>(
+      body: Selector<AIPainterModel, String?>(
         selector: (_, model) => model.splashImg,
         shouldRebuild: (pre, next) => pre != next,
         builder: (_, newValue, child) {
-          return newValue.endsWith('.svg') | newValue.endsWith('.ico')
-              ? Center(
-                  child: SvgPicture.network(
+          if(null!=newValue){
+            return newValue.endsWith('.svg') | newValue.endsWith('.ico')
+                ? Center(
+                child: SvgPicture.network(
                   newValue,
                   width: 80,
                   height: 80,
                 ))
-              : Stack(
-                  children: <Widget>[
-                    ConstrainedBox(
-                      constraints: const BoxConstraints.expand(),
-                      // child: InkWell(
-                      //   onTap: () {
-                      //     _countdownTimer?.cancel();
-                      //     Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      //       return WebViewPage('更多',_clickUrl);
-                      //     }));
-                      //   },
-                      child: CachedNetworkImage(
-                        fit: BoxFit.fill,
-                        imageUrl: newValue,
-                        // placeholder: (context, url) =>
-                        //     Image.asset('images/splash_bg.png'),
-                      ),
-                      // ),
-                    ),
-                    child!
-                  ],
-                );
+                : Stack(
+              children: <Widget>[
+                ConstrainedBox(
+                  constraints: const BoxConstraints.expand(),
+                  child: CachedNetworkImage(
+                    fit: BoxFit.fill,
+                    imageUrl: newValue,
+                  ),
+                  // ),
+                ),
+                child!
+              ],
+            );
+          }else{
+            return Container();
+          }
         },
         child: Align(
             alignment: Alignment.bottomRight,
@@ -136,41 +131,19 @@ class SplashPage extends StatelessWidget {
     );
   }
 
-  // void getBanner() async {
-  //   await get(context, 'getBannerData').then((snapshot) {
-  //     var value = json.decode(snapshot.toString());
-  //     String newUrl = value['data'][0]['imageurl'];
-  //     _clickUrl = value['data'][0]['linkurl'];
-  //     if (newUrl != _cover) {
-  //       setState(() {
-  //         _cover = newUrl;
-  //       });
-  //     }
-  //   });
-  // }
-
-  printDir(Directory? dir) {
-    if (null != dir) {
-      logt(TAG, "download path" + dir.path.toString());
-    }
-  }
-
-  printDirs(List<Directory>? dirs) {
-    if (null != dirs) {
-      logt(TAG, "print path:" + dirs.toString());
-    }
-  }
-
   void getSettings() async {
-    printDir(await getTemporaryDirectory());// /data/user/0/edu.tjrac.swant.sd/cache
-    printDir(await getApplicationSupportDirectory());// /data/user/0/edu.tjrac.swant.sd/files
-    printDir(await getApplicationDocumentsDirectory());// /data/user/0/edu.tjrac.swant.sd/app_flutter
+    printDir(
+        await getTemporaryDirectory()); // /data/user/0/edu.tjrac.swant.sd/cache
+    printDir(
+        await getApplicationSupportDirectory()); // /data/user/0/edu.tjrac.swant.sd/files
+    printDir(
+        await getApplicationDocumentsDirectory()); // /data/user/0/edu.tjrac.swant.sd/app_flutter
     // printDir(await getExternalStorageDirectory());  //only for android
     // printDirs(await getExternalCacheDirectories()); // only for android
     // printDirs(await getExternalStorageDirectories()); //only for android
     // printDir(await getDownloadsDirectory()); //only for not android
 
-      // if(provider.workspace)
+    // if(provider.workspace)
     // get("$sdHttpService$RUN_PREDICT", exceptionCallback: (e) {
     //   getSettingSuccess = -1;
     // }).then((value) {
@@ -187,60 +160,32 @@ class SplashPage extends StatelessWidget {
       // Options op = Options.fromJson(value.data);
       String modelName = value?.data['sd_model_checkpoint'];
       remoteTXT2IMGDir = value?.data['outdir_txt2img_samples'];
-
+      provider.sdServiceAvailable = true;
       provider.updateSDModel(modelName);
       getSettingSuccess = 1;
     });
   }
 
-  // void tokenLogin() async {
-  //   sp ??= await SharedPreferences.getInstance();
-  //   String token = sp?.getString("token") ?? "";
-  //   if (kDebugMode) {
-  //     print('token ${token}');
-  //   }
-  //   if (token.isNotEmpty) {
-  //     context.read<LoginStateProvider>().loginSuccess(token);
-  //     await post(context, 'tokenLogin', formData: {"user_ticket": token})
-  //         .then((snapshot) {
-  //       // if(hasError( context,snapshot)){
-  //       // }else{
-  //       context.read<LoginStateProvider>().loginSuccess(token);
-  //       // }
-  //       reSetCountdown();
-  //     });
-  //   } else {
-  //     reSetCountdown();
-  //   }
-  // }
+  printDir(Directory? dir) {
+    if (null != dir) {
+      logt(TAG, "download path" + dir.path.toString());
+    }
+  }
 
-  // String _token = "";
-  //
-  // Future<String?> get token async {
-  //   if (_token.isEmpty) {
-  //     sp ??= await SharedPreferences.getInstance();
-  //     _token = sp?.getString("token") ?? "";
-  //   }
-  //   return _token;
-  // }
-  // ignore: use_build_context_synchronously
+  printDirs(List<Directory>? dirs) {
+    if (null != dirs) {
+      logt(TAG, "print path:" + dirs.toString());
+    }
+  }
+
   void jumpAndCancelTimerIfSettingIsReady(BuildContext context, String? token) {
-    if (getSettingSuccess != 0) {
+    if (getSettingSuccess != null && getSettingSuccess != 0) {
       if (_countdownTimer != null) {
         _countdownTimer!.cancel();
       }
-      // if (null!=token&&token.isNotEmpty) {
-      // ignore: use_build_context_synchronously
-
-      Navigator.popAndPushNamed(context, ROUTE_HOME);
-
-      // } else {
-      //   Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //     return LoginPage(
-      //       fromMain: false,
-      //     );
-      //   }));
-      // }
+      if(context.mounted){
+        Navigator.popAndPushNamed(context, ROUTE_HOME);
+      }
     }
   }
 }

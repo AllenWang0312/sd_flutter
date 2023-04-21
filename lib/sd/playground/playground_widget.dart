@@ -4,10 +4,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/playground/history_widget.dart';
 
+import '../../common/third_util.dart';
+import '../../common/webview_page.dart';
+import '../config.dart';
 import 'remote_history_widget.dart';
 import 'tavern_widget.dart';
 
-class PlaygroundModel with ChangeNotifier, DiagnosticableTreeMixin {
+class RecordsModel with ChangeNotifier, DiagnosticableTreeMixin {
+
   bool dateOrder = true;
 
   void updateDateOrder(bool order) {
@@ -22,40 +26,47 @@ class PlaygroundModel with ChangeNotifier, DiagnosticableTreeMixin {
 // }
 }
 
-class PlaygroundWidget extends StatelessWidget {
-  PlaygroundWidget();
+class RecordsWidget extends StatelessWidget {
+  RecordsWidget();
 
   List<Widget> children = [
-    TavernWidget(),
+    // TavernWidget(),
     HistoryWidget(),
     // ChangeNotifierProvider(
     //   create: (_) => EasyRefreshModel(),
     //   child:
-      RemoteHistoryWidget(),
+    RemoteHistoryWidget(),
     // )
   ];
 
   @override
   Widget build(BuildContext context) {
-    PlaygroundModel model =
-        Provider.of<PlaygroundModel>(context, listen: false);
+    RecordsModel model =
+        Provider.of<RecordsModel>(context, listen: false);
     return DefaultTabController(
-      length: 3,
+      length: children.length,
       child: Column(
         children: [
           Row(
             children: [
+              IconButton(
+                  icon: Icon(Icons.settings),
+                  onPressed: () async {
+                    if (await checkStoragePermission()) {
+                      Navigator.pushNamed(context, ROUTE_SETTING);
+                    }
+                    // HistoryWidget(dbController),
+                  }),
               Expanded(
                 child: TabBar(
                   tabs: [
-                    Tab(text: AppLocalizations.of(context).tavern),
                     Tab(text: AppLocalizations.of(context).local),
                     Tab(text: AppLocalizations.of(context).remote),
                   ],
                   dividerColor: Colors.transparent,
                 ),
               ),
-              Selector<PlaygroundModel, bool>(
+              Selector<RecordsModel, bool>(
                 selector: (_, model) => model.dateOrder,
                 shouldRebuild: (pre, next) => pre != next,
                 builder: (context, newValue, child) {
