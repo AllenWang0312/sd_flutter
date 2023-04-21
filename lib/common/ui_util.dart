@@ -1,12 +1,25 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sd/common/util/file_util.dart';
 
 import '../sd/bean4json/Named.dart';
 
-
+Widget myPlaceholder(double width,double height){
+  if(kDebugMode){
+    return Placeholder(
+      fallbackHeight: height,
+      fallbackWidth: width,
+    );
+  }else{
+    return SizedBox(
+      width: width,
+      height: height,
+    );
+  }
+}
 List<DropdownMenuItem> getStringItems(List<String> nameds) {
   return nameds
       .map((e) => DropdownMenuItem(

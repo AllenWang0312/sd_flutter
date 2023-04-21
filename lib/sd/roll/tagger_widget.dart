@@ -154,10 +154,7 @@ class TaggerWidget extends StatelessWidget {
                   },
                 );
               } else {
-                return const Placeholder(
-                  fallbackHeight: 18,
-                  fallbackWidth: 100,
-                );
+                return  myPlaceholder(100,18);
               }
             },
           ),

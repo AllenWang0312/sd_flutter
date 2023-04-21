@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -413,7 +414,7 @@ class RollWidget extends StatelessWidget {
           "sampler_name": provider.config.sampler,
           // "sampler_index": provider.selectedSampler,
           // "script_name": sdModelManager.getModel(provider.selectedSDModel),
-          // "save_images": true
+          "save_images": kDebugMode,
           "seed": provider.config.seed,
         };
         // if (true) {

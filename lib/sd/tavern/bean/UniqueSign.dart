@@ -13,6 +13,7 @@ Map<String, Object?> toDynamic(String sign,int ageLevel){
 }
 
 abstract class UniqueSign  extends ImageInfo {
+
   String? sign;
 
   String getSign(Uint8List? data) {
@@ -20,7 +21,7 @@ abstract class UniqueSign  extends ImageInfo {
       if (null != url) {
         sign = url!;
       } else {
-        sign = getHash(data!); // fileSize hash for local  url for remote
+        sign = getFileMD5(data!); // fileSize hash for local  url for remote
       }
     }
     return sign!;

@@ -13,6 +13,7 @@ import 'package:sd/sd/config.dart';
 import 'package:sd/sd/tavern/bean/ImageSize.dart';
 
 import '../../common/third_util.dart';
+import '../../common/ui_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/string_util.dart';
 import '../bean/Configs.dart';
@@ -177,20 +178,18 @@ class _TavernWidgetState extends State<TavernWidget>
           }
           return true;
         },
-        child: GridView.builder(
+        child: GridView(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               // mainAxisSpacing: 10,
               // crossAxisSpacing: 10,
               childAspectRatio: 512 / 768),
           controller: controller,
-          itemCount: currentDir.length,
-          itemBuilder: (context, index) {
-            var e = currentDir[index];
-            return e.isDir
-                ? dirContent(e)
-                : fileBody(currentDir, currentDir.indexOf(e), e);
-          },
+          children: currentDir
+              .map((e) => e.isDir
+                  ? dirContent(e)
+                  : fileBody(currentDir, currentDir.indexOf(e), e))
+              .toList(),
         ),
       ),
     );
@@ -322,9 +321,8 @@ class _TavernWidgetState extends State<TavernWidget>
     );
   }
 
-  dirContent(FileInfo info) {
+  Widget dirContent(FileInfo info) {
     int? count = info.fileCount;
-    logt(TAG, info.name! + info.localPath! + count.toString());
     return InkWell(
       onTap: () {
         if (info.isExist) {
@@ -410,10 +408,7 @@ class _TavernWidgetState extends State<TavernWidget>
                           height: 24,
                         );
                       } else {
-                        return const Placeholder(
-                          fallbackWidth: 24,
-                          fallbackHeight: 24,
-                        );
+                        return myPlaceholder( 24, 24);
                       }
                     }),
                 Text(
@@ -443,6 +438,8 @@ class _TavernWidgetState extends State<TavernWidget>
     if (state == AppLifecycleState.resumed) {
       logt(TAG, "resumed");
       initData(true);
+    } else if (state == AppLifecycleState.inactive) {
+      logt(TAG, "inactive");
       if (provider.checkIdentityWhenReEnter &&
           availableBiometrics != null &&
           availableBiometrics!.isNotEmpty) {
@@ -460,10 +457,10 @@ class _TavernWidgetState extends State<TavernWidget>
                         onPressed: () async {
                           try {
                             final bool didAuthenticate =
-                                await auth.authenticate(
-                                    localizedReason: '应用开启离开认证 需要验证您的身份',
-                                    options: const AuthenticationOptions(
-                                        biometricOnly: true));
+                            await auth.authenticate(
+                                localizedReason: '应用开启离开认证 需要验证您的身份',
+                                options: const AuthenticationOptions(
+                                    biometricOnly: true));
 
                             if (didAuthenticate) {
                               Navigator.pop(context);
@@ -481,8 +478,7 @@ class _TavernWidgetState extends State<TavernWidget>
               );
             });
       }
-    } else if (state == AppLifecycleState.inactive) {
-      logt(TAG, "inactive");
+
     } else if (state == AppLifecycleState.paused) {
       logt(TAG, "paused");
     } else if (state == AppLifecycleState.detached) {

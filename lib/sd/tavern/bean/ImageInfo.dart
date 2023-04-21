@@ -16,7 +16,7 @@ abstract class ImageInfo extends Showable{
   String? name;
 
   String? url;
-  String? _hash;
+  String? _fileMD5;
   String? _exif;
   String? localPath;
 
@@ -100,8 +100,8 @@ abstract class ImageInfo extends Showable{
     return url??localPath??"";
   }
 
-  String getHash(Uint8List data) {
-    _hash ??= md5.convert(data).toString();
-    return _hash!;
+  String getFileMD5(Uint8List data) {
+    _fileMD5 ??= md5.convert(data).toString();
+    return _fileMD5!;
   }
 }

@@ -52,7 +52,7 @@ class SDModelWidget extends StatelessWidget {
                         roll.isBusy(REQUESTING);
                         post("$sdHttpService$RUN_PREDICT", formData: {
                           "data": [getModel(newValue)],
-                          "fn_index": CMD_SWITCH_MD_MODEL
+                          "fn_index": CMD_SWITCH_SD_MODEL
                         }, exceptionCallback: (e) {
                           roll.isBusy(ERROR);
                           Fluttertoast.showToast(msg: "模型切换失败",gravity: ToastGravity.CENTER);
@@ -79,10 +79,7 @@ class SDModelWidget extends StatelessWidget {
               ),
             );
           } else {
-            return const Placeholder(
-              fallbackWidth: 100,
-              fallbackHeight: 48,
-            );
+            return myPlaceholder(100,48);
           }
         });
   }

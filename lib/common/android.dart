@@ -27,8 +27,8 @@ isAndroidAbsPath(String path) {
 
 String removeAndroidPrePathIfIsPublic(String path) {
   if(path.startsWith(
-      ANDROID_ROOT_DIR
-      // "$ANDROID_ROOT_DIR/Pictures"
+      // ANDROID_ROOT_DIR
+      "$ANDROID_ROOT_DIR/Pictures"
   )){
     path = path.substring(ANDROID_ROOT_DIR.length);
   }

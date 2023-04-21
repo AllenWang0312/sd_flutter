@@ -9,8 +9,6 @@ import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/config.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/common/util/file_util.dart';
-
-import '../../common/android.dart';
 import '../../common/util/ui_util.dart';
 
 class HistoryWidget extends StatefulWidget {
@@ -21,19 +19,13 @@ class HistoryWidget extends StatefulWidget {
 }
 
 class _HistoryWidgetState extends State<HistoryWidget> {
-  int userAge = 16;
-
   int pageNum = 0;
-
   int pageSize = 20;
-
   List<History> history = [];
 
   int viewType = 0;
-
   //list grid flot scale
   bool dateOrder = true;
-
   bool asc = false;
 
   late EasyRefreshController _controller;
@@ -63,14 +55,13 @@ class _HistoryWidgetState extends State<HistoryWidget> {
             itemBuilder: (context, index) {
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
-              var file = File(dbString(item.localPath!));
+              var file = File(item.localPath!);
               if (file.existsSync()) {
                 return InkWell(
                   onTap: () {
                     Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
                         arguments: {
-                          "urls": history.sublist(
-                              index, min(history.length, index + 20)),
+                          "urls": history,
                           "index": index,
                           "savePath": getImageAutoSaveAbsPath(),
                         });
@@ -83,7 +74,6 @@ class _HistoryWidgetState extends State<HistoryWidget> {
               } else {
                 return CachedNetworkImage(imageUrl: placeHolderUrl());
               }
-              // todo 暂时兼容脏数据  发版不需要dbString
             },
             crossAxisCount: 2,
             mainAxisSpacing: 2,

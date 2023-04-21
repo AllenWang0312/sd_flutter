@@ -73,10 +73,7 @@ class SamplerWidget extends StatelessWidget {
                           }),
                     );
                   } else {
-                    return const Placeholder(
-                      fallbackHeight: 20,
-                      fallbackWidth: 100,
-                    );
+                    return myPlaceholder(100,20);
                   }
                 }),
             Expanded(

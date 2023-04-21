@@ -4,13 +4,14 @@ const CMD_REFRESH_STYLE = 124;
 const CMD_CLEAN_SEED = 128;
 const CMD_MULTI_GENERAGE =244;
 const CMD_SAVE_STYLE = 499;
-const CMD_GET_REMOTE_HISTORY = 492;
+const CMD_GET_REMOTE_HISTORY = 504;
 const CMD_DELETE_FILE = 719;
 const CMD_GET_INTERROGATORS = 858;
 const CMD_IMG_TAGGER = 635;
 const CMD_GET_ALL_SETTING = 885;
-const CMD_SWITCH_MD_MODEL = 656;
-const CMD_GET_CONGIS = 897;
+const CMD_SWITCH_SD_MODEL = 656;
+const CMD_GET_CONFIGS = 897;
+
 const BASE64_PREFIX = 'data:image/png;base64,';
 
 dynamic multiGenerateBody(dynamic data,int pi ,int times) {
@@ -315,7 +316,7 @@ dynamic cleanSeed(){
 }
 dynamic getConfigs(){
   return {
-    "fn_index": CMD_GET_CONGIS,
+    "fn_index": CMD_GET_CONFIGS,
     "data": [],
     // "session_hash": "7vuvdqy85iv"
   };
