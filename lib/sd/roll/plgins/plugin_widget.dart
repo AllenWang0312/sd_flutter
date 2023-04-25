@@ -5,14 +5,14 @@ import 'package:sd/common/empty_view.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 
 import '../../http_service.dart';
-import '../../config.dart';
+import '../../const/config.dart';
 
 class PluginWidget extends StatelessWidget {
-  String prefix;
-  String modelType;
-  String nameFilePath;
+ final String prefix;
+ final String modelType;
+ final String nameFilePath;
 
-  PluginWidget(this.prefix, this.modelType, this.nameFilePath);
+  const PluginWidget(this.prefix, this.modelType, this.nameFilePath);
 
   @override
   Widget build(BuildContext context) {

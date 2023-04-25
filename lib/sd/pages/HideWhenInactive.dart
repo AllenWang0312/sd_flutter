@@ -1,0 +1,144 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:local_auth/local_auth.dart';
+import 'package:provider/provider.dart';
+
+import '../../common/util/ui_util.dart';
+import '../AIPainterModel.dart';
+import '../http_service.dart';
+
+const TAG = "HideWhenInactive";
+
+class HideWhenInactive extends StatefulWidget {
+  Widget child;
+  bool needCheckUserIdentity; //是否需要校验身份才能使用
+
+  HideWhenInactive({this.needCheckUserIdentity = false, required this.child});
+
+  @override
+  State<StatefulWidget> createState() {
+    return _HideWhenInactiveState();
+  }
+}
+
+class _HideWhenInactiveState extends State<HideWhenInactive>
+    with WidgetsBindingObserver {
+  bool canAuthenticateWithBiometrics = false;
+  final LocalAuthentication auth = LocalAuthentication();
+  late List<BiometricType>? availableBiometrics;
+  late AIPainterModel provider;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    initLocalAuth();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    provider = Provider.of<AIPainterModel>(context, listen: false);
+    return widget.child;
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> initLocalAuth() async {
+    canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+    final bool canAuthenticate =
+        canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+    if (canAuthenticate) {
+      availableBiometrics = await auth.getAvailableBiometrics();
+    }
+    // if (availableBiometrics.contains(BiometricType.strong) ||
+    //     availableBiometrics.contains(BiometricType.face)) {
+    //   // Specific types of biometrics are available.
+    //   // Use checks like this with caution!
+    // }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    provider.updateLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      // logt(TAG, "resumed");
+      // initData(true);
+      if (provider.state == AppLifecycleState.resumed &&
+          (!widget.needCheckUserIdentity || provider.checkIdentitySuccess)) {
+        Navigator.pop(context);
+      }
+
+      // if (widget.needCheckUserIdentity &&
+      //     provider.checkIdentityWhenReEnter &&
+      //     availableBiometrics != null &&
+      //     availableBiometrics!.isNotEmpty) {}
+    } else if (state == AppLifecycleState.inactive) {
+      logt(TAG, "inactive");
+      if (widget.needCheckUserIdentity &&
+          provider.checkIdentityWhenReEnter &&
+          availableBiometrics != null &&
+          availableBiometrics!.isNotEmpty) {
+        provider.updateLocalAuth(false);
+
+        showDialog(
+            barrierDismissible: false,
+            // useRootNavigator:false;
+            context: context,
+            builder: (context) {
+              return WillPopScope(
+                onWillPop: () async {
+                  return false;
+                },
+                child: BackdropFilter(
+                  filter: CHECK_IDENTITY,
+                  child: AlertDialog(
+                    title: const Text('身份认证'),
+                    content: const Text('您是本机的主人吗'),
+                    actions: [
+                      TextButton(
+                          onPressed: () async {
+                            try {
+                              final bool didAuthenticate =
+                                  await auth.authenticate(
+                                      localizedReason: '应用开启离开认证 需要验证您的身份',
+                                      options: const AuthenticationOptions(
+                                          biometricOnly: true));
+                              if (didAuthenticate) {
+                                provider.updateLocalAuth(true);
+                                Navigator.pop(context);
+                              }
+                            } on PlatformException catch (e) {
+                              if (e.code == auth_error.notEnrolled) {
+                              } else if (e.code == auth_error.lockedOut ||
+                                  e.code == auth_error.permanentlyLockedOut) {
+                              } else {}
+                            }
+                          },
+                          child: const Text('开始识别'))
+                    ],
+                  ),
+                ),
+              );
+            });
+      } else{
+        showDialog(
+            context: context,
+            builder: (context) {
+              return BackdropFilter(
+                  filter: CHECK_IDENTITY, child: SizedBox.expand());
+            });
+      }
+    } else if (state == AppLifecycleState.paused) {
+      logt(TAG, "paused");
+    } else if (state == AppLifecycleState.detached) {
+      logt(TAG, "detached");
+    }
+  }
+}

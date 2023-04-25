@@ -20,7 +20,7 @@ class RollModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void updateProgress(double? progress) {
-    progress = progress;
+    this.progress = progress;
     notifyListeners();
   }
 

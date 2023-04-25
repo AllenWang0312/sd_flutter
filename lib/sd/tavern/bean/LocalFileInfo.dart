@@ -9,17 +9,17 @@ const TAG = "FileInfo";
 
 
 
-class FileInfo extends UniqueSign {
+class LocalFileInfo extends UniqueSign {
   static const TABLE_NAME = "age_level_record";
   static var TABLE_CREATE = 'id INTEGER PRIMARY KEY,sign TEXT UNIQUE,ageLevel INTEGER';
 
-  FileInfo? parent;
+  LocalFileInfo? parent;
 
   int? id;
-
+  String? dirDes;
   int? _fileCount;
-  FileInfo? cover;
-  List<FileInfo>? images;
+  LocalFileInfo? cover;
+  List<LocalFileInfo>? images;
 
   int? get fileCount {
     if (_fileCount == null || _fileCount! < 0) {
@@ -30,7 +30,7 @@ class FileInfo extends UniqueSign {
         }).toList();
         images = files
             .map((e) =>
-            FileInfo(name: getFileName(e.path), parent: this, absPath: e.path))
+            LocalFileInfo(name: getFileName(e.path), parent: this, absPath: e.path))
             .toList();
         _fileCount = images?.length;
         cover = (null != images && images!.isNotEmpty) ? images!.first : null;
@@ -72,25 +72,30 @@ class FileInfo extends UniqueSign {
   }
 
 
-  FileInfo(
+  LocalFileInfo(
       {this.parent, String? name, String? url, bool? isDir, String? absPath}) {
     this.name = name;
     _isDir = isDir;
     localPath = absPath;
-    this.url = url;
+
+    if(null!=_isDir&&_isDir!){
+      dirDes = url;
+    }else{
+      this.url = url;
+    }
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is FileInfo &&
+          other is LocalFileInfo &&
               runtimeType == other.runtimeType &&
               localPath == other.localPath;
 
 
-  static FileInfo fromFile(File newFile) {
+  static LocalFileInfo fromFile(File newFile) {
     String absPath = newFile.path;
-    return FileInfo(name: getFileName(absPath), isDir: false, absPath: absPath);
+    return LocalFileInfo(name: getFileName(absPath), isDir: false, absPath: absPath);
   }
 
 }

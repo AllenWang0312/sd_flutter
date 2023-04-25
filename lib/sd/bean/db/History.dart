@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:sd/sd/AIPainterModel.dart';
 import '../../tavern/bean/UniqueSign.dart';
 
@@ -43,6 +45,9 @@ class History extends UniqueSign{
     this.url = imgUrl;
   }
 
+  int getAgeLevel(AIPainterModel? provider, Uint8List? data) {
+    return ageLevel;
+  }
   History.fromJson(dynamic json) {
     prompt = json['prompt'];
     negativePrompt = json['negativePrompt'];

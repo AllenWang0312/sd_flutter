@@ -12,10 +12,11 @@ import 'package:sd/sd/tavern/bean/Showable.dart';
 import '../../../common/android.dart';
 
 const TAG = "ImageInfo";
-abstract class ImageInfo extends Showable{
+abstract class ImageFileInfo extends Showable{
   String? name;
 
   String? url;
+
   String? _fileMD5;
   String? _exif;
   String? localPath;
@@ -25,7 +26,7 @@ abstract class ImageInfo extends Showable{
 
 
   String getLocalPath() {
-    localPath ??= "$ANDROID_APP_DOWNLOAD_DIR/$name";
+    localPath ??= "$ANDROID_PRIVATE_FILE_COLLECTIONS_PATH/$name";
     return localPath!;
   }
 
@@ -36,7 +37,7 @@ abstract class ImageInfo extends Showable{
     var path = getLocalPath();
     if (null == _exif) {
       File prompt =
-      File('${path.substring(0, path.lastIndexOf('.'))}txt');
+      File('${path.substring(0, path.lastIndexOf('.'))}.txt');
 
       bool isPng = path.toLowerCase().endsWith('.png');
       if (isPng) {
@@ -86,7 +87,7 @@ abstract class ImageInfo extends Showable{
       // info?.ageLevel = getAgeLevel(tag);
       // prompt.createSync(recursive: true, exclusive: true);
       // prompt.writeAsString(exif.toString()!, encoding: utf8);
-      return exif.keys.length==0?null:'';
+      return exif.keys.isEmpty?null:'';
     }
   }
 

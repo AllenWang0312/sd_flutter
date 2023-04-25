@@ -3,35 +3,39 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
-import 'package:sd/common/webview_page.dart';
-import 'package:sd/sd/config.dart';
+import 'package:sd/common/webview/webview_page.dart';
 import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/pages/HideWhenInactive.dart';
+import 'package:sd/sd/pages/home_page.dart';
+import 'package:sd/sd/pages/images_viewer.dart';
+import 'package:sd/sd/roll/plgins/plugins_widget.dart';
 import 'package:sd/sd/setting/CreateStyleModel.dart';
-import 'package:sd/sd/HomeModel.dart';
 import 'package:sd/sd/setting/CreateWrokspaceModel.dart';
 import 'package:sd/sd/setting/create_style_page.dart';
 import 'package:sd/sd/setting/create_workspace_widget.dart';
 import 'package:sd/sd/setting/edit_style_page.dart';
-import 'package:sd/sd/pages/home_page.dart';
-import 'package:sd/sd/pages/images_viewer.dart';
 import 'package:sd/sd/setting/setting_page.dart';
 import 'package:sd/sd/setting/style_edit_page.dart';
-import 'package:sd/sd/roll/plgins/plugins_widget.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
 
 void main() {
   var routes = {
-    ROUTE_HOME: (_, {arguments}) => ChangeNotifierProvider(
-          create: (_) => HomeModel(),
-          child: HomePage(),
-        ),
-    ROUTE_PLUGINS: (_) => PluginsWidget(),
+    ROUTE_HOME: (_, {arguments}) =>
+        // ChangeNotifierProvider(
+        //   create: (_) => HomeModel(),
+        //   child:
+        HideWhenInactive(
+            needCheckUserIdentity: true,
+            child: HomePage(index: arguments?['index'])),
+    // ),
+    ROUTE_PLUGINS: (_) => const PluginsWidget(),
     ROUTE_SETTING: (_) => SettingPage(),
     ROUTE_WEBVIEW: (_, {arguments}) => WebViewStatefulPage(
-          arguments['title'],
-          arguments['url'],
-          savePath: arguments['savePath'],
-        ),
+      arguments['title'],
+      arguments['url'],
+      savePath: arguments['savePath'],
+    ),
     ROUTE_CREATE_WORKSPACE: (_, {arguments}) => ChangeNotifierProvider(
         create: (_) => CreateWSModel(),
         child: CreateWorkspaceWidget(
@@ -65,7 +69,7 @@ void main() {
             index: arguments['index'],
             datas: arguments['datas'],
             saveDirPath: arguments['savePath'],
-            scanServiceAvailable: arguments['scanAvailable']??false,
+            scanServiceAvailable: arguments['scanAvailable'] ?? false,
           ),
         )
   };

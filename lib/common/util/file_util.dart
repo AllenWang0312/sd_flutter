@@ -2,11 +2,13 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:sd/common/util/string_util.dart';
+import 'package:sd/sd/db_controler.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
 
 import '../android.dart';
-import '../../sd/config.dart';
+import '../../sd/const/config.dart';
 import '../../sd/http_service.dart';
 
 const TAG = "file util";
@@ -51,7 +53,7 @@ Future<String> getImageAutoSaveAbsPath() async {
   if (UniversalPlatform.isAndroid) {
     dir = await getExternalStorageDirectory();
     if (null != dir) {
-      return "${dir.path}/Pictures";
+      return "${dir.path}/files";
     } else {
       return ANDROID_PUBLIC_PICTURES_PATH;
     }
@@ -107,6 +109,12 @@ bool createDirIfNotExit(String dirPath) {
 
 String getFileName(String absPath) {
   return absPath.substring(absPath.lastIndexOf("/") + 1);
+}
+String getRemoteFileNameNoExtend(String domain,String url) {
+  if(domain.contains('pixai.art')){//domain.contains('krea.ai')||
+    return dbString(DateTime.now().toString());
+  }
+  return url.substring(url.lastIndexOf("/") + 1);
 }
 
 String getFileExt(String absPath) {

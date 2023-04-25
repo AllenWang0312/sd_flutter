@@ -16,8 +16,9 @@ import '../../common/my_checkbox.dart';
 import '../../common/third_util.dart';
 import '../../common/util/string_util.dart';
 import '../bean/db/History.dart';
+import '../bean4json/GenerateProgress.dart';
 import '../bean4json/GenerateResultItem.dart';
-import '../config.dart';
+import '../const/config.dart';
 import '../db_controler.dart';
 import '../http_service.dart';
 import '../mocker.dart';
@@ -38,27 +39,63 @@ class RollWidget extends StatelessWidget {
   late RollModel model;
   late AIPainterModel provider;
 
+  bool backgroundProgress = true; //主动检查 progress
+  int countDown = 0;
+  int id_live_preview = -1;
+  Timer? _countdownTimer;
+
+
   @override
   Widget build(BuildContext context) {
     final samplerManager = SamplerWidget();
     final upScalerManger = UpScalerWidget();
     model = Provider.of<RollModel>(context, listen: false);
     provider = Provider.of<AIPainterModel>(context, listen: false);
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if(provider.sdServiceAvailable){
+        if(!backgroundProgress){
+          post("$sdHttpService$GET_PROGRESS",
+              formData: getPreview(id_live_preview), exceptionCallback: (e) {
+                // _countdownTimer?.cancel();
+              }).then((value) {
+            if (null != value) {
+              GenerateProgress progress = GenerateProgress.fromJson(value.data);
+              forgroundProgressCheck(progress);
+            }
+          });
+        }else{
+          countDown ++;
+          if(countDown%10==0){
+            post("$sdHttpService$GET_PROGRESS",formData: getPreview(-1), exceptionCallback: (e) {
+              // _countdownTimer?.cancel();
+            }).then((value) {
+              if (null != value) {
+                GenerateProgress progress = GenerateProgress.fromJson(value.data);
+                backgroundProgressCheck(progress);
+              }
+            });
+          }
+        }
+      }
+
+    });
+
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("  ${AppLocalizations.of(context).sdModel} ："),
-                Text(
-                    "${AppLocalizations.of(context).workspace}：${provider.selectWorkspace?.getName()}   ")
-              ],
-            ),
-            SDModelWidget(),
-          ],
+        AppBar(
+          title: Text(
+          "${provider.selectWorkspace?.getName().toUpperCase()}"),
         ),
+        SDModelWidget(),
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [
+        //     Text("  ${AppLocalizations.of(context).sdModel} ："),
+        //     SDModelWidget(),
+        //   ],
+        // ),
         Expanded(
           child: Stack(children: [
             SingleChildScrollView(
@@ -500,27 +537,8 @@ class RollWidget extends StatelessWidget {
 
           // prefs.then((sp) => {});
           //todo 异步progress轮训进度   可以封装成widget
-          // _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          //   logd("tiktok");
-          //   post("$sdHttpService$GET_PROGRESS",
-          //       formData: getPreview(id_live_preview), exceptionCallback: (e) {
-          //     _countdownTimer?.cancel();
-          //   }).then((value) {
-          //     if (null != value) {
-          //       GenerateProgress progress = GenerateProgress.fromJson(value.data);
-          //       id_live_preview = progress.idLivePreview!;
-          //       model.updateProgress(progress.progress);
-          //       if (progress.livePreview != null) {
-          //         model.updatePreviewData(base64Decode(
-          //             progress.livePreview!.substring(BASE64_PREFIX.length)));
-          //       }
-          //       if (progress.completed == true) {
-          //         logd("timer cancel");
-          //         _countdownTimer?.cancel();
-          //       }
-          //     }
-          //   });
-          // });
+          backgroundProgress = false;
+
         }
       } else {
         Fluttertoast.showToast(
@@ -529,8 +547,27 @@ class RollWidget extends StatelessWidget {
     }
   }
 
-  int id_live_preview = -1;
-  Timer? _countdownTimer;
+  void forgroundProgressCheck(GenerateProgress progress) {
+    id_live_preview = progress.idLivePreview!;
+    model.updateProgress(progress.progress);
+    if (progress.livePreview != null) {
+      model.updatePreviewData(base64Decode(
+          progress.livePreview!.substring(BASE64_PREFIX.length)));
+    }
+    if (progress.completed == true) {
+      logd("timer cancel");
+      // _countdownTimer?.cancel();
+      backgroundProgress = true;
+    }
+  }
+
+  void backgroundProgressCheck(GenerateProgress progress) {
+    if(null!=progress.active&&!progress.active!){
+      model.isBusy(REQUESTING);
+    }else{
+      model.isBusy(INIT);
+    }
+  }
 }
 
 enum SetType { basic, advanced, lora, hyp }

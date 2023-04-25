@@ -1,16 +1,16 @@
 // const PROMPT_KEY = 'Prompt:';
-import 'dart:convert';
-
 import '../../common/bean/StringIndicator.dart';
-import '../config.dart';
-import '../http_service.dart';
+import '../../common/util/string_util.dart';
+import '../const/config.dart';
 import '../const/SDConst.dart';
+import '../http_service.dart';
 
 class Configs {
   static const String TAG = "Prompt";
 
   String prompt = '';
   String negativePrompt = '';
+
   int steps = DEFAULT_SAMPLER_STEPS;
   String sampler = DEFAULT_SAMPLER;
   double cfgScale = 7.0;
@@ -45,61 +45,52 @@ class Configs {
     return null;
   }
 
-  static Configs fromString(String prompt) {
-    String json = '{Prompt:$prompt}';
-    JsonDecoder decoder = JsonDecoder();
-    dynamic config = decoder.convert(json);
-    logt(TAG,config["Prompt"]);
-
-
+  Configs updateConfigs(String prompt) {
     List<StringIndicator> indicators = KEYS.map((e) {
       int start = prompt.indexOf(e);
       int end = start + e.length;
       return StringIndicator(e, start, end);
-    }).toList()
+    }).where((element) => element.start > 0).toList()
       ..sort((a, b) => a.start - b.start);
     logt(TAG, indicators.toString());
 
     Configs result = Configs();
-    result.prompt = substring(prompt, indicators, -1);
-    result.negativePrompt =
-        getPrompt(prompt, indicators, indicators.indexOf(NEGATIVE_KEY as StringIndicator));
-
-    if (indicators[1].start == -1) {
-      result.steps = int.parse(substring(prompt, indicators, 1));
-    }
-    if (indicators[2].start == -1) {
-      result.sampler = substring(prompt, indicators, 2);
-    }
-    if (indicators[3].start == -1) {
-      result.cfgScale = double.parse(substring(prompt, indicators, 3));
-    }
-    if (indicators[4].start == -1) {
-      result.seed = int.parse(substring(prompt, indicators, 4));
-    }
-    if (indicators[5].start == -1) {
-      result.modelHash = substring(prompt, indicators, 5);
-    }
+    result.prompt = withDefault(substring(prompt, indicators, index: -1), '');
+    result.negativePrompt= withDefault(substring(prompt, indicators, key: NEGATIVE_KEY), '');
+    result.steps = toInt(substring(prompt, indicators, key: STEPS_KEY), 30);
+    result.sampler = withDefault(substring(prompt, indicators, key: SAMPLER_KEY), this.sampler);
+      result.cfgScale = toDouble(
+          substring(prompt, indicators,key:CFG_KEY),7.0);
+      result.seed = toInt(
+          substring(prompt, indicators, key:SEED_KEY),-1);
+      result.modelHash =
+          withDefault(substring(prompt, indicators, key:MODEL_HASH_KEY), this.modelHash);
     // result.modelHash = prompt.substring(
     //     indicators[5].end + 1, nextAvailable(indicators, 5)?.start - 2);
     // result.size = prompt.substring(indicators[6].end + 1);
+    logt(TAG, result.toString());
     return result;
   }
 
-  static String substring(
-      String prompt, List<StringIndicator> indicators, int i) {
-    StringIndicator? next = nextAvailable(indicators, i);
-    return prompt.substring(
-        i < 0 ? 0 : indicators[i].end, next != null ? next.start - 2 : null);
+  static String substring(String prompt, List<StringIndicator> indicators,
+      {String? key, int? index}) {
+    if (null != key && !indicators.contains(key)) {
+      return '';
+    }
+    index ??= indexOf(indicators, key!);
+    StringIndicator? next = nextAvailable(indicators, index);
+    return prompt.substring(index < 0 ? 0 : indicators[index].end + 1,
+        next != null ? next.start - 2 : null);
   }
 
-  static String getPrompt(
-      String prompt, List<StringIndicator> indicators, int index) {
-    if (indicators[index].start != -1) {
-      return substring(prompt, indicators, index);
+  static int indexOf(List<StringIndicator> indicators, String key) {
+    for (int i = 0; i < indicators.length; i++) {
+      if (key == indicators[i].key) return i;
     }
-    return '';
+    return -1;
   }
+
+
 
 // Pair a = findPrompt(0, prompt, NEGATIVE_KEY);
 // result.prompt=a.a;

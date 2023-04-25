@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
-import 'package:sd/sd/tavern/bean/FileInfo.dart';
+import 'package:sd/sd/tavern/bean/LocalFileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -45,14 +45,14 @@ class DBController {
               await db.execute(
                   'CREATE TABLE ${History.TABLE_NAME} (${History.TABLE_CREATE})');
               await db.execute(
-                  'CREATE TABLE ${FileInfo.TABLE_NAME} (${FileInfo.TABLE_CREATE})');
+                  'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
 
               // await db.execute(
               //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
             },
             onUpgrade: (Database db, int oldVersion, int newVersion) async {
               await db.execute(
-                  'CREATE TABLE ${FileInfo.TABLE_NAME} (${FileInfo.TABLE_CREATE})');
+                  'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
 
 
             },
@@ -104,7 +104,7 @@ class DBController {
 
     if (null != database && database!.isOpen) {
       return Future.value(
-          database?.insert(FileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel)));
+          database?.insert(LocalFileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel)));
     }
     return Future.error('insert error');
   }
@@ -114,13 +114,13 @@ class DBController {
 
     if (null != database && database!.isOpen) {
       return Future.value(
-          database?.update(FileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel),where: "sign = ? ",whereArgs: [info.getSign(data)]));
+          database?.update(LocalFileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel),where: "sign = ? ",whereArgs: [info.getSign(data)]));
     }
     return Future.error('insert error');
   }
   Future<int> removetAgeLevelRecord(UniqueSign info,Uint8List? data) async {
     if (null != database && database!.isOpen) {
-      return database!.delete(FileInfo.TABLE_NAME,
+      return database!.delete(LocalFileInfo.TABLE_NAME,
           where: "sign = ?",
           whereArgs: [info.getSign(data)]);
     }
@@ -129,7 +129,7 @@ class DBController {
 
   Future<List<dynamic>>? queryAgeLevelRecord() {
     return database?.rawQuery(
-        'SELECT * FROM ${FileInfo.TABLE_NAME} ORDER BY ageLevel DESC');
+        'SELECT * FROM ${LocalFileInfo.TABLE_NAME} ORDER BY ageLevel DESC');
   }
 
   Future<int> insertWorkSpace(Workspace workspace) {

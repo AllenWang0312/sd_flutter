@@ -1,5 +1,5 @@
 import 'package:sd/sd/tavern/bean/Showable.dart';
-import '../config.dart';
+import '../const/config.dart';
 
 class GenerateResultItem extends Showable{
   GenerateResultItem({

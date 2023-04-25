@@ -9,7 +9,9 @@
   "history": "History",
 
   "local": "Local",
-  "remote": "Remote",
+  "remoteTxt2Img": "Remote(TXT2IMG)",
+  "remoteImg2Img": "Remote(IMG2IMG)",
+  "extras": "Extras",
   "roll": "Roll",
   "prompt": "Prompt",
   "negativePrompt": "Negative Prompt",

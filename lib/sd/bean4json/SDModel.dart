@@ -5,9 +5,10 @@ class SdModel implements Named {
   SdModel({
     required this.title,
     required this.modelName,
-    required this.hash,
-    required this.sha256,
     required this.filename,
+
+    this.hash,
+    this.sha256,
     this.config,
   });
 
@@ -19,13 +20,16 @@ class SdModel implements Named {
     filename = json['filename'];
     config = json['config'];
   }
+  SdModel.fromString(String fileName) {
+    this.filename = fileName;
+  }
 
   late String title;
   late String filename;
   late String modelName;
-  late String hash;
-  late String sha256;
-  dynamic config;
+  String? hash;
+  String? sha256;
+  dynamic? config;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

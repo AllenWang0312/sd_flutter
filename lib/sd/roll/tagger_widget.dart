@@ -15,7 +15,7 @@ import '../../common/ui_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
 import '../bean4json/PostPredictResult.dart';
-import '../config.dart';
+import '../const/config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
 import '../AIPainterModel.dart';

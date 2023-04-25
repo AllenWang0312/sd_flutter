@@ -11,9 +11,9 @@ class PromptStylePicker extends StatelessWidget {
 
   String getStylePrompt() {
     String prompt = "";
-    for (var style in provider.styles) {
+    for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        prompt += appendCommaIfNotExist(style.prompt);
+        prompt += appendCommaIfNotExist(style.prompt??"");
       }
     }
     return prompt;
@@ -21,9 +21,9 @@ class PromptStylePicker extends StatelessWidget {
 
   String getStyleNegPrompt() {
     String prompt = "";
-    for (var style in provider.styles) {
+    for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        prompt += appendCommaIfNotExist(style.negativePrompt);
+        prompt += appendCommaIfNotExist(style.negativePrompt??"");
       }
     }
     return prompt;

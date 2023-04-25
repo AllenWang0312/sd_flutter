@@ -5,7 +5,7 @@ import 'package:sd/sd/AIPainterModel.dart';
 import '../../common/ui_util.dart';
 import '../http_service.dart';
 import '../bean4json/UpScaler.dart';
-import '../config.dart';
+import '../const/config.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UpScalerWidget extends StatelessWidget {

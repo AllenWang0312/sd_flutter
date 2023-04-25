@@ -1,11 +1,17 @@
-
+const CMD_REFRESH_MODEL = 0;
 const CMD_GET_LAST_PROMPT = 9;
 const CMD_REFRESH_STYLE = 124;
 const CMD_CLEAN_SEED = 128;
 const CMD_MULTI_GENERAGE =244;
 const CMD_SAVE_STYLE = 499;
-const CMD_GET_REMOTE_HISTORY = 504;
-const CMD_DELETE_FILE = 719;
+const CMD_GET_TXT2IMG_HISTORY = 688;
+const CMD_GET_IMG2IMG_HISTORY = 710;
+const CMD_GET_MORE_HISTORY = 776;
+
+const CMD_GET_TXT2IMG_GRID_HISTORY = 648;
+const CMD_GET_IMG2IMG_GRID_HISTORY = 670;
+
+const CMD_DELETE_FILE = 875;
 const CMD_GET_INTERROGATORS = 858;
 const CMD_IMG_TAGGER = 635;
 const CMD_GET_ALL_SETTING = 885;
@@ -202,15 +208,15 @@ dynamic tagger(String encodeData,double threshold){
 
 
 
-dynamic delateFile(String filePath,int page,int index){
+dynamic delateFile(String? filePath,int page,int index,int pageSize){
   return {
     "fn_index": CMD_DELETE_FILE,
     "data": [
-      page,
+      1,
       filePath,
       null,
       "$index",
-      36
+      pageSize
     ],
     // "session_hash": "cqewqfm6sps"
   };
@@ -310,6 +316,13 @@ dynamic getLastPrompt(){
 dynamic cleanSeed(){
   return {
     "fn_index": CMD_CLEAN_SEED,
+    "data": [],
+    // "session_hash": "xo1qqnyjm6"
+  };
+}
+dynamic refreshModel(){
+  return {
+    "fn_index": CMD_REFRESH_MODEL,
     "data": [],
     // "session_hash": "xo1qqnyjm6"
   };

@@ -8,6 +8,7 @@ class StringIndicator {
 
   StringIndicator(this.key,this.start, this.end);
 
+
   @override
   String toString() {
     return 'StringIndicator{key: $key, start: $start, end: $end}';
@@ -16,9 +17,7 @@ class StringIndicator {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StringIndicator &&
-          runtimeType == other.runtimeType &&
-          key == other.key;
+          key == other;
 
   @override
   int get hashCode => key.hashCode;

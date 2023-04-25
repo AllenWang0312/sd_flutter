@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'plugin_widget.dart';
 
-import '../../config.dart';
+import '../../const/config.dart';
 
 class PluginsWidget extends StatelessWidget {
+  const PluginsWidget();
 
-  List<Tab> tabs = [
+  static const List<Tab> tabs = [
     Tab(text: "Lora"),
     Tab(text: "Emb"),
     Tab(text: "Hpe"),
@@ -13,8 +14,8 @@ class PluginsWidget extends StatelessWidget {
     // Tab(text: "Wc"),
     // Tab(text: "Wce"),
   ];
-  List<Widget> children = [
-    PluginWidget( TAG_PREFIX_LORA,TAG_MODELTYPE_LORA, GET_LORA_NAMES),
+  static const List<Widget> children = [
+   PluginWidget( TAG_PREFIX_LORA,TAG_MODELTYPE_LORA, GET_LORA_NAMES),
     PluginWidget( TAG_PREFIX_EMB,TAG_MODELTYPE_EMB,GET_EMB_NAMES),
     PluginWidget( TAG_PREFIX_HPE,TAG_MODELTYPE_HPE, GET_HYP_NAMES),
     // TagWidget(GET_WCET_NAMES),

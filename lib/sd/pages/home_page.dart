@@ -4,13 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/config.dart';
+import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/roll/RollModel.dart';
 import 'package:sd/sd/roll/roll_widget.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 import 'package:sd/sd/tavern/tavern_widget.dart';
 
-import '../history/playground_widget.dart';
+import '../history/records_widget.dart';
 import '../http_service.dart';
 import '../HomeModel.dart';
 
@@ -19,7 +19,8 @@ const INIT = 0;
 const ERROR = -1;
 
 class HomePage extends StatefulWidget {
-  HomePage({super.key});
+  int? index;
+  HomePage({super.key,this.index});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -62,13 +63,14 @@ class _HomePageState extends State<HomePage>{
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
+   if(null!=widget.index) provider.index = widget.index! ;
     // home = Provider.of<HomeModel>(context, listen: false);
     return DefaultTabController(
         length: 4,
         child: SafeArea(
           child: Scaffold(
             backgroundColor: COLOR_BACKGROUND,
-            bottomNavigationBar: Selector<HomeModel, int>(
+            bottomNavigationBar: Selector<AIPainterModel, int>(
                 selector: (_, model) => model.index,
                 shouldRebuild: (pre, next) => pre != next,
                 builder: (context, newValue, child) {
@@ -92,7 +94,7 @@ class _HomePageState extends State<HomePage>{
                       //     label: AppLocalizations.of(context).mine),
                     ],
                     onTap: (index) {
-                      Provider.of<HomeModel>(context, listen: false)
+                      Provider.of<AIPainterModel>(context, listen: false)
                           .updateIndex(index);
                     },
                   );
@@ -106,7 +108,7 @@ class _HomePageState extends State<HomePage>{
                   //   ),
                   // );
                 }),
-            body: Selector<HomeModel, int>(
+            body: Selector<AIPainterModel, int>(
               selector: (_, model) => model.index,
               shouldRebuild: (pre, next) => pre != next,
               builder: (context, newValue, child) => IndexedStack(

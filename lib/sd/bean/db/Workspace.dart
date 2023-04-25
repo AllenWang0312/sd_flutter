@@ -12,15 +12,17 @@ class Workspace {
 
   Workspace(
     this.name,
-    this.dirPath, {
+    String dirPath, {
     this.recordCount,
     this.imageCount,
-  });
+  }){
+    this._dirPath = dirPath;
+  }
 
   Workspace.fromJson(dynamic json) {
     id = json['id'];
     name = json['name'];
-    dirPath = json['dirPath'];
+    _dirPath = json['dirPath'];
     pathType = json['pathType'];
 
     recordCount = json['recordCount'];
@@ -29,7 +31,7 @@ class Workspace {
 
   int? id;
   String name = '';
-  String dirPath = '';
+  String _dirPath = '';
   int? pathType = 0;
 
   int? recordCount;
@@ -46,32 +48,31 @@ class Workspace {
     final map = <String, dynamic>{};
     map['id'] = id;
     map['name'] = name;
-    map['dirPath'] = dirPath;
+    map['dirPath'] = _dirPath;
     map['pathType'] = pathType;
     map['recordCount'] = recordCount;
     map['imageCount'] = imageCount;
     return map;
   }
 
-  String getDirPath() {
-    return dirPath;
+  String get dirPath {
+    return "$_dirPath/$name";
   }
 
   String getDesc() {
     return removeAndroidPrePathIfIsPublic(dirPath);
-
     // return '记录数：$recordCount, 图片数：$imageCount';
   }
 
   int getPathType() {
     if (pathType == null) {
-      if (UniversalPlatform.isIOS || dirPath.startsWith(ANDROID_PICTURES)) {
-        pathType = PATH_TYPE_PUBLIC;
-      } else if (dirPath.startsWith(ANDROID_DATA)) {
+      // if (UniversalPlatform.isIOS || dirPath.startsWith(ANDROID_PICTURES)) {
+      //   pathType = PATH_TYPE_PUBLIC;
+      // } else if (dirPath.startsWith(ANDROID_DATA)) {
         pathType = PATH_TYPE_APP_PRIVATE;
-      } else {
-        pathType = PATH_TYPE_HIDE;
-      }
+      // } else {
+      //   pathType = PATH_TYPE_HIDE;
+      // }
     }
     return pathType!;
   }

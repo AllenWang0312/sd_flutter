@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'bean/db/History.dart';
+import '../bean/db/History.dart';
 
 const String PACKAGE_NAME = "edu.tjrac.swant.sd";
 
@@ -47,15 +47,15 @@ const String SP_BATCH_SIZE = "batch_size";
 // routes
 const String ROUTE_HOME = "/home";
 const String ROUTE_PLUGINS = "/home/plugins";
-const String ROUTE_SETTING = "/setting";
-const String ROUTE_WEBVIEW = "/webview";
+const String ROUTE_SETTING = "/home/setting";
+const String ROUTE_WEBVIEW = "/home/webview";
 
-const String ROUTE_STYLE_EDITTING = "/styles/edit";
+const String ROUTE_STYLE_EDITTING = "/home/setting/styles/edit";
 // const String ROUTE_IMAGE_VIEWER = "/viewer";
-const String ROUTE_IMAGES_VIEWER = "/viewers";
-const String ROUTE_CREATE_WORKSPACE = "/setting/workspace/create";
-const String ROUTE_CREATE_STYLE = "/setting/style/create";
-const String ROUTE_EDIT_STYLE= "/setting/style/edit";
+const String ROUTE_IMAGES_VIEWER = "/home/viewers";
+const String ROUTE_CREATE_WORKSPACE = "/home/setting/workspace/create";
+const String ROUTE_CREATE_STYLE = "/home/setting/style/create";
+const String ROUTE_EDIT_STYLE= "/home/setting/style/edit";
 // file system
 
 const String APP_DIR_NAME = 'sdf';
@@ -72,7 +72,9 @@ const SD_PORT = 7860;
 placeHolderUrl({int width = 512, int height = 720}) {
   return 'https://via.placeholder.com/$width x$height';
 }
-var remoteTXT2IMGDir = "D:";
+late final String remoteTXT2IMGDir;
+late final String  remoteIMG2IMGDir;
+late final String  remoteMoreDir;
 
 var sdHost = UniversalPlatform.isWeb
     ? SD_WIN_HOST
@@ -107,10 +109,6 @@ const TAG_MODELTYPE_HPE = 'hypernetworks';
 const TAG_PREFIX_EMB = 'emb';
 const TAG_MODELTYPE_EMB = 'embding';
 
-// const TAG_PREFIX_LORA = 'lora';
-// const TAG_PREFIX_LORA = 'lora';
-// const TAG_PREFIX_LORA = 'lora';
-
 const GET_LORA_NAMES = '$FILE_TEMP_PATH/lora.txt';
 const GET_EMB_NAMES = '$FILE_TEMP_PATH/emb.txt';
 const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
@@ -139,16 +137,20 @@ const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
 //todo imgPath 是否有效 为何无法删除
 final String TAG = "config";
 
-History mapToHistory(int page, int offset, String name) {
+History mapToHistory(String remoteDir,int page, int offset, String name) {
   String url = nameToUrl(name);
-  logt(TAG,url + " " + name);
+  logt(TAG,url + " ");
+  logt(TAG," " + name);
+
   return History(
       // ageLevel: name.contains('18x') ? 18 : 16,
       page: page,
       offset: offset,
       imgUrl: url,
-      imgPath: name.replaceAll('C:\\Users\\Administrator\\AppData\\Local\\Temp',
-          "F:\\sd outputs\\txt2img-images"));
+      // imgPath: name.replaceAll('C:\\Users\\Administrator\\AppData\\Local\\Temp',
+      //     remoteDir)
+
+  );
 }
 
 String nameToUrl(String name) {

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sd/sd/config.dart';
+import 'package:sd/sd/const/config.dart';
 import '../bean4json/PostPredictResult.dart';
 import '../http_service.dart';
 import '../mocker.dart';

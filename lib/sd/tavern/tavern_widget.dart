@@ -2,35 +2,33 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
-import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/android.dart';
-import 'package:sd/common/util/ui_util.dart';
 import 'package:sd/sd/AIPainterModel.dart';
-import 'package:sd/sd/HomeModel.dart';
-import 'package:sd/sd/config.dart';
-import 'package:sd/sd/tavern/bean/ImageSize.dart';
+import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/widget/AgeLevelCover.dart';
 
 import '../../common/third_util.dart';
 import '../../common/ui_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/string_util.dart';
-import '../bean/Configs.dart';
 import '../http_service.dart';
 import '../platform.dart';
-import 'bean/FileInfo.dart';
+import 'bean/LocalFileInfo.dart';
 
-List<FileInfo> downloadRoot = [
-  FileInfo(name: 'huggingface.co', isDir: true, url: 'https://huggingface.co'),
-  FileInfo(name: 'civitai.com', isDir: true, url: 'https://civitai.com'),
-  FileInfo(name: 'aibooru.online', isDir: true, url: 'https://aibooru.online'),
-  FileInfo(name: 'pixai.art', isDir: true, url: 'https://pixai.art'),
-  FileInfo(name: 'finding.art', isDir: true, url: 'https://finding.art'),
-  FileInfo(
+List<LocalFileInfo> downloadRoot = [
+  LocalFileInfo(
+      name: 'huggingface.co', isDir: true, url: 'https://huggingface.co'),
+  LocalFileInfo(name: 'civitai.com', isDir: true, url: 'https://civitai.com'),
+  LocalFileInfo(
+      name: 'aibooru.online', isDir: true, url: 'https://aibooru.online'),
+  LocalFileInfo(name: 'pixai.art', isDir: true, url: 'https://pixai.art'),
+  LocalFileInfo(name: 'finding.art', isDir: true, url: 'https://finding.art'),
+  LocalFileInfo(
       name: 'aigodlike.com', isDir: true, url: 'https://www.aigodlike.com'),
-  FileInfo(name: 'lexica.art', isDir: true, url: 'https://lexica.art'),
-  FileInfo(name: 'search.krea.ai', isDir: true, url: 'https://search.krea.ai'),
+  LocalFileInfo(name: 'lexica.art', isDir: true, url: 'https://lexica.art'),
+  LocalFileInfo(
+      name: 'search.krea.ai', isDir: true, url: 'https://search.krea.ai'),
 ];
 List<String> promptHelper = [
   'http://wolfchen.top/tag/',
@@ -42,33 +40,27 @@ class TavernWidget extends StatefulWidget {
   State<TavernWidget> createState() => _TavernWidgetState();
 }
 
-class _TavernWidgetState extends State<TavernWidget>
-    with WidgetsBindingObserver {
+class _TavernWidgetState extends State<TavernWidget> {
   String TAG = "TavernWidget";
   Directory? dir;
 
-  List<FileInfo> currentDir = [];
-  List<List<FileInfo>> stacks = [];
+  List<LocalFileInfo> currentDir = [];
+  List<List<LocalFileInfo>> stacks = [];
   List<double> offsets = [];
 
   int editModel = 0; // 1 pick 2 cut 3 copy
-  Set<FileInfo> checkedFiles = Set();
-  Set<FileInfo> cutFiles = Set();
+  Set<LocalFileInfo> checkedFiles = Set();
+  Set<LocalFileInfo> cutFiles = Set();
 
   late AIPainterModel provider;
-  late HomeModel home;
-  final LocalAuthentication auth = LocalAuthentication();
-  bool canAuthenticateWithBiometrics = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-    init();
     initData(false);
   }
 
+  // todo 编辑相关操作会闪烁  使用provider 优化/
   void initData(bool refresh) {
     stacks.clear();
     currentDir.clear();
@@ -89,75 +81,7 @@ class _TavernWidgetState extends State<TavernWidget>
     controller = ScrollController(keepScrollOffset: false);
 
     provider = Provider.of<AIPainterModel>(context, listen: false);
-    home = Provider.of<HomeModel>(context, listen: false);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tavern'),
-        actions: [
-          Offstage(
-            offstage: editModel != 1,
-            child: IconButton(
-              icon: Icon(Icons.copy),
-              onPressed: () {
-                // showEditDialog(context);
-                setState(() {
-                  editModel = 3;
-                });
-              },
-            ),
-          ),
-          Offstage(
-            offstage: editModel != 1,
-            child: IconButton(
-              icon: Icon(Icons.cut),
-              onPressed: () {
-                // showEditDialog(context);
-                cutFiles.addAll(checkedFiles);
-                checkedFiles.clear();
-                setState(() {
-                  editModel = 2;
-                });
-              },
-            ),
-          ),
-          Offstage(
-            offstage: editModel != 2 && editModel != 3,
-            child: Badge(
-              label: Text(
-                  '${editModel == 2 ? cutFiles.length : checkedFiles.length}'),
-              child: IconButton(
-                  onPressed: () {
-                    if (editModel == 2) {
-                      for (var e in cutFiles) {
-                        e.file.copySync('${dir?.path}/${e.name}');
-                        e.file.deleteSync();
-                      }
-                    } else {
-                      for (var e in checkedFiles) {
-                        e.file.copySync('${dir?.path}/${e.name}');
-                      }
-                    }
-                    setState(() {
-                      //刷新当前目录
-                      if (null != dir) {
-                        stacks.removeLast();
-                        currentDir.clear();
-                        currentDir.addAll(getDirFiles(dir!));
-                        stacks.add(currentDir);
-                      }
-
-                      cutFiles.clear();
-                      checkedFiles.clear();
-                      editModel = 0;
-                      // initData(true);
-                    });
-                  },
-                  icon: Icon(Icons.paste)),
-            ),
-          )
-        ],
-      ),
-      body: WillPopScope(
+    return WillPopScope(
         onWillPop: () async {
           if (editModel != 0) {
             setState(() {
@@ -178,24 +102,95 @@ class _TavernWidgetState extends State<TavernWidget>
           }
           return true;
         },
-        child: GridView(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              // mainAxisSpacing: 10,
-              // crossAxisSpacing: 10,
-              childAspectRatio: 512 / 768),
-          controller: controller,
-          children: currentDir
-              .map((e) => e.isDir
-                  ? dirContent(e)
-                  : fileBody(currentDir, currentDir.indexOf(e), e))
-              .toList(),
-        ),
-      ),
-    );
+        child: Column(
+          children: [
+            AppBar(
+              centerTitle: true,
+              title: Text('Tavern'),
+              actions: [
+                Offstage(
+                  offstage: editModel != 1,
+                  child: IconButton(
+                    icon: Icon(Icons.copy),
+                    onPressed: () {
+                      // showEditDialog(context);
+                      setState(() {
+                        editModel = 3;
+                      });
+                    },
+                  ),
+                ),
+                Offstage(
+                  offstage: editModel != 1,
+                  child: IconButton(
+                    icon: Icon(Icons.cut),
+                    onPressed: () {
+                      // showEditDialog(context);
+                      cutFiles.addAll(checkedFiles);
+                      checkedFiles.clear();
+                      setState(() {
+                        editModel = 2;
+                      });
+                    },
+                  ),
+                ),
+                Offstage(
+                  offstage: editModel != 2 && editModel != 3,
+                  child: Badge(
+                    label: Text(
+                        '${editModel == 2 ? cutFiles.length : checkedFiles.length}'),
+                    child: IconButton(
+                        onPressed: () {
+                          if (editModel == 2) {
+                            for (var e in cutFiles) {
+                              e.file.copySync('${dir?.path}/${e.name}');
+                              e.file.deleteSync();
+                            }
+                          } else {
+                            for (var e in checkedFiles) {
+                              e.file.copySync('${dir?.path}/${e.name}');
+                            }
+                          }
+                          setState(() {
+                            //刷新当前目录
+                            if (null != dir) {
+                              stacks.removeLast();
+                              currentDir.clear();
+                              currentDir.addAll(getDirFiles(dir!));
+                              stacks.add(currentDir);
+                            }
+
+                            cutFiles.clear();
+                            checkedFiles.clear();
+                            editModel = 0;
+                            // initData(true);
+                          });
+                        },
+                        icon: Icon(Icons.paste)),
+                  ),
+                )
+              ],
+            ),
+            Expanded(
+              child: GridView(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    // mainAxisSpacing: 10,
+                    // crossAxisSpacing: 10,
+                    childAspectRatio: 512 / 768),
+                controller: controller,
+                children: currentDir
+                    .map((e) => e.isDir
+                        ? dirContent(e)
+                        : fileBody(currentDir, currentDir.indexOf(e), e))
+                    .toList(),
+              ),
+            )
+          ],
+        ));
   }
 
-  Widget fileBody(List<FileInfo> files, int index, FileInfo info) {
+  Widget fileBody(List<LocalFileInfo> files, int index, LocalFileInfo info) {
     return Stack(
       children: [
         Center(
@@ -223,17 +218,17 @@ class _TavernWidgetState extends State<TavernWidget>
                   });
                 }
               },
-              child: ageLevelCover(info)),
+              child: AgeLevelCover(info)),
         ),
-        Positioned(
-          bottom: 0,
-          child: Text(
-            info.name!,
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
+        // Positioned(
+        //   bottom: 0,
+        //   child: Text(
+        //     info.name!,
+        //     softWrap: true,
+        //     overflow: TextOverflow.ellipsis,
+        //     maxLines: 1,
+        //   ),
+        // ),
         Offstage(
           offstage: editModel != 1,
           child: Checkbox(
@@ -250,78 +245,7 @@ class _TavernWidgetState extends State<TavernWidget>
     );
   }
 
-  Widget ageLevelCover(FileInfo info, {bool? needInfoLogo = true}) {
-    File image = File(info.getLocalPath());
-    Uint8List bytes = image.readAsBytesSync();
-    Image img = Image.memory(bytes);
-
-    // String sign = info.getSign(bytes);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      shape: SHAPE_IMAGE_CARD,
-      child: FutureBuilder(
-        future: info.getExif(image),
-        builder: (context, snapshot) {
-          return Stack(
-            children: [
-              Selector<AIPainterModel, int>(
-                selector: (_, model) =>
-                    provider.hideNSFW ? info.getAgeLevel(provider, bytes) : 0,
-                builder: (context, value, child) {
-                  return value >= 18
-                      ? ImageFiltered(imageFilter: AGE_LEVEL_BLUR, child: child)
-                      : child!;
-                },
-                child: Selector<AIPainterModel, ImageSize?>(
-                  selector: (_, model) => model.imgSize[info.sign],
-                  builder: (context, value, child) {
-                    return img;
-                  },
-                ),
-              ),
-              if (null != snapshot.data &&
-                  snapshot.data!.isNotEmpty &&
-                  null != needInfoLogo &&
-                  needInfoLogo)
-                Positioned(
-                    right: 0,
-                    top: 0,
-                    child: IconButton(
-                      onPressed: () async {
-                        int result = await showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: const Text('Prompt'),
-                                content: SingleChildScrollView(
-                                    child: SelectableText(
-                                        snapshot.data.toString())),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () {
-                                        provider.updateConfigs(
-                                            Configs.fromString(
-                                                snapshot.data.toString()));
-                                        Navigator.of(context).pop(2);
-                                      },
-                                      child: Text('立即使用')),
-                                  TextButton(
-                                      onPressed: () {}, child: Text('复制'))
-                                ],
-                              );
-                            });
-                        home.updateIndex(result);
-                      },
-                      icon: const Icon(Icons.info),
-                    ))
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget dirContent(FileInfo info) {
+  Widget dirContent(LocalFileInfo info) {
     int? count = info.fileCount;
     return InkWell(
       onTap: () {
@@ -340,7 +264,7 @@ class _TavernWidgetState extends State<TavernWidget>
 
             Navigator.pushNamed(context, ROUTE_WEBVIEW, arguments: {
               "title": info.name,
-              "url": info.url,
+              "url": info.dirDes,
               "savePath": info.localPath
             });
           }
@@ -348,9 +272,9 @@ class _TavernWidgetState extends State<TavernWidget>
           setState(() {
             Directory(info.getLocalPath()).createSync(recursive: true);
           });
-          if (null != info.url && !File(info.iconFilePath).existsSync()) {
+          if (null != info.dirDes && !File(info.iconFilePath).existsSync()) {
             saveUrlToLocal(
-                "${info.url!}/favicon.ico", 'favicon.ico', info.getLocalPath());
+                "${info.dirDes!}/favicon.ico", 'favicon.ico', info.getLocalPath());
           }
         }
       },
@@ -358,16 +282,16 @@ class _TavernWidgetState extends State<TavernWidget>
         fit: StackFit.expand,
         children: [
           info.cover != null
-              ? ageLevelCover(info.cover!, needInfoLogo: false)
+              ? AgeLevelCover(info.cover!, needInfoLogo: false)
               : Container(),
           Positioned(
-            bottom: 0,
+            bottom: 12,
             left: 0,
             right: 0,
             child: GestureDetector(
               onLongPressStart: (detail) {
                 PopupMenuItem entry = PopupMenuItem(
-                  value: info.url,
+                  value: info.dirDes,
                   child: const Wrap(
                       children: [Text('使用本地浏览器打开'), Icon(Icons.open_in_new)]),
                 );
@@ -392,7 +316,7 @@ class _TavernWidgetState extends State<TavernWidget>
               onTap: () {
                 Navigator.pushNamed(context, ROUTE_WEBVIEW, arguments: {
                   "title": info.name,
-                  "url": info.url,
+                  "url": info.dirDes,
                   "savePath": info.localPath
                 });
               },
@@ -408,7 +332,7 @@ class _TavernWidgetState extends State<TavernWidget>
                           height: 24,
                         );
                       } else {
-                        return myPlaceholder( 24, 24);
+                        return myPlaceholder(24, 24);
                       }
                     }),
                 Text(
@@ -426,99 +350,24 @@ class _TavernWidgetState extends State<TavernWidget>
     );
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      logt(TAG, "resumed");
-      initData(true);
-    } else if (state == AppLifecycleState.inactive) {
-      logt(TAG, "inactive");
-      if (provider.checkIdentityWhenReEnter &&
-          availableBiometrics != null &&
-          availableBiometrics!.isNotEmpty) {
-        showDialog(
-            barrierDismissible: false,
-            context: context,
-            builder: (context) {
-              return BackdropFilter(
-                filter: CHECK_IDENTITY,
-                child: AlertDialog(
-                  title: Text('身份认证'),
-                  content: Text('您是本机的主人吗'),
-                  actions: [
-                    TextButton(
-                        onPressed: () async {
-                          try {
-                            final bool didAuthenticate =
-                            await auth.authenticate(
-                                localizedReason: '应用开启离开认证 需要验证您的身份',
-                                options: const AuthenticationOptions(
-                                    biometricOnly: true));
-
-                            if (didAuthenticate) {
-                              Navigator.pop(context);
-                            }
-                          } on PlatformException catch (e) {
-                            if (e.code == auth_error.notEnrolled) {
-                            } else if (e.code == auth_error.lockedOut ||
-                                e.code == auth_error.permanentlyLockedOut) {
-                            } else {}
-                          }
-                        },
-                        child: Text('开始识别'))
-                  ],
-                ),
-              );
-            });
-      }
-
-    } else if (state == AppLifecycleState.paused) {
-      logt(TAG, "paused");
-    } else if (state == AppLifecycleState.detached) {
-      logt(TAG, "detached");
-    }
-  }
-
-  Iterable<FileInfo> getDirFiles(Directory dir) {
+  Iterable<LocalFileInfo> getDirFiles(Directory dir) {
     return dir.listSync().where((element) {
       return element.path.contains('.') &&
           SUPPORT_IMAGE_TYPES.contains(getFileExt(element.path));
     }).map((e) {
-      return FileInfo(name: getFileName(e.path), absPath: e.path);
+      return LocalFileInfo(name: getFileName(e.path), absPath: e.path);
     }).toList();
   }
 
-  Future<Uint8List> getSvgData(FileInfo info) async {
+  Future<Uint8List> getSvgData(LocalFileInfo info) async {
     File iconFile = File(info.iconFilePath);
     if (await iconFile.exists()) {
       return iconFile.readAsBytes();
     } else {
-      Uint8List remote = await getBytesWithDio("${info.url}/favicon.ico");
+      Uint8List remote = await getBytesWithDio("${info.dirDes}/favicon.ico");
       await iconFile.create(exclusive: true, recursive: true);
       await iconFile.writeAsBytes(remote);
       return remote;
     }
-  }
-
-  late List<BiometricType>? availableBiometrics;
-
-  Future<void> init() async {
-    canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
-    final bool canAuthenticate =
-        canAuthenticateWithBiometrics || await auth.isDeviceSupported();
-    if (canAuthenticate)
-      availableBiometrics = await auth.getAvailableBiometrics();
-    // if (availableBiometrics.contains(BiometricType.strong) ||
-    //     availableBiometrics.contains(BiometricType.face)) {
-    //   // Specific types of biometrics are available.
-    //   // Use checks like this with caution!
-    // }
   }
 }

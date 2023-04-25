@@ -7,7 +7,7 @@ import 'package:sd/sd/mocker.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 
 import '../bean/Configs.dart';
-import '../config.dart';
+import '../const/config.dart';
 import '../roll/tagger_widget.dart';
 import '../http_service.dart';
 
@@ -28,9 +28,9 @@ class PromptWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(AppLocalizations
+        Text("${AppLocalizations
             .of(context)
-            .prompt + ":"),
+            .prompt}:"),
         Row(
           children: [
             Expanded(
@@ -81,7 +81,7 @@ class PromptWidget extends StatelessWidget {
                 IconButton(
                     onPressed: () {
                       var prompt = promptController.text;
-                      Configs dec = Configs.fromString(prompt);
+                      Configs dec = provider.config.updateConfigs(prompt);
                       // provider.updatePrompt(dec.prompt);
                       provider.updateConfigs(dec);
                     },

@@ -9,8 +9,8 @@ class Sampler implements Named {
 
   Sampler.fromJson(dynamic json) {
     name = json['name'];
-    aliases = json['aliases'] != null ? json['aliases'].cast<String>() : [];
-    options = Option.fromJson(json['options']);
+    // aliases = json['aliases'] != null ? json['aliases'].cast<String>() : [];
+    // options = Option.fromJson(json['options']);
   }
   String name = "";
   List<String>? aliases;

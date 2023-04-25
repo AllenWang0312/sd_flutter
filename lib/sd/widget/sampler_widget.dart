@@ -6,7 +6,7 @@ import 'package:sd/sd/bean4json/Sampler.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 
 import '../../common/ui_util.dart';
-import '../config.dart';
+import '../const/config.dart';
 import '../http_service.dart';
 
 class SamplerWidget extends StatelessWidget {

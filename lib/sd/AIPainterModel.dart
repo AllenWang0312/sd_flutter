@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/bean/UserInfo.dart';
@@ -13,7 +14,7 @@ import 'bean/PromptStyle.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
 import 'bean/db/Workspace.dart';
 import 'bean4json/UpScaler.dart';
-import 'config.dart';
+import 'const/config.dart';
 import 'db_controler.dart';
 import 'http_service.dart';
 
@@ -66,7 +67,10 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   // String host =
   bool autoSave = true;
   bool hideNSFW = true;
+
   bool checkIdentityWhenReEnter = true;
+  AppLifecycleState? state = AppLifecycleState.resumed;
+  bool checkIdentitySuccess = true;
 
   // String selectedSDModel = "";
   String selectedSDModel = "";
@@ -93,7 +97,12 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   Configs config = Configs();
 
   late SharedPreferences sp;
+  int index = 0;
 
+  void updateIndex(int index) {
+    this.index = index;
+    notifyListeners();
+  }
   load() async {
     sp = await SharedPreferences.getInstance();
     sdHost = sp.getString(SP_HOST) ??
@@ -387,5 +396,23 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
 
   int limitedUrl(String imgUrl) {
    return limit[imgUrl]??0;
+  }
+
+  void updateCheckIdentity(bool value) {
+    this.checkIdentityWhenReEnter = value;
+    notifyListeners();
+  }
+
+  void updateLifecycleState(AppLifecycleState state) {
+    logt('TAG','updateLifecycle $state');
+    this.state = state;
+    notifyListeners();
+  }
+
+  void updateLocalAuth(bool bool) {
+    logt('TAG','updateLocalAuth $bool');
+
+    this.checkIdentitySuccess = bool;
+    notifyListeners();
   }
 }

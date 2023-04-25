@@ -9,7 +9,7 @@ import 'package:sd/sd/bean/db/PromptStyleFileConfig.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../bean/db/Workspace.dart';
-import '../config.dart';
+import '../const/config.dart';
 import '../db_controler.dart';
 import '../../common/util/file_util.dart';
 import '../http_service.dart';
@@ -58,7 +58,7 @@ class _SettingPageState extends State<SettingPage> {
             onPressed: () {
               showRestartNowDialog(context);
             },
-            child: Text("立即重启"),
+            child: const Text("立即重启"),
           )
         ],
       ),
@@ -171,7 +171,7 @@ class _SettingPageState extends State<SettingPage> {
                           onChanged: (value) {
                             sp.setBool(SP_CHECK_IDENTITY,value);
                             Provider.of<AIPainterModel>(context, listen: false)
-                                .updateHideNSFW(value);
+                                .updateCheckIdentity(value);
                           })
                     ],
                   ),
@@ -198,7 +198,7 @@ class _SettingPageState extends State<SettingPage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List datas = snapshot.data as List;
-                    if (datas.length > 0) {
+                    if (datas.isNotEmpty) {
                       workspaces =
                           datas.map((e) => Workspace.fromJson(e)).toList();
 
@@ -326,16 +326,19 @@ class _SettingPageState extends State<SettingPage> {
   Future<void> createPromptStyle(BuildContext context) async {
     var applicationPath = await getStylesAbsPath();
 
-    File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
-        arguments: {
-          "autoSaveAbsPath": applicationPath,
-          "files": publicStyleConfigs
-        }) as File?;
-    if (null != file) {
-      setState(() {
-        publicStyleConfigs?.add(file);
-      });
+    if(context.mounted){
+      File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
+          arguments: {
+            "autoSaveAbsPath": applicationPath,
+            "files": publicStyleConfigs
+          }) as File?;
+      if (null != file) {
+        setState(() {
+          publicStyleConfigs?.add(file);
+        });
+      }
     }
+
   }
 
   Widget getPublicStyles(BuildContext context) {
@@ -355,7 +358,7 @@ class _SettingPageState extends State<SettingPage> {
                   showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                            title: Text("确认删除"),
+                            title: const Text("确认删除"),
                             content: Text("点击确认删除文件${e.path}"),
                             actions: [
                               TextButton(
@@ -376,7 +379,7 @@ class _SettingPageState extends State<SettingPage> {
                   subtitle: Text(e.path),
                   trailing: InkWell(
                     onTap: () => editPromptStyle(context, e),
-                    child: Icon(Icons.edit),
+                    child: const Icon(Icons.edit),
                   ),
                 ),
               );

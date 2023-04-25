@@ -14,6 +14,7 @@ import 'package:sd/sd/AIPainterModel.dart';
 import '../../common/third_util.dart';
 import '../tavern/bean/Showable.dart';
 import '../http_service.dart';
+import '../widget/AgeLevelCover.dart';
 
 class ImagesModel with ChangeNotifier, DiagnosticableTreeMixin {
   String? currentDes;
@@ -23,7 +24,9 @@ class ImagesModel with ChangeNotifier, DiagnosticableTreeMixin {
     notifyListeners();
   }
 }
-
+enum ImagesType{
+  datas,urls,files,
+}
 class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   final String TAG = "ImageViewer";
   int? pageSize;
@@ -33,17 +36,33 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   late Function? loadMore;
 
   List<T>? urls;
-  List<Uint8List>? datas;
+  List<Uint8List?> datas =[];
   String? saveDirPath;
-  bool scanServiceAvailable = false;
+  bool scanServiceAvailable;
+  late ImagesType dataType;
+
 
   ImagesViewer(
       {this.urls,
       this.index,
       this.loadMore,
-      this.datas,
+        List<Uint8List>? datas,
       this.saveDirPath,
-      this.scanServiceAvailable = false});
+      this.scanServiceAvailable = false}){
+    if(datas!=null){
+      dataType = ImagesType.datas;
+      this.datas.addAll(datas);
+    }else {
+      if(urls!=null){
+        this.datas = List<Uint8List?>.filled(urls!.length, null);
+        if(urls![0].getFileLocation().startsWith('http')){
+          dataType = ImagesType.urls;
+        }else{
+          dataType = ImagesType.files;
+        }
+      }
+    }
+  }
 
   late AIPainterModel provider;
 
@@ -75,10 +94,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                 offstage: value == null || value.isEmpty,
                 child: IconButton(
                   icon: const Icon(Icons.info_outline),
-                  onPressed: () {
-                    Fluttertoast.showToast(
-                        msg: value!.replaceAll(RegExp(r"\s+\b|\b\s"),""), gravity: ToastGravity.CENTER);
-                  },
+                  onPressed: ()=> showPromptDialog(provider,context,value!),
                 ),
               );
             },
@@ -89,18 +105,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                 onPressed: () async {
                   int? page = controller.page?.toInt();
                   if (null != page) {
-                    Uint8List bytes;
-                    if (datas != null) {
-                      bytes = datas![page];
-                    } else {
-                      T showable = urls![page];
-                      String url = showable.getFileLocation();
-                      if (url.startsWith('http')) {
-                        bytes = await getBytesWithDio(url);
-                      } else {
-                        bytes = await File(url).readAsBytes();
-                      }
-                    }
+                    Uint8List bytes = await getBytes(page);
                     await getImageTagger(bytes).then((value){
                       if (context.mounted) {
                         showDialog(
@@ -132,7 +137,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                   }
                   // provider.
                 },
-                icon: Icon(Icons.settings_overscan)),
+                icon: const Icon(Icons.settings_overscan)),
           )
         ],
       ),
@@ -143,19 +148,19 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
               child: urls != null && urls!.isNotEmpty
                   ? PageView.builder(
                       onPageChanged: (page) async {
-                        logt(TAG, page.toString());
                       },
                       controller: controller,
                       itemCount: urls!.length,
                       itemBuilder: (context, index) {
+                        logt(TAG, "$index");
+
                         T data = urls![index];
-                        bool isRemote =
-                            data.getFileLocation().startsWith("http");
-                        Uint8List? bytes;
+                        // bool isRemote =
+                        //     data.getFileLocation().startsWith("http");
                         File? file;
-                        if (!isRemote) {
+                        if (dataType == ImagesType.files) {
                           file = File(data.getFileLocation());
-                          bytes =file.readAsBytesSync();
+                          datas[index] = file.readAsBytesSync();
                         }
                         // FileInfo fileInfo = data as FileInfo;
 
@@ -165,7 +170,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                             //   FileStat stat = await file.stat();
                             //   fileInfo.fileSize = stat.size;
                             // }
-                            int currentLevel = await data.getAgeLevel(provider, bytes);
+                            int currentLevel = await data.getAgeLevel(provider, datas[index]);
 
                             RelativeRect position = RelativeRect.fromLTRB(
                                 detail.globalPosition.dx,
@@ -189,19 +194,19 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                                 if (value > 0) {
                                   if(currentLevel>0){
                                     if(await DBController.instance
-                                        .updateAgeLevelRecord(data, bytes,value)>0){
+                                        .updateAgeLevelRecord(data, datas[index],value)>0){
                                       data.setAgeLevel(provider,value);
                                     }
                                   }else{
                                    if(await DBController.instance
-                                       .insertAgeLevelRecord(data, bytes,value)>0){
+                                       .insertAgeLevelRecord(data, datas[index],value)>0){
                                      data.setAgeLevel(provider,value);
                                    }
                                   }
 
                                 } else {
                                   if(await DBController.instance
-                                      .removetAgeLevelRecord(data, bytes)>0){
+                                      .removetAgeLevelRecord(data, datas[index])>0){
                                     data.setAgeLevel(provider,0);
                                   }
                                 }
@@ -211,23 +216,24 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                           child: InteractiveViewer(
                               maxScale: 3,
                               minScale: 0.5,
-                              child: isRemote
+                              child: dataType == ImagesType.urls
                                   ? CachedNetworkImage(
                                       imageUrl: (data.getFileLocation()))
-                                  : Image.memory(bytes!)),
+                                  : Image.memory(datas[index]!)),
                         );
                       })
                   : PageView.builder(
                       onPageChanged: (page) async {
-                        logt(TAG, page.toString());
                       },
                       controller: controller,
-                      itemCount: datas!.length,
+                      itemCount: datas.length,
                       itemBuilder: (context, index) {
+                        logt(TAG, index.toString());
+
                         return InteractiveViewer(
                             maxScale: 3,
                             minScale: 0.5,
-                            child: Image.memory(datas![index]));
+                            child: Image.memory(datas[index]!));
                       }),
             ),
           ),
@@ -260,5 +266,22 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
       value: age,
       child: Text('设置年龄分级:$age+'),
     );
+  }
+
+  Future<Uint8List> getBytes(int page) async {
+    if (null!=datas&&page>=0&&page<datas.length&&datas[page] != null) {
+      return datas[page]!;
+    } else {
+      T showable = urls![page];
+      String url = showable.getFileLocation();
+      Uint8List bytes;
+      if (url.startsWith('http')) {
+        bytes = await getBytesWithDio(url);
+      } else {
+        bytes =  File(url).readAsBytesSync();
+      }
+      datas![page] = bytes;
+      return bytes;
+    }
   }
 }

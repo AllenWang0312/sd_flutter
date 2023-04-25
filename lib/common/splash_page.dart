@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,13 +12,20 @@ import 'package:sd/common/util/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'android.dart';
-import '../sd/bean/PromptStyle.dart';
-import '../sd/config.dart';
-import '../sd/http_service.dart';
 import '../sd/AIPainterModel.dart';
+import '../sd/bean/PromptStyle.dart';
+import '../sd/const/config.dart';
+import '../sd/http_service.dart';
+import 'android.dart';
 
 const int SPLASH_WATTING_TIME = 3;
+
+class FromTo {
+  String from;
+  String to;
+
+  FromTo(this.from, this.to);
+}
 
 Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
   String myData = await File(csvFilePath).readAsString();
@@ -48,7 +56,13 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (UniversalPlatform.isAndroid) {
-      createDirIfNotExit(ANDROID_APP_DOWNLOAD_DIR);
+      createDirIfNotExit(ANDROID_PRIVATE_FILE_COLLECTIONS_PATH);
+      createDirIfNotExit(ANDROID_PRIVATE_FILE_STYLES_PATH);
+      createDirIfNotExit(ANDROID_PRIVATE_FILE_WORKSPACE_PATH);
+      compute(
+          moveDirToAnotherPath,
+          FromTo(ANDROID_PUBLIC_DOWNLOAD_PATH,
+              ANDROID_PRIVATE_FILE_COLLECTIONS_PATH));
     }
     logt(TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
@@ -69,28 +83,28 @@ class SplashPage extends StatelessWidget {
         selector: (_, model) => model.splashImg,
         shouldRebuild: (pre, next) => pre != next,
         builder: (_, newValue, child) {
-          if(null!=newValue){
+          if (null != newValue) {
             return newValue.endsWith('.svg') | newValue.endsWith('.ico')
                 ? Center(
-                child: SvgPicture.network(
-                  newValue,
-                  width: 80,
-                  height: 80,
-                ))
+                    child: SvgPicture.network(
+                    newValue,
+                    width: 80,
+                    height: 80,
+                  ))
                 : Stack(
-              children: <Widget>[
-                ConstrainedBox(
-                  constraints: const BoxConstraints.expand(),
-                  child: CachedNetworkImage(
-                    fit: BoxFit.fill,
-                    imageUrl: newValue,
-                  ),
-                  // ),
-                ),
-                child!
-              ],
-            );
-          }else{
+                    children: <Widget>[
+                      ConstrainedBox(
+                        constraints: const BoxConstraints.expand(),
+                        child: CachedNetworkImage(
+                          fit: BoxFit.fill,
+                          imageUrl: newValue,
+                        ),
+                        // ),
+                      ),
+                      child!
+                    ],
+                  );
+          } else {
             return Container();
           }
         },
@@ -159,7 +173,11 @@ class SplashPage extends StatelessWidget {
     }).then((value) {
       // Options op = Options.fromJson(value.data);
       String modelName = value?.data['sd_model_checkpoint'];
+
       remoteTXT2IMGDir = value?.data['outdir_txt2img_samples'];
+      remoteIMG2IMGDir = value?.data['outdir_img2img_samples'];
+      remoteMoreDir = value?.data['outdir_extras_samples'];
+
       provider.sdServiceAvailable = true;
       provider.updateSDModel(modelName);
       getSettingSuccess = 1;
@@ -183,9 +201,43 @@ class SplashPage extends StatelessWidget {
       if (_countdownTimer != null) {
         _countdownTimer!.cancel();
       }
-      if(context.mounted){
+      if (context.mounted) {
         Navigator.popAndPushNamed(context, ROUTE_HOME);
       }
     }
+  }
+
+  FutureOr<dynamic> moveDirToAnotherPath(FromTo fromTo) async {
+    Directory pubPics = Directory(fromTo.from);
+    Directory priPics = Directory(fromTo.to);
+
+    List<FileSystemEntity> entitys = pubPics.listSync();
+    try {
+      for (FileSystemEntity entity in entitys) {
+        if (entity is Directory) {
+          await moveChildToAnotherPath(
+              getFileName(entity.path), entity.listSync(), priPics);
+        }
+      }
+      logt(TAG, "moveDirToAnotherPath Success");
+
+      return Future.value(1);
+    } catch (e) {
+      logt(TAG, "moveDirToAnotherPath failed ${e.toString()}");
+
+      return Future.error(-1);
+    }
+  }
+
+  Future<void> moveChildToAnotherPath(String fileName,
+      List<FileSystemEntity> listSync, Directory priPics) async {
+    listSync.forEach((element) async {
+      if (element is File) {
+        String newPath = "${priPics.path}/$fileName/${getFileName(element.path)}";
+        logt(TAG,"${element.path} $newPath");
+        await element.copy(newPath);
+        await element.delete();
+      }
+    });
   }
 }

@@ -12,7 +12,7 @@ import '../../common/android.dart';
 import '../../common/ui_util.dart';
 import '../bean/PromptStyle.dart';
 import '../bean/enum/CreateStyleType.dart';
-import '../config.dart';
+import '../const/config.dart';
 import '../http_service.dart';
 import 'CreateStyleModel.dart';
 import '../../common/util/ui_util.dart';

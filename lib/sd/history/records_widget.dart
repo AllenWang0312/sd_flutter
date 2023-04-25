@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../common/third_util.dart';
-import '../config.dart';
+import '../const/config.dart';
+import '../mocker.dart';
 import 'history_widget.dart';
 import 'remote_history_widget.dart';
 
@@ -27,25 +28,34 @@ class RecordsWidget extends StatelessWidget {
   RecordsWidget();
 
   List<Widget> children = [
-    // TavernWidget(),
-    HistoryWidget(),
-    // ChangeNotifierProvider(
-    //   create: (_) => EasyRefreshModel(),
-    //   child:
-    RemoteHistoryWidget(),
-    // )
+    const HistoryWidget(),
+    RemoteHistoryWidget(remoteTXT2IMGDir,CMD_GET_TXT2IMG_HISTORY),
+    RemoteHistoryWidget(remoteIMG2IMGDir,CMD_GET_IMG2IMG_HISTORY),
+    RemoteHistoryWidget(remoteMoreDir,CMD_GET_MORE_HISTORY),
   ];
 
   @override
   Widget build(BuildContext context) {
-    RecordsModel model =
-        Provider.of<RecordsModel>(context, listen: false);
+    // RecordsModel model =
+    //     Provider.of<RecordsModel>(context, listen: false);
     return DefaultTabController(
       length: children.length,
       child: Column(
         children: [
           Row(
             children: [
+              Expanded(
+                child: TabBar(
+                  tabs: [
+                    Tab(text: AppLocalizations.of(context).local),
+                    Tab(text: AppLocalizations.of(context).remoteTxt2Img),
+                    Tab(text: AppLocalizations.of(context).remoteImg2Img),
+                    Tab(text: AppLocalizations.of(context).extras),
+                  ],
+                  dividerColor: Colors.transparent,
+                ),
+              ),
+
               IconButton(
                   icon: Icon(Icons.settings),
                   onPressed: () async {
@@ -54,28 +64,6 @@ class RecordsWidget extends StatelessWidget {
                     }
                     // HistoryWidget(dbController),
                   }),
-              Expanded(
-                child: TabBar(
-                  tabs: [
-                    Tab(text: AppLocalizations.of(context).local),
-                    Tab(text: AppLocalizations.of(context).remote),
-                  ],
-                  dividerColor: Colors.transparent,
-                ),
-              ),
-              Selector<RecordsModel, bool>(
-                selector: (_, model) => model.dateOrder,
-                shouldRebuild: (pre, next) => pre != next,
-                builder: (context, newValue, child) {
-                  return IconButton(
-                      icon: newValue
-                          ? const Icon(Icons.date_range_sharp)
-                          : const Icon(Icons.fiber_smart_record),
-                      onPressed: () {
-                        model.dateOrder = !model.dateOrder;
-                      });
-                },
-              ),
             ],
           ),
           Expanded(

@@ -19,15 +19,15 @@ Future<bool> checkStoragePermission() async {
   return Future.error(false);
 }
 
-dynamic saveUrlToLocal(String url, String fileName, String path) async {
-  path = removeAndroidPrePathIfIsPublic(path);
-  fileName = appendPNGExtIfNotExist(fileName);
+dynamic saveUrlToLocal(String url,String fileName, String path,{String? domain}) async {
+  path = removeAndroidPrePathIfIsPublic(path);//如果是picture下的文件夹，用galary saver 保存
+  fileName = appendImageExtIfNotExist(domain,fileName);
   if (isAndroidAbsPath(path)) {
-    logt(TAG, "download $url : $path/$fileName");
-    return download(url, "$path/$fileName");
+    return await download(url, "$path/$fileName",onReceiveProgress: (received,total){
+      logt(TAG,"received:$received total:$total");
+    });
   } else {
     logt(TAG, "saveBytesToLocal $url $path $fileName");
-
     return await saveBytesToLocal(await getBytesWithDio(url), fileName, path);
   }
   // SaverGallery.saveImage(

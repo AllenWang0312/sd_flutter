@@ -3,7 +3,7 @@
 import 'dart:typed_data';
 
 import '../../AIPainterModel.dart';
-import 'ImageInfo.dart';
+import 'ImageFileInfo.dart';
 
 Map<String, Object?> toDynamic(String sign,int ageLevel){
   final map = <String, dynamic>{};
@@ -12,7 +12,7 @@ Map<String, Object?> toDynamic(String sign,int ageLevel){
   return map;
 }
 
-abstract class UniqueSign  extends ImageInfo {
+abstract class UniqueSign  extends ImageFileInfo {
 
   String? sign;
 
@@ -27,8 +27,8 @@ abstract class UniqueSign  extends ImageInfo {
     return sign!;
   }
 
-  int getAgeLevel(AIPainterModel provider, Uint8List? data) {
-    return provider.limit[getSign(data)] ?? 0;
+  int getAgeLevel(AIPainterModel? provider, Uint8List? data) {
+    return provider?.limit[getSign(data)] ?? 0;
   }
 
 

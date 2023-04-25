@@ -29,6 +29,8 @@ Future<String> download(String url, String savePath,
     {Map<String, dynamic>? queryParams,
     CancelToken? cancelToken,
     void Function(int, int)? onReceiveProgress}) async {
+  logt(TAG, "download img url:$url savePath:$savePath");
+
   try {
     await Dio().download(url, savePath,
         queryParameters: queryParams,

@@ -1,18 +1,19 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sd/sd/bean/db/History.dart';
-import 'package:sd/sd/config.dart';
+import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/common/util/file_util.dart';
-import '../../common/util/ui_util.dart';
+import 'package:sd/sd/widget/AgeLevelCover.dart';
 
+
+const TAG = "HistoryWidget";
 class HistoryWidget extends StatefulWidget {
-  static const TAG = "HistoryWidget";
+  const HistoryWidget({super.key});
 
   @override
   State<HistoryWidget> createState() => _HistoryWidgetState();
@@ -24,6 +25,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
   List<History> history = [];
 
   int viewType = 0;
+
   //list grid flot scale
   bool dateOrder = true;
   bool asc = false;
@@ -56,24 +58,17 @@ class _HistoryWidgetState extends State<HistoryWidget> {
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
               var file = File(item.localPath!);
-              if (file.existsSync()) {
-                return InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-                        arguments: {
-                          "urls": history,
-                          "index": index,
-                          "savePath": getImageAutoSaveAbsPath(),
-                        });
-                  },
-                  child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      shape: SHAPE_IMAGE_CARD,
-                      child: Image.file(file)),
-                );
-              } else {
-                return CachedNetworkImage(imageUrl: placeHolderUrl());
-              }
+              return InkWell(
+                onTap: () async {
+                  Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
+                      arguments: {
+                        "urls": history,
+                        "index": index,
+                        "savePath": await getImageAutoSaveAbsPath(),
+                      });
+                },
+                child: AgeLevelCover(item),
+              );
             },
             crossAxisCount: 2,
             mainAxisSpacing: 2,
@@ -89,15 +84,15 @@ class _HistoryWidgetState extends State<HistoryWidget> {
     }
     DBController.instance
         .queryHistorys(pageNum, pageSize,
-            order: dateOrder ? History.ORDER_BY_TIME : History.ORDER_BY_PATH,
-            asc: asc)
+        order: dateOrder ? History.ORDER_BY_TIME : History.ORDER_BY_PATH,
+        asc: asc)
         ?.then((value) {
       // setState(() {
       var list = value.map((e) => History.fromJson(e)).toList();
 
       if (filterNotExist) {
         list.removeWhere((element) =>
-            element.localPath == null || !File(element.localPath!).existsSync());
+        element.localPath == null || !File(element.localPath!).existsSync());
       }
 
       if (list.length > 0) {
