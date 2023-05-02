@@ -16,7 +16,7 @@ class History extends UniqueSign{
       'id INTEGER PRIMARY KEY, workspace TEXT,prompt TEXT,negativePrompt TEXT, seed INTEGER,width INTEGER,height INTEGER,date TEXT,time TEXT,errMsg TEXT,imgPath TEXT,imgUrl TEXT';
   String? prompt = '';
   String? negativePrompt = '';
-  int ageLevel = 18;
+  int ageLevel = 0;
   int? seed = -1;
   int? width = 512;
   int? height = 512;
@@ -45,9 +45,6 @@ class History extends UniqueSign{
     this.url = imgUrl;
   }
 
-  int getAgeLevel(AIPainterModel? provider, Uint8List? data) {
-    return ageLevel;
-  }
   History.fromJson(dynamic json) {
     prompt = json['prompt'];
     negativePrompt = json['negativePrompt'];
@@ -94,4 +91,8 @@ class History extends UniqueSign{
   @override
   int get hashCode => localPath.hashCode ^ url.hashCode;
 
+  @override
+  String toString() {
+    return 'History{localPath: $localPath, url:$url, page: $page, offset: $offset, prompt: $prompt, negativePrompt: $negativePrompt, ageLevel: $ageLevel, seed: $seed, width: $width, height: $height, date: $date, time: $time, errMsg: $errMsg, workspace: $workspace}';
+  }
 }

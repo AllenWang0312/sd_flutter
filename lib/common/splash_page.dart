@@ -16,7 +16,8 @@ import '../sd/AIPainterModel.dart';
 import '../sd/bean/PromptStyle.dart';
 import '../sd/const/config.dart';
 import '../sd/http_service.dart';
-import 'android.dart';
+import 'package:sd/platform/platform.dart';
+
 
 const int SPLASH_WATTING_TIME = 3;
 
@@ -55,17 +56,10 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (UniversalPlatform.isAndroid) {
-      createDirIfNotExit(ANDROID_PRIVATE_FILE_COLLECTIONS_PATH);
-      createDirIfNotExit(ANDROID_PRIVATE_FILE_STYLES_PATH);
-      createDirIfNotExit(ANDROID_PRIVATE_FILE_WORKSPACE_PATH);
-      compute(
-          moveDirToAnotherPath,
-          FromTo(ANDROID_PUBLIC_DOWNLOAD_PATH,
-              ANDROID_PRIVATE_FILE_COLLECTIONS_PATH));
-    }
     logt(TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
+
+
     provider.load();
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
@@ -146,16 +140,6 @@ class SplashPage extends StatelessWidget {
   }
 
   void getSettings() async {
-    printDir(
-        await getTemporaryDirectory()); // /data/user/0/edu.tjrac.swant.sd/cache
-    printDir(
-        await getApplicationSupportDirectory()); // /data/user/0/edu.tjrac.swant.sd/files
-    printDir(
-        await getApplicationDocumentsDirectory()); // /data/user/0/edu.tjrac.swant.sd/app_flutter
-    // printDir(await getExternalStorageDirectory());  //only for android
-    // printDirs(await getExternalCacheDirectories()); // only for android
-    // printDirs(await getExternalStorageDirectories()); //only for android
-    // printDir(await getDownloadsDirectory()); //only for not android
 
     // if(provider.workspace)
     // get("$sdHttpService$RUN_PREDICT", exceptionCallback: (e) {
@@ -184,18 +168,6 @@ class SplashPage extends StatelessWidget {
     });
   }
 
-  printDir(Directory? dir) {
-    if (null != dir) {
-      logt(TAG, "download path" + dir.path.toString());
-    }
-  }
-
-  printDirs(List<Directory>? dirs) {
-    if (null != dirs) {
-      logt(TAG, "print path:" + dirs.toString());
-    }
-  }
-
   void jumpAndCancelTimerIfSettingIsReady(BuildContext context, String? token) {
     if (getSettingSuccess != null && getSettingSuccess != 0) {
       if (_countdownTimer != null) {
@@ -207,37 +179,5 @@ class SplashPage extends StatelessWidget {
     }
   }
 
-  FutureOr<dynamic> moveDirToAnotherPath(FromTo fromTo) async {
-    Directory pubPics = Directory(fromTo.from);
-    Directory priPics = Directory(fromTo.to);
 
-    List<FileSystemEntity> entitys = pubPics.listSync();
-    try {
-      for (FileSystemEntity entity in entitys) {
-        if (entity is Directory) {
-          await moveChildToAnotherPath(
-              getFileName(entity.path), entity.listSync(), priPics);
-        }
-      }
-      logt(TAG, "moveDirToAnotherPath Success");
-
-      return Future.value(1);
-    } catch (e) {
-      logt(TAG, "moveDirToAnotherPath failed ${e.toString()}");
-
-      return Future.error(-1);
-    }
-  }
-
-  Future<void> moveChildToAnotherPath(String fileName,
-      List<FileSystemEntity> listSync, Directory priPics) async {
-    listSync.forEach((element) async {
-      if (element is File) {
-        String newPath = "${priPics.path}/$fileName/${getFileName(element.path)}";
-        logt(TAG,"${element.path} $newPath");
-        await element.copy(newPath);
-        await element.delete();
-      }
-    });
-  }
 }

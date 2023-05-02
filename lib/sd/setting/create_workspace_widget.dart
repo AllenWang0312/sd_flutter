@@ -5,10 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/AIPainterModel.dart';
-import 'package:universal_platform/universal_platform.dart';
-
 import '../../common/third_util.dart';
-import '../../common/android.dart';
 import '../bean/db/PromptStyleFileConfig.dart';
 import '../bean/db/Workspace.dart';
 import '../bean/enum/StorageType.dart';
@@ -77,10 +74,10 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
       model.styleResType = StyleResType.public;
       model.notifyListeners();
     }
-    if (UniversalPlatform.isAndroid) {
-      model.noMediaFileExist =
-          File("$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia").existsSync();
-    }
+    // if (UniversalPlatform.isAndroid) {
+    //   model.noMediaFileExist =
+    //       File("$ANDROID_PUBLIC_PICTURES_NOMEDIA/.nomedia").existsSync();
+    // }
     pathController = TextEditingController(
         text: widget.workspace == null ? '' : widget.workspace?.dirPath);
 

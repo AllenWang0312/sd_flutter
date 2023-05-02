@@ -4,11 +4,13 @@ import 'dart:math';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/widget/AgeLevelCover.dart';
+
+import '../http_service.dart';
 
 
 const TAG = "HistoryWidget";
@@ -19,7 +21,7 @@ class HistoryWidget extends StatefulWidget {
   State<HistoryWidget> createState() => _HistoryWidgetState();
 }
 
-class _HistoryWidgetState extends State<HistoryWidget> {
+class _HistoryWidgetState extends State<HistoryWidget> with AutomaticKeepAliveClientMixin{
   int pageNum = 0;
   int pageSize = 20;
   List<History> history = [];
@@ -58,16 +60,19 @@ class _HistoryWidgetState extends State<HistoryWidget> {
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
               var file = File(item.localPath!);
+              logt(TAG,item.localPath!);
               return InkWell(
                 onTap: () async {
                   Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
                       arguments: {
                         "urls": history,
                         "index": index,
-                        "savePath": await getImageAutoSaveAbsPath(),
+                        "savePath": getWorkspacesPath(),
                       });
                 },
-                child: AgeLevelCover(item),
+                // child: AgeLevelCover(item),
+                child: Image.file(file),
+
               );
             },
             crossAxisCount: 2,
@@ -78,7 +83,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
   }
 
   loadData(int pageNum, int pageSize, bool dateOrder, bool asc,
-      {bool filterNotExist = true}) {
+      {bool filterNotExist = false}) {
     if (pageNum == 0) {
       history.clear();
     }
@@ -89,7 +94,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
         ?.then((value) {
       // setState(() {
       var list = value.map((e) => History.fromJson(e)).toList();
-
+logt(TAG,list.toString());
       if (filterNotExist) {
         list.removeWhere((element) =>
         element.localPath == null || !File(element.localPath!).existsSync());
@@ -110,4 +115,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
       }
     });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

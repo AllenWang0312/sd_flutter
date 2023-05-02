@@ -30,7 +30,7 @@ class RecordsWidget extends StatelessWidget {
   List<Widget> children = [
     const HistoryWidget(),
     RemoteHistoryWidget(remoteTXT2IMGDir,CMD_GET_TXT2IMG_HISTORY),
-    RemoteHistoryWidget(remoteIMG2IMGDir,CMD_GET_IMG2IMG_HISTORY),
+    // RemoteHistoryWidget(remoteIMG2IMGDir,CMD_GET_IMG2IMG_HISTORY),
     RemoteHistoryWidget(remoteMoreDir,CMD_GET_MORE_HISTORY),
   ];
 
@@ -49,21 +49,12 @@ class RecordsWidget extends StatelessWidget {
                   tabs: [
                     Tab(text: AppLocalizations.of(context).local),
                     Tab(text: AppLocalizations.of(context).remoteTxt2Img),
-                    Tab(text: AppLocalizations.of(context).remoteImg2Img),
+                    // Tab(text: AppLocalizations.of(context).remoteImg2Img),
                     Tab(text: AppLocalizations.of(context).extras),
                   ],
                   dividerColor: Colors.transparent,
                 ),
               ),
-
-              IconButton(
-                  icon: Icon(Icons.settings),
-                  onPressed: () async {
-                    if (await checkStoragePermission()) {
-                      Navigator.pushNamed(context, ROUTE_SETTING);
-                    }
-                    // HistoryWidget(dbController),
-                  }),
             ],
           ),
           Expanded(

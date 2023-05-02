@@ -5,13 +5,13 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class DemoLocalizations {
-  DemoLocalizations(this.locale);
+class MyLocalizations {
+  MyLocalizations(this.locale);
 
   final Locale locale;
 
-  static DemoLocalizations of(BuildContext context) {
-    return Localizations.of<DemoLocalizations>(context, DemoLocalizations)!;
+  static MyLocalizations of(BuildContext context) {
+    return Localizations.of<MyLocalizations>(context, MyLocalizations)!;
   }
 
   static const _localizedValues = <String, Map<String, String>>{
@@ -32,21 +32,21 @@ class DemoLocalizations {
 // #enddocregion Demo
 
 // #docregion Delegate
-class DemoLocalizationsDelegate
-    extends LocalizationsDelegate<DemoLocalizations> {
-  const DemoLocalizationsDelegate();
+class MyLocalizationsDelegate
+    extends LocalizationsDelegate<MyLocalizations> {
+  const MyLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => DemoLocalizations.languages().contains(locale.languageCode);
+  bool isSupported(Locale locale) => MyLocalizations.languages().contains(locale.languageCode);
 
 
   @override
-  Future<DemoLocalizations> load(Locale locale) {
+  Future<MyLocalizations> load(Locale locale) {
     // Returning a SynchronousFuture here because an async "load" operation
     // isn't needed to produce an instance of DemoLocalizations.
-    return SynchronousFuture<DemoLocalizations>(DemoLocalizations(locale));
+    return SynchronousFuture<MyLocalizations>(MyLocalizations(locale));
   }
 
   @override
-  bool shouldReload(DemoLocalizationsDelegate old) => false;
+  bool shouldReload(MyLocalizationsDelegate old) => false;
 }

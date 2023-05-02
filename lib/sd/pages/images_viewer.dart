@@ -10,6 +10,7 @@ import 'package:sd/sd/tavern/bean/UniqueSign.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/roll/tagger_widget.dart';
 import 'package:sd/sd/AIPainterModel.dart';
+import 'package:wallpaper/wallpaper.dart';
 
 import '../../common/third_util.dart';
 import '../tavern/bean/Showable.dart';
@@ -138,7 +139,17 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                   // provider.
                 },
                 icon: const Icon(Icons.settings_overscan)),
-          )
+          ),
+          TextButton(onPressed: () async {
+            var width = MediaQuery.of(context).size.width;
+            var height = MediaQuery.of(context).size.height;
+            await Wallpaper.homeScreen(
+                options: RequestSizeOptions.RESIZE_FIT,
+                width: width,
+                height: height);
+            print("Task Done");
+
+          }, child: Text('设为壁纸'))
         ],
       ),
       body: Column(
@@ -243,11 +254,20 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
               onPressed: () async {
                 if (await checkStoragePermission()) {
                   logt(TAG, controller.page!.toInt().toString());
-                  dynamic result = await saveUrlToLocal(
-                      urls![controller.page!.toInt()].getFileLocation(),
-                      "${DateTime.now()}.png",
-                      saveDirPath!);
-                  Fluttertoast.showToast(msg: result.toString());
+                  if(datas!=null){
+                    dynamic result = await saveBytesToLocal(
+                        datas[controller.page!.toInt()],
+                        "${DateTime.now()}.png",
+                        saveDirPath!);
+                    Fluttertoast.showToast(msg: result.toString());
+                  }else{
+                    dynamic result = await saveUrlToLocal(
+                        urls![controller.page!.toInt()].getFileLocation(),
+                        "${DateTime.now()}.png",
+                        saveDirPath!);
+                    Fluttertoast.showToast(msg: result.toString());
+                  }
+
                 } else {
                   Fluttertoast.showToast(
                       msg: "请允许应用使用存储权限", gravity: ToastGravity.CENTER);

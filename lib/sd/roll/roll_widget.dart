@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -11,18 +9,18 @@ import 'package:provider/provider.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 import 'package:sd/sd/roll/RollModel.dart';
 import 'package:sd/sd/widget/sampler_widget.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 import '../../common/my_checkbox.dart';
 import '../../common/third_util.dart';
 import '../../common/util/string_util.dart';
 import '../bean/db/History.dart';
-import '../bean4json/GenerateProgress.dart';
 import '../bean4json/GenerateResultItem.dart';
 import '../const/config.dart';
 import '../db_controler.dart';
 import '../http_service.dart';
 import '../mocker.dart';
-import '../pages/home_page.dart';
+import '../widget/GenerateButton.dart';
 import '../widget/prompt_style_picker.dart';
 import '../widget/prompt_widget.dart';
 import '../widget/sd_model_widget.dart';
@@ -30,63 +28,40 @@ import '../widget/upsacler_widget.dart';
 
 class RollWidget extends StatelessWidget {
   final String TAG = "RollWidget";
-  late PromptStylePicker promptStylePicker;
+  final PromptStylePicker promptStylePicker = PromptStylePicker();
 
-  RollWidget() {
-    this.promptStylePicker = PromptStylePicker();
-  }
-
-  late RollModel model;
-  late AIPainterModel provider;
-
-  bool backgroundProgress = true; //主动检查 progress
-  int countDown = 0;
-  int id_live_preview = -1;
-  Timer? _countdownTimer;
-
+  // const RollWidget();
 
   @override
   Widget build(BuildContext context) {
+    RollModel model = Provider.of<RollModel>(context, listen: false);
+    AIPainterModel provider =
+        Provider.of<AIPainterModel>(context, listen: false);
     final samplerManager = SamplerWidget();
     final upScalerManger = UpScalerWidget();
-    model = Provider.of<RollModel>(context, listen: false);
-    provider = Provider.of<AIPainterModel>(context, listen: false);
-
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if(provider.sdServiceAvailable){
-        if(!backgroundProgress){
-          post("$sdHttpService$GET_PROGRESS",
-              formData: getPreview(id_live_preview), exceptionCallback: (e) {
-                // _countdownTimer?.cancel();
-              }).then((value) {
-            if (null != value) {
-              GenerateProgress progress = GenerateProgress.fromJson(value.data);
-              forgroundProgressCheck(progress);
-            }
-          });
-        }else{
-          countDown ++;
-          if(countDown%10==0){
-            post("$sdHttpService$GET_PROGRESS",formData: getPreview(-1), exceptionCallback: (e) {
-              // _countdownTimer?.cancel();
-            }).then((value) {
-              if (null != value) {
-                GenerateProgress progress = GenerateProgress.fromJson(value.data);
-                backgroundProgressCheck(progress);
-              }
-            });
-          }
-        }
-      }
-
-    });
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         AppBar(
-          title: Text(
-          "${provider.selectWorkspace?.getName().toUpperCase()}"),
+          title: Text("${provider.selectWorkspace?.getName().toUpperCase()}"),
+          actions: [
+            if (UniversalPlatform.isAndroid)
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, ROUTE_TAVERN);
+                },
+                icon: const Icon(Icons.image),
+              ),
+            IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () async {
+                  if (await checkStoragePermission()) {
+                    Navigator.pushNamed(context, ROUTE_SETTING);
+                  }
+                  // HistoryWidget(dbController),
+                }),
+          ],
         ),
         SDModelWidget(),
         // Row(
@@ -376,38 +351,7 @@ class RollWidget extends StatelessWidget {
             Positioned(
                 right: 16,
                 bottom: 16,
-                child: Selector<RollModel, int>(
-                  selector: (_, model) => model.isGenerating,
-                  shouldRebuild: (pre, next) => pre != next,
-                  builder: (context, newValue, child) {
-                    return Stack(children: [
-                      child!,
-                      Selector<RollModel, Uint8List?>(
-                        builder: (_, newValue, child) => newValue == null
-                            ? Container()
-                            : Image.memory(newValue),
-                        selector: (_, model) => model.previewData,
-                        shouldRebuild: (pre, next) =>
-                            !(next == null && pre == null),
-                      ),
-                      Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Offstage(
-                            offstage: newValue != 1,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          ))
-                    ]);
-                  },
-                  child: FloatingActionButton(
-                    onPressed: () => txt2img(context),
-                    child: Text(AppLocalizations.of(context).generate),
-                  ),
-                ))
+                child: GenerateButton(() => txt2img(context, model, provider)))
           ]),
         )
       ],
@@ -420,15 +364,19 @@ class RollWidget extends StatelessWidget {
   getNegtivePrompt(String negPrompt) =>
       appendCommaIfNotExist(negPrompt) + promptStylePicker.getStyleNegPrompt();
 
-  txt2img(BuildContext context) async {
+  txt2img(
+      BuildContext context, RollModel model, AIPainterModel provider) async {
     if (model.isGenerating == REQUESTING) {
-      Fluttertoast.showToast(msg: AppLocalizations.of(context).wattingMsg,gravity: ToastGravity.CENTER);
+      Fluttertoast.showToast(
+          msg: AppLocalizations.of(context).wattingMsg,
+          gravity: ToastGravity.CENTER);
     } else {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
         model.isBusy(REQUESTING);
         String prompt = getPrompt(provider.config.prompt);
-        String negativePrompt = getNegtivePrompt(provider.config.negativePrompt);
+        String negativePrompt =
+            getNegtivePrompt(provider.config.negativePrompt);
         var from = {
           "prompt": prompt + provider.getCheckedPluginsString(),
           "negative_prompt": negativePrompt,
@@ -460,7 +408,9 @@ class RollWidget extends StatelessWidget {
               exceptionCallback: (e) {
             model.isBusy(ERROR);
             Fluttertoast.showToast(
-                msg: e.toString(), toastLength: Toast.LENGTH_LONG,gravity: ToastGravity.CENTER);
+                msg: e.toString(),
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.CENTER);
           }).then((value) async {
             model.isBusy(INIT);
             provider.save();
@@ -504,7 +454,9 @@ class RollWidget extends StatelessWidget {
               exceptionCallback: (e) {
             model.isBusy(ERROR);
             Fluttertoast.showToast(
-                msg: e.toString(), toastLength: Toast.LENGTH_LONG,gravity: ToastGravity.CENTER);
+                msg: e.toString(),
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.CENTER);
           }).then((value) async {
             List fileProt = value?.data['data'][0];
             if (provider.autoSave) {
@@ -537,35 +489,13 @@ class RollWidget extends StatelessWidget {
 
           // prefs.then((sp) => {});
           //todo 异步progress轮训进度   可以封装成widget
-          backgroundProgress = false;
-
+          model.backgroundProgress = false;
         }
       } else {
         Fluttertoast.showToast(
-            msg: AppLocalizations.of(context).storagePromissionMsg,gravity: ToastGravity.CENTER);
+            msg: AppLocalizations.of(context).storagePromissionMsg,
+            gravity: ToastGravity.CENTER);
       }
-    }
-  }
-
-  void forgroundProgressCheck(GenerateProgress progress) {
-    id_live_preview = progress.idLivePreview!;
-    model.updateProgress(progress.progress);
-    if (progress.livePreview != null) {
-      model.updatePreviewData(base64Decode(
-          progress.livePreview!.substring(BASE64_PREFIX.length)));
-    }
-    if (progress.completed == true) {
-      logd("timer cancel");
-      // _countdownTimer?.cancel();
-      backgroundProgress = true;
-    }
-  }
-
-  void backgroundProgressCheck(GenerateProgress progress) {
-    if(null!=progress.active&&!progress.active!){
-      model.isBusy(REQUESTING);
-    }else{
-      model.isBusy(INIT);
     }
   }
 }

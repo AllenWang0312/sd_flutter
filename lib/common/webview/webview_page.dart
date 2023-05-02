@@ -4,17 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/common/webview/WebControlModel.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
-// #docregion platform_imports
-// Import for Android features.
 import 'package:webview_flutter_android/webview_flutter_android.dart';
-
-// Import for iOS features.
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
-
 import '../third_util.dart';
 import 'NavigationControls.dart';
-import 'WebDownloader.dart';
 import 'const.dart';
 
 const TAG = "WebViewPage";

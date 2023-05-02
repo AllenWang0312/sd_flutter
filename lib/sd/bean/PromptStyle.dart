@@ -29,6 +29,10 @@ class PromptStyle {
   String? prompt = "";
   String? negativePrompt = "";
 
+  bool get isEmpty{
+    return (prompt==null||prompt!.isEmpty)&&(negativePrompt==null||negativePrompt!.isEmpty);
+  }
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['name'] = name;

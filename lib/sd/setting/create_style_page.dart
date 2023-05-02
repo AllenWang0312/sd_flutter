@@ -7,8 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/common/third_util.dart';
 import 'package:sd/common/util/file_util.dart';
-
-import '../../common/android.dart';
 import '../../common/ui_util.dart';
 import '../bean/PromptStyle.dart';
 import '../bean/enum/CreateStyleType.dart';
@@ -97,7 +95,7 @@ class CreateStyleWidget extends StatelessWidget {
                     Navigator.pop(context, file);
                   } else if (model.resType == CreateStyleType.spliteOther) {
                     await File(model.splitFile).writeAsString(
-                        ListToCsvConverter().convert(
+                        const ListToCsvConverter().convert(
                             PromptStyle.convertPromptStyle(model.current
                                 .where((element) => !element.checked)
                                 .toList())));
@@ -107,7 +105,7 @@ class CreateStyleWidget extends StatelessWidget {
                     List<PromptStyle> styles = model.current
                         .where((element) => element.checked)
                         .toList();
-                    String csv = ListToCsvConverter()
+                    String csv = const ListToCsvConverter()
                         .convert(PromptStyle.convertPromptStyle(styles));
                     await file.writeAsString(csv);
 

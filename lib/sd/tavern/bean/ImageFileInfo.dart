@@ -8,8 +8,8 @@ import 'package:exif/exif.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/tavern/bean/Showable.dart';
+import 'package:sd/platform/platform.dart';
 
-import '../../../common/android.dart';
 
 const TAG = "ImageInfo";
 abstract class ImageFileInfo extends Showable{
@@ -26,19 +26,17 @@ abstract class ImageFileInfo extends Showable{
 
 
   String getLocalPath() {
-    localPath ??= "$ANDROID_PRIVATE_FILE_COLLECTIONS_PATH/$name";
+    localPath ??= "${getCollectionsPath()}/$name";
     return localPath!;
   }
 
   setLocalPath(String value) {
     localPath = value;
   }
-  Future<String?> getExif(File image) async {
+  Future<String?> getAndCacheExif(File image) async {
     var path = getLocalPath();
     if (null == _exif) {
-      File prompt =
-      File('${path.substring(0, path.lastIndexOf('.'))}.txt');
-
+      File prompt = File('${path.substring(0, path.lastIndexOf('.'))}.txt');
       bool isPng = path.toLowerCase().endsWith('.png');
       if (isPng) {
         _exif = await getPngExt(image, prompt);

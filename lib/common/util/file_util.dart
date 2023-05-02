@@ -1,14 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:path_provider/path_provider.dart';
-import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
-
-import '../android.dart';
-import '../../sd/const/config.dart';
 import '../../sd/http_service.dart';
 
 const TAG = "file util";
@@ -43,57 +36,6 @@ String? getPNGExtData(Uint8List bytes) {
   return null;
 }
 
-// todo splash 初始化时固定到字段
-Future<String> getImageAutoSaveAbsPath() async {
-  if (UniversalPlatform.isWeb) {
-    return "/$APP_DIR_NAME";
-  }
-  Directory? dir;
-
-  if (UniversalPlatform.isAndroid) {
-    dir = await getExternalStorageDirectory();
-    if (null != dir) {
-      return "${dir.path}/files";
-    } else {
-      return ANDROID_PUBLIC_PICTURES_PATH;
-    }
-  } else if (UniversalPlatform.isIOS || UniversalPlatform.isMacOS) {
-    dir = await getLibraryDirectory();
-    if (null != dir) {
-      return "${dir.path}/$APP_DIR_NAME";
-    } else {
-      return dir.path + "/Caches";
-    }
-  } else {
-    dir = await getDownloadsDirectory();
-    if (null != dir) {
-      return "${dir.path}/$APP_DIR_NAME";
-    } else {
-      return "/$PACKAGE_NAME";
-    }
-  }
-}
-
-Future<String> getStylesAbsPath() async {
-  if (UniversalPlatform.isWeb) {
-    return "/$APP_DIR_NAME/styles";
-  } else if (UniversalPlatform.isAndroid) {
-    Directory? dir = await getExternalStorageDirectory();
-    if (null != dir) {
-      return "${dir.path}/styles";
-    } else {
-      return "$ANDROID_PUBLIC_PICTURES_PATH/styles";
-    }
-  } else if (UniversalPlatform.isIOS || UniversalPlatform.isMacOS) {
-    Directory dir = await getApplicationDocumentsDirectory();
-    if (null != dir) {
-      return "${dir.path}/$APP_DIR_NAME";
-    } else {
-      return dir.path + "/styles";
-    }
-  }
-  return "/$PACKAGE_NAME/styles";
-}
 
 bool createDirIfNotExit(String dirPath) {
   Directory dir = Directory(dirPath);

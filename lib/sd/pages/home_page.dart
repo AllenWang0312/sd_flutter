@@ -10,13 +10,10 @@ import 'package:sd/sd/roll/roll_widget.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 import 'package:sd/sd/tavern/tavern_widget.dart';
 
+import '../MineWidget.dart';
 import '../history/records_widget.dart';
 import '../http_service.dart';
 import '../HomeModel.dart';
-
-const REQUESTING = 1;
-const INIT = 0;
-const ERROR = -1;
 
 class HomePage extends StatefulWidget {
   int? index;
@@ -42,8 +39,6 @@ class _HomePageState extends State<HomePage>{
 
     pages = [
       // LoraWidget(),
-      TavernWidget(),
-
       ChangeNotifierProvider(
         create: (_) => RollModel(),
         child: RollWidget(),
@@ -79,9 +74,9 @@ class _HomePageState extends State<HomePage>{
                     currentIndex: newValue,
                     items: [
                       // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
-                      BottomNavigationBarItem(
-                          icon: const Icon(Icons.find_in_page_outlined),
-                          label: AppLocalizations.of(context).tavern),
+                      // BottomNavigationBarItem(
+                      //     icon: const Icon(Icons.find_in_page_outlined),
+                      //     label: AppLocalizations.of(context).tavern),
 
                       BottomNavigationBarItem(
                           icon: const Icon(Icons.draw_outlined),
@@ -89,6 +84,7 @@ class _HomePageState extends State<HomePage>{
                       BottomNavigationBarItem(
                           icon: const Icon(Icons.find_in_page_outlined),
                           label: AppLocalizations.of(context).history),
+
                       // BottomNavigationBarItem(
                       //     icon: const Icon(Icons.account_box_outlined),
                       //     label: AppLocalizations.of(context).mine),

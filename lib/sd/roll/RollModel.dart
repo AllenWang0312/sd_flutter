@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:sd/sd/roll/roll_widget.dart';
 
+const REQUESTING = 1;
+const INIT = 0;
+const ERROR = -1;
+
+
 class RollModel with ChangeNotifier, DiagnosticableTreeMixin {
   SetType setIndex = SetType.basic;
 
@@ -8,6 +13,7 @@ class RollModel with ChangeNotifier, DiagnosticableTreeMixin {
 
   double? progress = 0;
   Uint8List? previewData;
+  bool backgroundProgress = true; //主动检查 progress
 
   void isBusy(int i) {
     isGenerating = i;

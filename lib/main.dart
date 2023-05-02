@@ -17,6 +17,7 @@ import 'package:sd/sd/setting/create_workspace_widget.dart';
 import 'package:sd/sd/setting/edit_style_page.dart';
 import 'package:sd/sd/setting/setting_page.dart';
 import 'package:sd/sd/setting/style_edit_page.dart';
+import 'package:sd/sd/tavern/tavern_widget.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
 
 void main() {
@@ -31,6 +32,7 @@ void main() {
     // ),
     ROUTE_PLUGINS: (_) => const PluginsWidget(),
     ROUTE_SETTING: (_) => SettingPage(),
+    ROUTE_TAVERN:(_)=>TavernWidget(),
     ROUTE_WEBVIEW: (_, {arguments}) => WebViewStatefulPage(
       arguments['title'],
       arguments['url'],

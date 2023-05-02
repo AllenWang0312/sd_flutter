@@ -49,13 +49,14 @@ const String ROUTE_HOME = "/home";
 const String ROUTE_PLUGINS = "/home/plugins";
 const String ROUTE_SETTING = "/home/setting";
 const String ROUTE_WEBVIEW = "/home/webview";
+const String ROUTE_TAVERN = "/home/tavern";
 
 const String ROUTE_STYLE_EDITTING = "/home/setting/styles/edit";
 // const String ROUTE_IMAGE_VIEWER = "/viewer";
 const String ROUTE_IMAGES_VIEWER = "/home/viewers";
 const String ROUTE_CREATE_WORKSPACE = "/home/setting/workspace/create";
 const String ROUTE_CREATE_STYLE = "/home/setting/style/create";
-const String ROUTE_EDIT_STYLE= "/home/setting/style/edit";
+const String ROUTE_EDIT_STYLE = "/home/setting/style/edit";
 // file system
 
 const String APP_DIR_NAME = 'sdf';
@@ -72,9 +73,9 @@ const SD_PORT = 7860;
 placeHolderUrl({int width = 512, int height = 720}) {
   return 'https://via.placeholder.com/$width x$height';
 }
-late final String remoteTXT2IMGDir;
-late final String  remoteIMG2IMGDir;
-late final String  remoteMoreDir;
+  String remoteTXT2IMGDir = '';
+  String remoteIMG2IMGDir= '';
+  String remoteMoreDir= '';
 
 var sdHost = UniversalPlatform.isWeb
     ? SD_WIN_HOST
@@ -137,19 +138,18 @@ const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
 //todo imgPath 是否有效 为何无法删除
 final String TAG = "config";
 
-History mapToHistory(String remoteDir,int page, int offset, String name) {
+History mapToHistory(String remoteDir, int page, int offset, String name) {
   String url = nameToUrl(name);
-  logt(TAG,url + " ");
-  logt(TAG," " + name);
+  logt(TAG, url + " ");
+  logt(TAG, " " + name);
 
   return History(
-      // ageLevel: name.contains('18x') ? 18 : 16,
-      page: page,
-      offset: offset,
-      imgUrl: url,
-      // imgPath: name.replaceAll('C:\\Users\\Administrator\\AppData\\Local\\Temp',
-      //     remoteDir)
-
+    // ageLevel: name.contains('18x') ? 18 : 16,
+    page: page,
+    offset: offset,
+    imgUrl: url,
+    // imgPath: name.replaceAll('C:\\Users\\Administrator\\AppData\\Local\\Temp',
+    //     remoteDir)
   );
 }
 

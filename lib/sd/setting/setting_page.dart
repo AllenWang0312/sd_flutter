@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/db/PromptStyleFileConfig.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -269,8 +270,8 @@ class _SettingPageState extends State<SettingPage> {
   Future<void> editOrCreateWorkspace(BuildContext context,
       {int? type = 0, Workspace? workspace}) async {
     try {
-      var applicationPath = await getImageAutoSaveAbsPath();
-      var stylePath = await getStylesAbsPath();
+      var applicationPath = getWorkspacesPath();
+      var stylePath = getStylesPath();
       // var publicPath = getAutoSaveAbsPath();
       // var openHidePath = "$publicPath/nomedia";
       // logt(TAG, applicationPath + publicPath + openHidePath);
@@ -324,7 +325,7 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Future<void> createPromptStyle(BuildContext context) async {
-    var applicationPath = await getStylesAbsPath();
+    var applicationPath = await getStylesPath();
 
     if(context.mounted){
       File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
@@ -394,7 +395,7 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<List<FileSystemEntity>?> createDir() async {
 
-    var publicStylePath = await getStylesAbsPath();
+    var publicStylePath = await getStylesPath();
     if (createDirIfNotExit(publicStylePath)) {
       return Directory(publicStylePath).listSync();
     }

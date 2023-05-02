@@ -76,6 +76,7 @@ class LocalFileInfo extends UniqueSign {
       {this.parent, String? name, String? url, bool? isDir, String? absPath}) {
     this.name = name;
     _isDir = isDir;
+
     localPath = absPath;
 
     if(null!=_isDir&&_isDir!){

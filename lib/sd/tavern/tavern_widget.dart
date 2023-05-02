@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/common/android.dart';
+import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/widget/AgeLevelCover.dart';
@@ -13,7 +13,7 @@ import '../../common/ui_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/string_util.dart';
 import '../http_service.dart';
-import '../platform.dart';
+import '../channel.dart';
 import 'bean/LocalFileInfo.dart';
 
 List<LocalFileInfo> downloadRoot = [
@@ -66,7 +66,7 @@ class _TavernWidgetState extends State<TavernWidget> {
     currentDir.clear();
 
     currentDir.addAll(downloadRoot);
-    currentDir.addAll(getDirFiles(Directory(ANDROID_DOWNLOAD_DIR)));
+    currentDir.addAll(getDirFiles(Directory(SYSTEM_DOWNLOAD_DIR)));
 
     stacks.add(currentDir);
     if (refresh) {
@@ -79,7 +79,6 @@ class _TavernWidgetState extends State<TavernWidget> {
   @override
   Widget build(BuildContext context) {
     controller = ScrollController(keepScrollOffset: false);
-
     provider = Provider.of<AIPainterModel>(context, listen: false);
     return WillPopScope(
         onWillPop: () async {
@@ -102,91 +101,87 @@ class _TavernWidgetState extends State<TavernWidget> {
           }
           return true;
         },
-        child: Column(
-          children: [
-            AppBar(
-              centerTitle: true,
-              title: Text('Tavern'),
-              actions: [
-                Offstage(
-                  offstage: editModel != 1,
-                  child: IconButton(
-                    icon: Icon(Icons.copy),
-                    onPressed: () {
-                      // showEditDialog(context);
-                      setState(() {
-                        editModel = 3;
-                      });
-                    },
-                  ),
+        child: Scaffold(
+          appBar:   AppBar(
+            centerTitle: true,
+            title: const Text('Tavern'),
+            actions: [
+              Offstage(
+                offstage: editModel != 1,
+                child: IconButton(
+                  icon: Icon(Icons.copy),
+                  onPressed: () {
+                    // showEditDialog(context);
+                    setState(() {
+                      editModel = 3;
+                    });
+                  },
                 ),
-                Offstage(
-                  offstage: editModel != 1,
-                  child: IconButton(
-                    icon: Icon(Icons.cut),
-                    onPressed: () {
-                      // showEditDialog(context);
-                      cutFiles.addAll(checkedFiles);
-                      checkedFiles.clear();
-                      setState(() {
-                        editModel = 2;
-                      });
-                    },
-                  ),
-                ),
-                Offstage(
-                  offstage: editModel != 2 && editModel != 3,
-                  child: Badge(
-                    label: Text(
-                        '${editModel == 2 ? cutFiles.length : checkedFiles.length}'),
-                    child: IconButton(
-                        onPressed: () {
-                          if (editModel == 2) {
-                            for (var e in cutFiles) {
-                              e.file.copySync('${dir?.path}/${e.name}');
-                              e.file.deleteSync();
-                            }
-                          } else {
-                            for (var e in checkedFiles) {
-                              e.file.copySync('${dir?.path}/${e.name}');
-                            }
-                          }
-                          setState(() {
-                            //刷新当前目录
-                            if (null != dir) {
-                              stacks.removeLast();
-                              currentDir.clear();
-                              currentDir.addAll(getDirFiles(dir!));
-                              stacks.add(currentDir);
-                            }
-
-                            cutFiles.clear();
-                            checkedFiles.clear();
-                            editModel = 0;
-                            // initData(true);
-                          });
-                        },
-                        icon: Icon(Icons.paste)),
-                  ),
-                )
-              ],
-            ),
-            Expanded(
-              child: GridView(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    // mainAxisSpacing: 10,
-                    // crossAxisSpacing: 10,
-                    childAspectRatio: 512 / 768),
-                controller: controller,
-                children: currentDir
-                    .map((e) => e.isDir
-                        ? dirContent(e)
-                        : fileBody(currentDir, currentDir.indexOf(e), e))
-                    .toList(),
               ),
-            )
-          ],
+              Offstage(
+                offstage: editModel != 1,
+                child: IconButton(
+                  icon: const Icon(Icons.cut),
+                  onPressed: () {
+                    // showEditDialog(context);
+                    cutFiles.addAll(checkedFiles);
+                    checkedFiles.clear();
+                    setState(() {
+                      editModel = 2;
+                    });
+                  },
+                ),
+              ),
+              Offstage(
+                offstage: editModel != 2 && editModel != 3,
+                child: Badge(
+                  label: Text(
+                      '${editModel == 2 ? cutFiles.length : checkedFiles.length}'),
+                  child: IconButton(
+                      onPressed: () {
+                        if (editModel == 2) {
+                          for (var e in cutFiles) {
+                            e.file.copySync('${dir?.path}/${e.name}');
+                            e.file.deleteSync();
+                          }
+                        } else {
+                          for (var e in checkedFiles) {
+                            e.file.copySync('${dir?.path}/${e.name}');
+                          }
+                        }
+                        setState(() {
+                          //刷新当前目录
+                          if (null != dir) {
+                            stacks.removeLast();
+                            currentDir.clear();
+                            currentDir.addAll(getDirFiles(dir!));
+                            stacks.add(currentDir);
+                          }
+
+                          cutFiles.clear();
+                          checkedFiles.clear();
+                          editModel = 0;
+                          // initData(true);
+                        });
+                      },
+                      icon: const Icon(Icons.paste)),
+                ),
+              )
+            ],
+          ),
+          body: GridView(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                // mainAxisSpacing: 10,
+                // crossAxisSpacing: 10,
+                childAspectRatio: 512 / 768),
+            controller: controller,
+            children: currentDir
+                .map((e) => e.isDir
+                ? dirContent(e)
+                : fileBody(currentDir, currentDir.indexOf(e), e))
+                .toList(),
+          ),
         ));
   }
 
@@ -271,11 +266,12 @@ class _TavernWidgetState extends State<TavernWidget> {
         } else {
           setState(() {
             Directory(info.getLocalPath()).createSync(recursive: true);
+            if (null != info.dirDes && !File(info.iconFilePath).existsSync()) {
+              saveUrlToLocal(
+                  "${info.dirDes!}/favicon.ico", 'favicon.ico', info.getLocalPath());
+            }
           });
-          if (null != info.dirDes && !File(info.iconFilePath).existsSync()) {
-            saveUrlToLocal(
-                "${info.dirDes!}/favicon.ico", 'favicon.ico', info.getLocalPath());
-          }
+
         }
       },
       child: Stack(
@@ -307,7 +303,7 @@ class _TavernWidgetState extends State<TavernWidget> {
                         ],
                         position: position)
                     .then((value) {
-                  platform.invokeMethod(
+                  channel.invokeMethod(
                       'android.intent.action.VIEW', {"url": value});
                 });
               },

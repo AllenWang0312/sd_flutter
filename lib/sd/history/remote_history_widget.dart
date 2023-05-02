@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/util/file_util.dart';
+import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/AIPainterModel.dart';
 import 'package:sd/sd/bean/db/History.dart';
 
@@ -13,6 +14,7 @@ import '../../common/util/ui_util.dart';
 import '../const/config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
+import '../widget/AgeLevelCover.dart';
 
 const String TAG = "RemoteHistoryWidget";
 
@@ -26,7 +28,7 @@ class RemoteHistoryWidget extends StatefulWidget {
   State<RemoteHistoryWidget> createState() => _RemoteHistoryWidgetState();
 }
 
-class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
+class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> with AutomaticKeepAliveClientMixin{
   bool dateOrder = false;
   int pageNum = 0;
   int pageSize = 20;
@@ -87,7 +89,7 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
                               arguments: {
                                 "urls": history,
                                 "index": index,
-                                "savePath": await getImageAutoSaveAbsPath(),
+                                "savePath": getWorkspacesPath(),
                               });
                         },
                         child: Selector<AIPainterModel, int>(
@@ -95,7 +97,11 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
                               ? model.limitedUrl(item.url!)
                               : 0,
                           builder: (context, value, child) {
-                            return value >= 18
+                            return
+                              // AgeLevelCover(item);
+
+
+                              value >= 18
                                 ? ClipRect(
                                     child: ImageFiltered(
                                       imageFilter: AGE_LEVEL_BLUR,
@@ -131,6 +137,8 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
           onPressed: () {
             setState(() {
               dateOrder = !dateOrder;
+              pageNum = 0;
+              loadData(context, widget.dir, pageNum, pageSize);
             });
           }),
     ]);
@@ -178,4 +186,7 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> {
       }
     });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

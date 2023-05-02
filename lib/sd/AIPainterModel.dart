@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
+
+import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sd/common/util/file_util.dart';
+import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/UserInfo.dart';
 import 'package:sd/sd/roll/tagger_widget.dart';
 import 'package:sd/sd/tavern/bean/ImageSize.dart';
@@ -32,9 +36,8 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   Map<String, List<PromptStyle>>? publicStyles =
       Map(); // '','privateFilePath'.''
 
-
-  late Map<String,int> limit = {};
-  late Map<String,ImageSize?> imgSize = {};
+  late Map<String, int> limit = {};
+  late Map<String, ImageSize?> imgSize = {};
   List<String> checkedStyles = [];
   List<PromptStyle> _styles = [];
 
@@ -69,8 +72,6 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   bool hideNSFW = true;
 
   bool checkIdentityWhenReEnter = true;
-  AppLifecycleState? state = AppLifecycleState.resumed;
-  bool checkIdentitySuccess = true;
 
   // String selectedSDModel = "";
   String selectedSDModel = "";
@@ -103,7 +104,32 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     this.index = index;
     notifyListeners();
   }
+
   load() async {
+    // printDir(await getExternalStorageDirectory());  //only for android
+    // printDirs(await getExternalCacheDirectories()); // only for android
+    // printDirs(await getExternalStorageDirectories()); //only for android
+    // printDir(await getDownloadsDirectory()); //only for not android
+    printDir(
+        await getTemporaryDirectory()); // /data/user/0/edu.tjrac.swant.sd/cache  //AppData/tmp //应用退出后可能被删除
+    if (UniversalPlatform.isAndroid) {
+      // syncPath = (await getExternalCacheDirectories())!.first.path.toString(); //无法读写
+      syncPath = (await getExternalStorageDirectories())!.first.path.toString();
+      asyncPath = syncPath;
+    } else {
+      asyncPath = (await getApplicationSupportDirectory())
+          .path
+          .toString(); //AppData/Library/Caches //itunes 不会同步
+      syncPath = (await getApplicationDocumentsDirectory())
+          .path
+          .toString(); //AppData/Documents itunes 备份恢复包含
+    }
+    logt(TAG, asyncPath);
+    // /data/user/0/edu.tjrac.swant.sd/files
+    logt(TAG, syncPath);
+    // /data/user/0/edu.tjrac.swant.sd/app_flutter
+
+    // sp初始化前不该有太多耗时操作
     sp = await SharedPreferences.getInstance();
     sdHost = sp.getString(SP_HOST) ??
         (Platform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
@@ -125,14 +151,14 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     batchSize = sp.getInt(SP_BATCH_SIZE) ?? 1;
     autoSave = sp.getBool(SP_AUTO_SAVE) ?? true;
     hideNSFW = sp.getBool(SP_HIDE_NSFW) ?? true;
-    checkIdentityWhenReEnter = sp.getBool(SP_CHECK_IDENTITY)??true;
+    checkIdentityWhenReEnter = sp.getBool(SP_CHECK_IDENTITY) ?? true;
 
     String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
 
 // DBController 操作必须在此之后
     Workspace? ws = await DBController.instance.initDepends(workspace: name);
     if (ws == null) {
-      ws = Workspace(DEFAULT_WORKSPACE_NAME, await getImageAutoSaveAbsPath());
+      ws = Workspace(DEFAULT_WORKSPACE_NAME, getWorkspacesPath());
       int? insertResult = await DBController.instance.insertWorkSpace(ws);
       if (null != insertResult && insertResult >= 0) {
         var config = PromptStyleFileConfig(
@@ -145,13 +171,13 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
     } else {
       selectWorkspace = ws;
     }
-   await DBController.instance.queryAgeLevelRecord()?.then((value){
-     logt(TAG,"limit size${value.length}");
-     value.forEach((element) {
-        logt(TAG,"ageLevelRecord $element");
-        limit.putIfAbsent(element['sign'],()=> element['ageLevel']);
+    await DBController.instance.queryAgeLevelRecord()?.then((value) {
+      logt(TAG, "limit size${value.length}");
+      value.forEach((element) {
+        logt(TAG, "ageLevelRecord $element");
+        limit.putIfAbsent(element['sign'], () => element['ageLevel']);
       });
-      logt(TAG,"limit size${limit.keys}");
+      logt(TAG, "limit size${limit.keys}");
     });
     if (null != selectWorkspace?.id) {
       loadStylesFromDB(selectWorkspace!.id!);
@@ -159,6 +185,14 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
 
     logt(TAG, "load config${selectWorkspace?.dirPath}");
     notifyListeners();
+
+    if (UniversalPlatform.isAndroid) {
+      createDirIfNotExit(getCollectionsPath());
+      createDirIfNotExit(getStylesPath());
+      createDirIfNotExit(getWorkspacesPath());
+      await compute(moveDirToAnotherPath,
+          FromTo(SYSTEM_DOWNLOAD_APP_PATH, getCollectionsPath()));
+    }
   }
 
   loadStylesFromDB(int wsId) async {
@@ -173,10 +207,44 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
         if (null == item.configPath || item.configPath!.isEmpty) {
           // publicStyles.putIfAbsent('', () =>
           //      CsvToListConverter().convert(csv).);
-          get("$sdHttpService$GET_STYLES").then((value) {
+          get("$sdHttpService$GET_STYLES").then((value) async {
             List re = value?.data;
-            publicStyles?.putIfAbsent(
-                '远端配置', () => re.where((element) => null!=element).toList().map((e) => PromptStyle.fromJson(e)).toList());
+            List<PromptStyle> remote = re
+                // .where((element) => null != element)
+                // .toList()
+                .map((e) => PromptStyle.fromJson(e))
+                .toList();
+            logt(TAG, re.toString());
+
+            if(remote[0].isEmpty){
+              PromptStyle? head;
+              List<PromptStyle> group = [];
+              for (PromptStyle item in remote) {
+                if (item.isEmpty) {
+                  if (item != head) {
+                    if (group.length > 0) {
+                      publicStyles?.putIfAbsent(head!.name, () => group);
+                      // await File("${getStylesPath()}/${head!.name}.csv")
+                      //     .writeAsString(const ListToCsvConverter()
+                      //     .convert(PromptStyle.convertPromptStyle(group)));
+                    }
+                    group = [];
+                    head = item;
+                  }
+                } else {
+                  group.add(item);
+                }
+              }
+            }else{
+              publicStyles?.putIfAbsent('远端配置', () => remote);
+
+            }
+            await File("${getStylesPath()}/remote.csv").writeAsString(
+                const ListToCsvConverter()
+                    .convert(PromptStyle.convertPromptStyle(remote)));
+
+
+
           });
         } else {
           List<PromptStyle> styles =
@@ -209,6 +277,53 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
       // prompt+="<$prefix:$name:1.0>";
     }
     notifyListeners();
+  }
+
+  FutureOr<dynamic> moveDirToAnotherPath(FromTo fromTo) async {
+    Directory pubPics = Directory(fromTo.from);
+    Directory priPics = Directory(fromTo.to);
+
+    List<FileSystemEntity> entitys = pubPics.listSync();
+    try {
+      for (FileSystemEntity entity in entitys) {
+        if (entity is Directory) {
+          await moveChildToAnotherPath(
+              getFileName(entity.path), entity.listSync(), priPics);
+        }
+      }
+      logt(TAG, "moveDirToAnotherPath Success");
+
+      return Future.value(1);
+    } catch (e) {
+      logt(TAG, "moveDirToAnotherPath failed ${e.toString()}");
+
+      return Future.error(-1);
+    }
+  }
+
+  Future<void> moveChildToAnotherPath(String fileName,
+      List<FileSystemEntity> listSync, Directory priPics) async {
+    listSync.forEach((element) async {
+      if (element is File) {
+        String newPath =
+            "${priPics.path}/$fileName/${getFileName(element.path)}";
+        logt(TAG, "${element.path} $newPath");
+        await element.copy(newPath);
+        await element.delete();
+      }
+    });
+  }
+
+  printDir(Directory? dir) {
+    if (null != dir) {
+      logt(TAG, "download path" + dir.path.toString());
+    }
+  }
+
+  printDirs(List<Directory>? dirs) {
+    if (null != dirs) {
+      logt(TAG, "print path:" + dirs.toString());
+    }
   }
 
   static RegExp getPluginMarch(String prefix, String name) {
@@ -395,24 +510,11 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   int limitedUrl(String imgUrl) {
-   return limit[imgUrl]??0;
+    return limit[imgUrl] ?? 0;
   }
 
   void updateCheckIdentity(bool value) {
     this.checkIdentityWhenReEnter = value;
-    notifyListeners();
-  }
-
-  void updateLifecycleState(AppLifecycleState state) {
-    logt('TAG','updateLifecycle $state');
-    this.state = state;
-    notifyListeners();
-  }
-
-  void updateLocalAuth(bool bool) {
-    logt('TAG','updateLocalAuth $bool');
-
-    this.checkIdentitySuccess = bool;
     notifyListeners();
   }
 }
