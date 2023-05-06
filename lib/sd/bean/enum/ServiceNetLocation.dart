@@ -1,0 +1,3 @@
+enum ServiceNetLocation{
+  share,private,
+}

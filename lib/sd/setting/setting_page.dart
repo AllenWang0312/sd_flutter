@@ -7,15 +7,16 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/db/PromptStyleFileConfig.dart';
+import 'package:sd/sd/bean/enum/ServiceNetLocation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../common/util/file_util.dart';
+import '../../common/util/ui_util.dart';
+import '../AIPainterModel.dart';
 import '../bean/db/Workspace.dart';
 import '../const/config.dart';
 import '../db_controler.dart';
-import '../../common/util/file_util.dart';
 import '../http_service.dart';
-import '../AIPainterModel.dart';
-import '../../common/util/ui_util.dart';
 
 final String TAG = "SettingPage";
 
@@ -36,6 +37,7 @@ class _SettingPageState extends State<SettingPage> {
   TextStyle settingTitle =
       const TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
   late SharedPreferences sp;
+
   @override
   void initState() {
     createDir();
@@ -43,9 +45,14 @@ class _SettingPageState extends State<SettingPage> {
     init();
   }
 
+  ServiceNetLocation value = ServiceNetLocation.private;
+
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context);
+
+    TextEditingController shareController =
+        TextEditingController(text: sdShareHost);
     TextEditingController hostController = TextEditingController(text: sdHost);
 
     return Scaffold(
@@ -71,38 +78,18 @@ class _SettingPageState extends State<SettingPage> {
               AppLocalizations.of(context).networkAddress,
               style: settingTitle,
             ),
-            SizedBox(
-              height: 48,
-              child: Row(
-                children: [
-                  const Text("  http;//"),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.only(left: 8, right: 8),
-                      child: TextField(
-                        decoration:
-                            const InputDecoration(border: InputBorder.none),
-                        controller: hostController,
-                      ),
-                    ),
-                  ),
-                  const Text(":$SD_PORT"),
-                  TextButton(
-                      onPressed: () async {
-                        if (hostController.text != sdHost) {
-                          sp.setString(SP_HOST, hostController.text);
-                          sdHost = hostController.text;
-                          showRestartDialog(context);
-                        } else {
-                          Fluttertoast.showToast(
-                              msg: AppLocalizations.of(context)
-                                  .networkNotChanged,gravity: ToastGravity.CENTER);
-                        }
-                      },
-                      child: Text(AppLocalizations.of(context).save))
-                ],
-              ),
-            ),
+            //https://d17eae44-da1d-413c.gradio.live
+
+            RadioListTile<ServiceNetLocation>(
+                value: ServiceNetLocation.share,
+                secondary: _netWorkSetting(shareController, true),
+                groupValue: value,
+                onChanged: _switchShare),
+            RadioListTile<ServiceNetLocation>(
+                value: ServiceNetLocation.private,
+                secondary: _netWorkSetting(hostController, false),
+                groupValue: value,
+                onChanged: _switchShare),
             Selector<AIPainterModel, bool>(
               selector: (_, model) => model.autoSave,
               shouldRebuild: (pre, next) => pre != next,
@@ -119,10 +106,9 @@ class _SettingPageState extends State<SettingPage> {
                       CupertinoSwitch(
                           value: newValue,
                           onChanged: (value) {
-                            sp.setBool(SP_AUTO_SAVE,value);
+                            sp.setBool(SP_AUTO_SAVE, value);
                             Provider.of<AIPainterModel>(context, listen: false)
                                 .updateAutoSave(value);
-
                           })
                     ],
                   ),
@@ -145,7 +131,7 @@ class _SettingPageState extends State<SettingPage> {
                       CupertinoSwitch(
                           value: newValue,
                           onChanged: (value) {
-                            sp.setBool(SP_HIDE_NSFW,value);
+                            sp.setBool(SP_HIDE_NSFW, value);
                             Provider.of<AIPainterModel>(context, listen: false)
                                 .updateHideNSFW(value);
                           })
@@ -170,7 +156,7 @@ class _SettingPageState extends State<SettingPage> {
                       CupertinoSwitch(
                           value: newValue,
                           onChanged: (value) {
-                            sp.setBool(SP_CHECK_IDENTITY,value);
+                            sp.setBool(SP_CHECK_IDENTITY, value);
                             Provider.of<AIPainterModel>(context, listen: false)
                                 .updateCheckIdentity(value);
                           })
@@ -327,7 +313,7 @@ class _SettingPageState extends State<SettingPage> {
   Future<void> createPromptStyle(BuildContext context) async {
     var applicationPath = await getStylesPath();
 
-    if(context.mounted){
+    if (context.mounted) {
       File? file = await Navigator.pushNamed(context, ROUTE_CREATE_STYLE,
           arguments: {
             "autoSaveAbsPath": applicationPath,
@@ -339,7 +325,6 @@ class _SettingPageState extends State<SettingPage> {
         });
       }
     }
-
   }
 
   Widget getPublicStyles(BuildContext context) {
@@ -394,7 +379,6 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Future<List<FileSystemEntity>?> createDir() async {
-
     var publicStylePath = await getStylesPath();
     if (createDirIfNotExit(publicStylePath)) {
       return Directory(publicStylePath).listSync();
@@ -408,5 +392,56 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<void> init() async {
     sp = await SharedPreferences.getInstance();
+  }
+
+  Widget _netWorkSetting(
+      TextEditingController hostController, bool share) {
+    String target = share?sdShareHost:sdHost;
+    return SizedBox(
+      height: 48,
+      child: Row(
+        children: [
+          const Text("  http;//"),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.only(left: 8, right: 8),
+              child: TextField(
+                decoration: const InputDecoration(border: InputBorder.none),
+                controller: hostController,
+              ),
+            ),
+          ),
+          Text(share ? ".gradio.live" : ":$SD_PORT"),
+          TextButton(
+              onPressed: () async {
+                if (hostController.text != target) {
+                  if(share){
+                    sp.setString(SP_SHARE_HOST, hostController.text);
+                    sp.setBool(SP_SHARE, true);
+                    sdShareHost = hostController.text;
+                  }else{
+                    sp.setString(SP_HOST, hostController.text);
+                    sp.setBool(SP_SHARE, false);
+                    sdHost = hostController.text;
+                  }
+                  showRestartDialog(context);
+                } else {
+                  Fluttertoast.showToast(
+                      msg: AppLocalizations.of(context).networkNotChanged,
+                      gravity: ToastGravity.CENTER);
+                }
+              },
+              child: Text(AppLocalizations.of(context).save))
+        ],
+      ),
+    );
+  }
+
+  void _switchShare(ServiceNetLocation? value) {
+    if(value == ServiceNetLocation.share){
+      sp.setBool(SP_SHARE, true);
+    }else{
+      sp.setBool(SP_SHARE, false);
+    }
   }
 }

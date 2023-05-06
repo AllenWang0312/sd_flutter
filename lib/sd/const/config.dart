@@ -28,7 +28,10 @@ const bool DEFAULT_HIRES_FIX = false;
 const int WS_COUNT = 3;
 
 // sharedperference
+const String SP_SHARE_HOST = 'share_host';
 const String SP_HOST = 'host';
+const String SP_SHARE = 'share';
+
 const String SP_CURRENT_WS = 'current_ws';
 const String SP_WIDTH = "width";
 const String SP_HEIGHT = "height";
@@ -76,14 +79,16 @@ placeHolderUrl({int width = 512, int height = 720}) {
   String remoteTXT2IMGDir = '';
   String remoteIMG2IMGDir= '';
   String remoteMoreDir= '';
+bool sdShare = false;
+String sdShareHost = '';
 
-var sdHost = UniversalPlatform.isWeb
+String sdHost = UniversalPlatform.isWeb
     ? SD_WIN_HOST
     : Platform.isWindows
         ? SD_WIN_HOST
         : SD_CLINET_HOST;
 
-get sdHttpService => "http://$sdHost:$SD_PORT";
+String sdHttpService = '';
 
 const TXT_2_IMG = "/sdapi/v1/txt2img";
 

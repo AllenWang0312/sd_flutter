@@ -131,8 +131,14 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
 
     // sp初始化前不该有太多耗时操作
     sp = await SharedPreferences.getInstance();
+    sdShareHost = sp.getString(SP_SHARE_HOST) ??'d17eae44-da1d-413c';
     sdHost = sp.getString(SP_HOST) ??
         (Platform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
+    if (sdShare) {
+      sdHttpService = "http://$sdHost.gradio.live";
+    } else {
+      sdHttpService = "http://$sdHost:$SD_PORT";
+    }
     if (!UniversalPlatform.isIOS) {
       splashImg = 'http://$sdHost:$SD_PORT/favicon.ico';
     } else {
@@ -216,7 +222,7 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
                 .toList();
             logt(TAG, re.toString());
 
-            if(remote[0].isEmpty){
+            if (remote[0].isEmpty) {
               PromptStyle? head;
               List<PromptStyle> group = [];
               for (PromptStyle item in remote) {
@@ -235,16 +241,12 @@ class AIPainterModel with ChangeNotifier, DiagnosticableTreeMixin {
                   group.add(item);
                 }
               }
-            }else{
+            } else {
               publicStyles?.putIfAbsent('远端配置', () => remote);
-
             }
             await File("${getStylesPath()}/remote.csv").writeAsString(
                 const ListToCsvConverter()
                     .convert(PromptStyle.convertPromptStyle(remote)));
-
-
-
           });
         } else {
           List<PromptStyle> styles =

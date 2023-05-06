@@ -143,10 +143,13 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
           TextButton(onPressed: () async {
             var width = MediaQuery.of(context).size.width;
             var height = MediaQuery.of(context).size.height;
-            await Wallpaper.homeScreen(
-                options: RequestSizeOptions.RESIZE_FIT,
-                width: width,
-                height: height);
+            await Wallpaper.lockScreen();
+            // await Wallpaper.homeScreen(
+            //     options: RequestSizeOptions.RESIZE_FIT,
+            //     width: width,
+            //     height: height,
+            //   // location: DownloadLocation()
+            //   );
             print("Task Done");
 
           }, child: Text('设为壁纸'))
