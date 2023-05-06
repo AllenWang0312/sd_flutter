@@ -85,6 +85,15 @@ class ConfigModel extends DBModel{
     sp = await SharedPreferences.getInstance();
     sdHost = sp.getString(SP_HOST) ??
         (UniversalPlatform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
+    sdShareHost = sp.getString(SP_SHARE_HOST) ??'d17eae44-da1d-413c';
+    sdHost = sp.getString(SP_HOST) ??
+        (Platform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
+    if (sdShare) {
+      sdHttpService = "http://$sdHost.gradio.live";
+    } else {
+      sdHttpService = "http://$sdHost:$SD_PORT";
+    }
+    
     if (!UniversalPlatform.isIOS) {
       splashImg = 'http://$sdHost:$SD_PORT/favicon.ico';
     } else {
