@@ -7,6 +7,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 
+import '../../common/util/file_util.dart';
+
 class StyleConfigPage extends StatelessWidget{
 
   late String fileName;
@@ -35,13 +37,13 @@ class StyleConfigPage extends StatelessWidget{
                 scrollDirection: Axis.horizontal,
                 child: Table(
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  columnWidths: {
+                  columnWidths: const {
                     0:FixedColumnWidth(80),
                     1:FixedColumnWidth(50),
                     2:FixedColumnWidth(200),
                     3:FixedColumnWidth(200),
                   },
-                  border: TableBorder.all(color: Colors.red, width: 1),
+                  border: TableBorder.all(color: Colors.black12, width: 1),
                   children: snapshot.data!.map((e) => TableRow(
                     children: [
                       TableCell(child: InkWell(onTap:(){

@@ -109,24 +109,27 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget>
                             // });
                           }
                         },
-                        child: Selector<AIPainterModel, int>(
-                          selector: (_, model) => provider.hideNSFW
-                              ? model.limitedUrl(item.url!)
-                              : 0,
-                          builder: (context, value, child) {
-                            return value >= 18
-                                ? ClipRect(
-                                    child: ImageFiltered(
-                                      imageFilter: AGE_LEVEL_BLUR,
-                                      child: CachedNetworkImage(
-                                        imageUrl: item.url!,
+                        child: Hero(
+                          tag: item.url!,
+                          child: Selector<AIPainterModel, int>(
+                            selector: (_, model) => provider.hideNSFW
+                                ? model.limitedUrl(item.url!)
+                                : 0,
+                            builder: (context, value, child) {
+                              return value >= 18
+                                  ? ClipRect(
+                                      child: ImageFiltered(
+                                        imageFilter: AGE_LEVEL_BLUR,
+                                        child: CachedNetworkImage(
+                                          imageUrl: item.url!,
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                : CachedNetworkImage(
-                                    imageUrl: item.url!,
-                                  );
-                          },
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: item.url!,
+                                    );
+                            },
+                          ),
                         ))
                     : Row(
                         children: [

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:csv/csv.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
+import '../../sd/bean/PromptStyle.dart';
 import '../../sd/http_service.dart';
 
 const TAG = "file util";
@@ -23,6 +25,24 @@ const EXIF_IMAGE_EXIF_OFFSET_KEY = 'Image ExifOffset';
 const EXIF_IMAGE_KEYWORDS_KEY = 'Image XPKeywords';
 const EXIF_IMAGE_PADDING_KEY = 'Image Padding';
 const EXIF_EXIF_PADDING_KEY = 'EXIF Padding';
+
+
+Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
+  String myData = await File(csvFilePath).readAsString();
+  List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
+  List<dynamic> colums = csvTable.removeAt(0);
+  int nameIndex = colums.indexOf(PromptStyle.NAME);
+  int typeIndex = colums.indexOf(PromptStyle.TYPE);
+  int promptIndex = colums.indexOf(PromptStyle.PROMPT);
+  int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
+  return csvTable
+      .map((e) => PromptStyle(
+      name: e[nameIndex],
+      type: e[typeIndex],
+      prompt: e[promptIndex],
+      negativePrompt: e[negPromptIndex]))
+      .toList();
+}
 
 String? getPNGExtData(Uint8List bytes) {
   var chunks = pngExtract.extractChunks(bytes);

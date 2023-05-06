@@ -9,6 +9,7 @@ import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/db_controler.dart';
+import '../http_service.dart';
 import '../widget/PageListViewer.dart';
 
 
@@ -116,6 +117,7 @@ class _HistoryWidgetState extends State<HistoryWidget> with AutomaticKeepAliveCl
         ?.then((value) {
       // setState(() {
       var list = value.map((e) => History.fromJson(e)).toList();
+      // logt(TAG,list.toString());
       if (filterNotExist) {
         list.removeWhere((element) =>
         element.localPath == null || !File(element.localPath!).existsSync());

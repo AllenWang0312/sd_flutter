@@ -54,18 +54,17 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
       selectWorkspace = ws;
     }
     await DBController.instance.queryAgeLevelRecord()?.then((value) {
-      logt(TAG, "limit size${value.length}");
+      // logt(TAG, "limit size${value.length}");
       value.forEach((element) {
-        logt(TAG, "ageLevelRecord $element");
+        // logt(TAG, "ageLevelRecord $element");
         limit.putIfAbsent(element['sign'], () => element['ageLevel']);
       });
-      logt(TAG, "limit size${limit.keys}");
+      // logt(TAG, "limit size${limit.keys}");
     });
     if (null != selectWorkspace?.id) {
       await loadStylesFromDB(selectWorkspace!.id!);
     }
-
-    logt(TAG, "load config${selectWorkspace?.absPath}");
+    // logt(TAG, "load config${selectWorkspace?.absPath}");
   }
 
   loadStylesFromDB(int wsId) async {
@@ -84,7 +83,7 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
             List<PromptStyle> remote = re
                 .map((e) => PromptStyle.fromJson(e))
                 .toList();
-            logt(TAG, re.toString());
+            // logt(TAG, re.toString());
 
             if (remote[0].isEmpty) {
               PromptStyle? head;

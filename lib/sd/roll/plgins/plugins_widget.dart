@@ -15,12 +15,9 @@ class PluginsWidget extends StatelessWidget {
     // Tab(text: "Wce"),
   ];
   static const List<Widget> children = [
-   PluginWidget( TAG_PREFIX_LORA,TAG_MODELTYPE_LORA, GET_LORA_NAMES),
-    PluginWidget( TAG_PREFIX_EMB,TAG_MODELTYPE_EMB,GET_EMB_NAMES),
-    PluginWidget( TAG_PREFIX_HPE,TAG_MODELTYPE_HPE, GET_HYP_NAMES),
-    // TagWidget(GET_WCET_NAMES),
-    // TagWidget(GET_WC_NAMES),
-    // TagWidget(GET_WCE_NAMES),
+    PluginWidget(TAG_PREFIX_LORA, TAG_MODELTYPE_LORA, GET_LORA_NAMES),
+    PluginWidget(TAG_PREFIX_EMB, TAG_MODELTYPE_EMB, GET_EMB_NAMES),
+    PluginWidget(TAG_PREFIX_HPE, TAG_MODELTYPE_HPE, GET_HYP_NAMES),
   ];
 
   @override
@@ -30,8 +27,8 @@ class PluginsWidget extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: true,
-          title: TabBar(
-            indicator: null,
+          centerTitle: true,
+          title: const TabBar(
             tabs: tabs,
             labelStyle: TextStyle(
               fontSize: 16,
@@ -39,7 +36,7 @@ class PluginsWidget extends StatelessWidget {
             dividerColor: Colors.transparent,
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
             // cacheExtent:3.0,
             children: children),
       ),

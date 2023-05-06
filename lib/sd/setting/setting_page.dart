@@ -45,7 +45,7 @@ class _SettingPageState extends State<SettingPage> {
     init();
   }
 
-  ServiceNetLocation value = ServiceNetLocation.private;
+  // ServiceNetLocation value = ServiceNetLocation.private;
 
   @override
   Widget build(BuildContext context) {
@@ -79,17 +79,58 @@ class _SettingPageState extends State<SettingPage> {
               style: settingTitle,
             ),
             //https://d17eae44-da1d-413c.gradio.live
-
-            Radio<ServiceNetLocation>(
-                value: ServiceNetLocation.share,
-                groupValue: value,
-                onChanged: _switchShare),
-            _netWorkSetting(shareController, true),
-            Radio<ServiceNetLocation>(
-                value: ServiceNetLocation.private,
-                groupValue: value,
-                onChanged: _switchShare),
-            _netWorkSetting(hostController, false),
+            Row(
+              children: [
+                Selector<AIPainterModel, bool>(
+                    selector: (_, model) => model.share,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (_, newValue, child) {
+                      return Column(
+                        children: [
+                          Radio<bool>(
+                              value: true,
+                              toggleable: true,
+                              groupValue: newValue,
+                              onChanged: _switchShare),
+                          Radio<bool>(
+                              value: false,
+                              toggleable: true,
+                              groupValue: newValue,
+                              onChanged: _switchShare),
+                        ],
+                      );
+                    }),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _netWorkSetting(shareController, true),
+                      _netWorkSetting(hostController, false),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            Selector<AIPainterModel, int>(
+              selector: (_, model) => model.generateType,
+              builder: (_, newValue, child) {
+                return Column(
+                  children: [
+                    RadioListTile<int>(
+                        title: Text('api 优先(返回原始数据,可以保存图片在端侧)'),
+                        value: 0,
+                        toggleable: true,
+                        groupValue: newValue,
+                        onChanged: _switchGenerateType),
+                    RadioListTile<int>(
+                        title: Text('predict 优先(返回远端文件路径,设置plugin封面依赖此方法)'),
+                        value: 1,
+                        toggleable: true,
+                        groupValue: newValue,
+                        onChanged: _switchGenerateType),
+                  ],
+                );
+              },
+            ),
             Selector<AIPainterModel, bool>(
               selector: (_, model) => model.autoSave,
               shouldRebuild: (pre, next) => pre != next,
@@ -185,10 +226,12 @@ class _SettingPageState extends State<SettingPage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List datas = snapshot.data as List;
-                    logt(TAG,'ws count ${datas.length}');
+                    logt(TAG, 'ws count ${datas.length}');
                     if (datas.isNotEmpty) {
-                      workspaces =
-                          datas.map((e) => Workspace.fromJson(e,asyncPath+WORKSPACES)).toList();
+                      workspaces = datas
+                          .map((e) =>
+                              Workspace.fromJson(e, asyncPath + WORKSPACES))
+                          .toList();
 
                       return Column(
                         children: workspaces!
@@ -251,7 +294,9 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<void> loadWorkSpacesFromDB() async {
     List? result = await DBController.instance.queryWorkspaces();
-    workspaces = result?.map((e) => Workspace.fromJson(e,asyncPath+WORKSPACES)).toList();
+    workspaces = result
+        ?.map((e) => Workspace.fromJson(e, asyncPath + WORKSPACES))
+        .toList();
   }
 
   Future<void> editOrCreateWorkspace(BuildContext context,
@@ -276,7 +321,8 @@ class _SettingPageState extends State<SettingPage> {
 
         var map = await DBController.instance.queryStyles(workspace.id!);
         wsStyleConfigs = map!
-            .map((e) => PromptStyleFileConfig.fromJson(e,getStylesPath(), state: 1))
+            .map((e) =>
+                PromptStyleFileConfig.fromJson(e, getStylesPath(), state: 1))
             .toList();
       }
       logt(TAG, wsStyleConfigs.toString() ?? "null");
@@ -395,14 +441,13 @@ class _SettingPageState extends State<SettingPage> {
     sp = await SharedPreferences.getInstance();
   }
 
-  Widget _netWorkSetting(
-      TextEditingController hostController, bool share) {
-    String target = share?sdShareHost:sdHost;
+  Widget _netWorkSetting(TextEditingController hostController, bool share) {
+    String target = share ? sdShareHost : sdHost;
     return SizedBox(
       height: 48,
       child: Row(
         children: [
-          const Text("  http://"),
+          Text("  ${share ? 'https' : 'http'}://"),
           Expanded(
             child: Container(
               padding: const EdgeInsets.only(left: 8, right: 8),
@@ -416,11 +461,11 @@ class _SettingPageState extends State<SettingPage> {
           TextButton(
               onPressed: () async {
                 if (hostController.text != target) {
-                  if(share){
+                  if (share) {
                     sp.setString(SP_SHARE_HOST, hostController.text);
                     sp.setBool(SP_SHARE, true);
                     sdShareHost = hostController.text;
-                  }else{
+                  } else {
                     sp.setString(SP_HOST, hostController.text);
                     sp.setBool(SP_SHARE, false);
                     sdHost = hostController.text;
@@ -438,11 +483,19 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-  void _switchShare(ServiceNetLocation? value) {
-    if(value == ServiceNetLocation.share){
-      sp.setBool(SP_SHARE, true);
-    }else{
-      sp.setBool(SP_SHARE, false);
+  void _switchShare(bool? share) {
+    logt(TAG, share?.toString() ?? 'null');
+    if (null != share) {
+      provider.updateShare(share);
+      sp.setBool(SP_SHARE, share);
+    }
+  }
+
+  void _switchGenerateType(int? type) {
+    logt(TAG, type?.toString() ?? 'null');
+    if (null != type) {
+      provider.updateGenerateType(type);
+      sp.setInt(SP_GENERATE_TYPE, type);
     }
   }
 }

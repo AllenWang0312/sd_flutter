@@ -87,6 +87,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   int? pageSize;
   int? pageNum;
   int? index;
+  String? title;
 
   // late Function? loadMore;
   List<T>? urls;
@@ -104,7 +105,8 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   ImagesViewer(
       {this.urls,
       this.index,
-        this.fnIndex = 0,
+      this.fnIndex = 0,
+      this.title,
       // this.loadMore,
       List<Uint8List>? datas,
       this.relativeSaveDirPath,
@@ -147,177 +149,36 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
       onPageChange(index ?? 0);
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.pop(context, removedItems ?? images.index);
-          },
-        ),
-        backgroundColor: Colors.transparent,
-        actions: [
-          Selector<ImagesModel, String?>(
-            selector: (_, model) => images.exts[model.index]?.prompts,
-            builder: (context, value, child) {
-              return Offstage(
-                offstage: value == null || value.isEmpty,
-                child: IconButton(
-                  icon: const Icon(Icons.info_outline),
-                  onPressed: () => showPromptDialog(provider, context, value!),
-                ),
-              );
-            },
-          ),
-          Selector<ImagesModel, bool>(
-            selector: (_, model) => images.exts[model.index]!.favourite,
-            builder: (context, value, child) {
-              return Offstage(
-                  offstage: true == isFavourite,
-                  child: IconButton(
-                    icon: Icon(value
-                        ? Icons.favorite_outlined
-                        : Icons.favorite_border),
-                    onPressed: () async {
-                      if (value) {
-                        Fluttertoast.showToast(msg: '暂不支持取消');
-                      } else {
-                        int? page = controller.page?.toInt();
-                        if (null != page) {
-                          String? remoteFilePath =
-                              images.exts[page]?.remoteFilePath;
-                          if (null != remoteFilePath) {
-                            await post("$sdHttpService$RUN_PREDICT",
-                                    formData: addToFavourite(fnIndex-10,remoteFilePath))
-                                .then((value) {
-                              images.updateFavourete(page, true);
-                            });
-                          }
-                        }
-                      }
-                    },
-                  ));
-            },
-          ),
-          Offstage(
-            offstage: relativeSaveDirPath == null,
-            child: IconButton(
-              onPressed: () async {
-                if (await checkStoragePermission()) {
-                  if (datas != null) {
-                    dynamic result = await saveBytesToLocal(
-                        datas[controller.page!.toInt()],
-                        "${DateTime.now()}.png",
-                        asyncPath + relativeSaveDirPath!);
-                    Fluttertoast.showToast(msg: result.toString());
-                  } else {
-                    dynamic result = await saveUrlToLocal(
-                        urls![controller.page!.toInt()].getFileLocation(),
-                        "${DateTime.now()}.png",
-                        asyncPath + relativeSaveDirPath!);
-                    Fluttertoast.showToast(msg: result.toString());
-                  }
-                } else {
-                  Fluttertoast.showToast(
-                      msg: "请允许应用使用存储权限", gravity: ToastGravity.CENTER);
-                }
-              },
-              icon: const Icon(Icons.download),
-            ),
-          ),
-          Offstage(
-            offstage: !scanServiceAvailable,
-            child: IconButton(
-                onPressed: () async {
-                  int? page = controller.page?.toInt();
-                  if (null != page) {
-                    Uint8List bytes = await getBytes(page);
-                    await syncTagger(bytes, provider.selectedInterrogator, 30,
-                        (tagger) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text("Tagger"),
-                              content: SelectableText(tagger),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tagger));
-                                    },
-                                    child: const Text("复制")),
-                                // TextButton(
-                                //     onPressed: () {
-                                //       Clipboard.setData(
-                                //           ClipboardData(text: tagger));
-                                //     },
-                                //     child: Text("复制")),
-                              ],
-                            );
-                          });
-                    });
-                  }
-                  // provider.
-                },
-                icon: const Icon(Icons.settings_overscan)),
-          ),
-          TextButton(onPressed: () async {
-            var width = MediaQuery.of(context).size.width;
-            var height = MediaQuery.of(context).size.height;
-            // await Wallpaper.homeScreen(
-            //     options: RequestSizeOptions.RESIZE_FIT,
-            //     width: width,
-            //     height: height,
-            //   // location: DownloadLocation()
-            //   );
-            print("Task Done");
-
-          }, child: Text('设为壁纸'))
-        ],
-      ),
-      body: Column(
+    return SafeArea(
+      child: Stack(
         children: [
-          Expanded(
-            child: Center(
-              child: null == urls
-                  ? PageView.builder(
-                      controller: controller,
-                      itemCount: datas.length,
-                      itemBuilder: (context, index) {
-                        return interactiveView(Image.memory(datas[index]!));
-                      })
-                  : Selector<ImagesModel, int>(
-                      selector: (_, model) => model.exts.length,
-                      builder: (context, newValue, child) {
-                        logt(TAG, "rebuild pageview");
-                        return PageView.builder(
-                            onPageChanged: onPageChange,
-                            controller: controller,
-                            itemCount: newValue,
-                            itemBuilder: (context, index) {
-                              T? data = urls?[index];
-                              // bool isRemote =
-                              //     data.getFileLocation().startsWith("http");
-                              if (null != data) {
-                                return urlBuilder(context, index, data);
-                              }
-                            });
-                      },
-                    ),
-            ),
-          ),
-          TextButton(
-              onPressed: () async {
-                var width = MediaQuery.of(context).size.width;
-                var height = MediaQuery.of(context).size.height;
-//             await Wallpaper.homeScreen(
-//                 options: RequestSizeOptions.RESIZE_FIT,
-//                 width: width,
-//                 height: height);
-//             print("Task Done");
-              },
-              child: Text('设为壁纸'))
+          _pageView(controller),
+
+          _appBar(context, controller),
+          // Positioned(
+          //   left: 0,
+          //   right: 0,
+          //   bottom: 0,
+          //   child: Selector<ImagesModel, int>(
+          //     selector: (_, model) => model.index,
+          //     builder: (context, value, child) {
+          //       return Text('${(value + 1).toString()}/${datas.length}');
+          //     },
+          //   )
+
+          //               TextButton(
+//                   onPressed: () async {
+//                     var width = MediaQuery.of(context).size.width;
+//                     var height = MediaQuery.of(context).size.height;
+// //             await Wallpaper.homeScreen(
+// //                 options: RequestSizeOptions.RESIZE_FIT,
+// //                 width: width,
+// //                 height: height);
+// //             print("Task Done");
+//                   },
+//                   child: Text('设为壁纸'))
+
+          // ),
         ],
       ),
     );
@@ -326,23 +187,21 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   onPageChange(int page) async {
     UniqueSign item = urls![page];
 
-    if (null!=type&&item.getFileLocation().startsWith("http")) {
+    if (null != type && item.getFileLocation().startsWith("http")) {
       images.updateIndex(page);
       String? currentRemotePath = images.exts[page]?.remoteFilePath;
       if (null == currentRemotePath) {
         await post("$sdHttpService$RUN_PREDICT",
-            formData: getRemoteHistoryInfo(
-              fnIndex+3,
-              page % 36,
-              page ~/ 36 + 1,type!
-            )).then((value) {
+                formData: getRemoteHistoryInfo(
+                    fnIndex + 3, page % 36, page ~/ 36 + 1, type!))
+            .then((value) {
           String currentRemoteFilePath = value!.data?['data'][0];
           images.updateRemoteFilePath(page, currentRemoteFilePath);
           // images.currentRemoteFilePath(value!.data?['data'][0]);
           logt(TAG, "get Remote Info $currentRemoteFilePath");
         });
       }
-    } else if(null!=urls){
+    } else if (null != urls) {
       images.updateCurrentDes(page, urls![page].getPrompts());
     }
   }
@@ -426,8 +285,12 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
             } else if (value == -100) {
               // if (images.remoteFilePath[index] != null) {
               post("$sdHttpService$RUN_PREDICT",
-                      formData: delateFile(fnIndex-12,images.exts[index]?.remoteFilePath,
-                          index ~/ 36 + 1, index % 36, 36))
+                      formData: delateFile(
+                          fnIndex - 12,
+                          images.exts[index]?.remoteFilePath,
+                          index ~/ 36 + 1,
+                          index % 36,
+                          36))
                   .then((value) {
                 logt(TAG, "delete file$value");
 
@@ -448,9 +311,172 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
           });
         }
       },
-      child: interactiveView(dataType == ImagesType.urls
-          ? CachedNetworkImage(imageUrl: (data.getFileLocation()))
-          : Image.memory(datas[index]!)),
+      child: _heroWapper(data.getFileLocation(), index),
     );
+  }
+
+  Widget _appBar(BuildContext context, PageController controller) {
+    return SizedBox(
+      height: 48,
+      child: AppBar(
+        centerTitle: true,
+        title: Text('${title ?? ''}'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            Navigator.pop(context, removedItems ?? images.index);
+          },
+        ),
+        backgroundColor: Colors.transparent,
+        actions: [
+          Selector<ImagesModel, String?>(
+            selector: (_, model) => images.exts[model.index]?.prompts,
+            builder: (context, value, child) {
+              return Offstage(
+                offstage: value == null || value.isEmpty,
+                child: IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () => showPromptDialog(provider, context, value!),
+                ),
+              );
+            },
+          ),
+          Selector<ImagesModel, bool>(
+            selector: (_, model) => images.exts[model.index]!.favourite,
+            builder: (context, value, child) {
+              return Offstage(
+                  offstage: true == isFavourite,
+                  child: IconButton(
+                    icon: Icon(value
+                        ? Icons.favorite_outlined
+                        : Icons.favorite_border),
+                    onPressed: () async {
+                      if (value) {
+                        Fluttertoast.showToast(msg: '暂不支持取消');
+                      } else {
+                        int? page = controller.page?.toInt();
+                        if (null != page) {
+                          String? remoteFilePath =
+                              images.exts[page]?.remoteFilePath;
+                          if (null != remoteFilePath) {
+                            await post("$sdHttpService$RUN_PREDICT",
+                                    formData: addToFavourite(
+                                        fnIndex - 10, remoteFilePath))
+                                .then((value) {
+                              images.updateFavourete(page, true);
+                            });
+                          }
+                        }
+                      }
+                    },
+                  ));
+            },
+          ),
+          Offstage(
+            offstage: relativeSaveDirPath == null,
+            child: IconButton(
+              onPressed: () async {
+                if (await checkStoragePermission()) {
+                  if (datas != null) {
+                    dynamic result = await saveBytesToLocal(
+                        datas[controller.page!.toInt()],
+                        "${DateTime.now()}.png",
+                        asyncPath + relativeSaveDirPath!);
+                    Fluttertoast.showToast(msg: result.toString());
+                  } else {
+                    dynamic result = await saveUrlToLocal(
+                        urls![controller.page!.toInt()].getFileLocation(),
+                        "${DateTime.now()}.png",
+                        asyncPath + relativeSaveDirPath!);
+                    Fluttertoast.showToast(msg: result.toString());
+                  }
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "请允许应用使用存储权限", gravity: ToastGravity.CENTER);
+                }
+              },
+              icon: const Icon(Icons.download),
+            ),
+          ),
+          Offstage(
+            offstage: !scanServiceAvailable,
+            child: IconButton(
+                onPressed: () async {
+                  int? page = controller.page?.toInt();
+                  if (null != page) {
+                    Uint8List bytes = await getBytes(page);
+                    await syncTagger(bytes, provider.selectedInterrogator, 30,
+                        (tagger) {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Tagger"),
+                              content: SelectableText(tagger),
+                              actions: [
+                                TextButton(
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                          ClipboardData(text: tagger));
+                                    },
+                                    child: const Text("复制")),
+                                // TextButton(
+                                //     onPressed: () {
+                                //       Clipboard.setData(
+                                //           ClipboardData(text: tagger));
+                                //     },
+                                //     child: Text("复制")),
+                              ],
+                            );
+                          });
+                    });
+                  }
+                  // provider.
+                },
+                icon: const Icon(Icons.settings_overscan)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pageView(PageController controller) {
+    return null == urls
+        ? PageView.builder(
+            controller: controller,
+            itemCount: datas.length,
+            itemBuilder: (context, index) {
+              return interactiveView(Image.memory(datas[index]!));
+            })
+        : Selector<ImagesModel, int>(
+            selector: (_, model) => model.exts.length,
+            builder: (context, newValue, child) {
+              logt(TAG, "rebuild pageview");
+              return PageView.builder(
+                  onPageChanged: onPageChange,
+                  controller: controller,
+                  itemCount: newValue,
+                  itemBuilder: (context, index) {
+                    T? data = urls?[index];
+                    // bool isRemote =
+                    //     data.getFileLocation().startsWith("http");
+                    if (null != data) {
+                      return urlBuilder(context, index, data);
+                    }
+                  });
+            },
+          );
+  }
+
+  bool get isRemote {
+    return dataType == ImagesType.urls;
+  }
+
+  _heroWapper(String fileLocation, int index) {
+    return Hero(
+        tag: isRemote ? fileLocation : index,
+        child: interactiveView(isRemote
+            ? CachedNetworkImage(imageUrl: fileLocation)
+            : Image.memory(datas[index]!)));
   }
 }

@@ -119,12 +119,6 @@ class _RollWidgetState extends State<RollWidget> {
   @override
   void dispose() {}
 
-  getPrompt(String prompt) =>
-      appendCommaIfNotExist(prompt) + promptStylePicker.getStylePrompt();
-
-  getNegtivePrompt(String negPrompt) =>
-      appendCommaIfNotExist(negPrompt) + promptStylePicker.getStyleNegPrompt();
-
   txt2img(
       BuildContext context, RollModel model, AIPainterModel provider) async {
     if (model.isGenerating == REQUESTING) {
@@ -135,12 +129,7 @@ class _RollWidgetState extends State<RollWidget> {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
         model.isBusy(REQUESTING);
-        String prompt = getPrompt(provider.config.prompt);
-        String negativePrompt =
-            getNegtivePrompt(provider.config.negativePrompt);
         var from = {
-          "prompt": prompt + provider.getCheckedPluginsString(),
-          "negative_prompt": negativePrompt,
           "steps": provider.config.steps,
           "denoising_strength": 0.3,
           "firstphase_width": provider.config.width,
@@ -164,7 +153,15 @@ class _RollWidgetState extends State<RollWidget> {
           "seed": provider.config.seed,
         };
         // if (true) {
-        if (provider.batchCount == 1) {
+        if (provider.generateType == 0 && provider.batchCount == 1) {
+          String prompt = appendCommaIfNotExist(provider.config.prompt) +
+              promptStylePicker.getStylePrompt();
+          String negativePrompt =
+              appendCommaIfNotExist(provider.config.negativePrompt) +
+                  promptStylePicker.getStyleNegPrompt();
+          from['prompt'] = prompt + provider.getCheckedPluginsString();
+          from['negative_prompt'] = negativePrompt;
+
           post("$sdHttpService$TXT_2_IMG", formData: from,
               exceptionCallback: (e) {
             model.isBusy(ERROR);
@@ -173,53 +170,67 @@ class _RollWidgetState extends State<RollWidget> {
                 toastLength: Toast.LENGTH_LONG,
                 gravity: ToastGravity.CENTER);
           }).then((value) async {
-            model.isBusy(INIT);
-            provider.save();
-            // saveBytes(context,value?.data["images"],provider.batchSize);
-            List<Uint8List> datas = [];
-            for (String item in value?.data["images"]) {
-              Uint8List? bytes = base64Decode(item);
-              datas.add(bytes);
-              // prefs.then((sp) => {});
-              if (provider.autoSave) {
-                String now = DateTime.now().toString();
-                logt(TAG, now.substring(0, 10));
-                String fileName = "${dbString(now)}.png";
-                // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
-                String result = await saveBytesToLocal(
-                    bytes, fileName, provider.selectWorkspace!.absPath);
-                int? insert = await DBController.instance.insertHistory(
-                  History(
-                      prompt: prompt,
-                      negativePrompt: negativePrompt,
-                      width: provider.config.width,
-                      height: provider.config.height,
-                      imgPath: result,
-                      date: now.substring(0, 10),
-                      time: now.substring(10),
-                      workspace: provider.selectWorkspace?.name),
-                );
+            if (value != null) {
+              if (provider.batchCount == 1) {
+                provider.lastGenerate = value.data['data'][0][0]['name'];
+                Fluttertoast.showToast(
+                    msg: '生成成功:远端地址 ${provider.lastGenerate}');
+              } else {
+                // saveBytes(context,value?.data["images"],provider.batchSize);
+                List<Uint8List> datas = [];
+                for (String item in value.data["images"]) {
+                  Uint8List? bytes = base64Decode(item);
+                  datas.add(bytes);
+                  // prefs.then((sp) => {});
+                  if (provider.autoSave) {
+                    String now = DateTime.now().toString();
+                    logt(TAG, now.substring(0, 10));
+                    String fileName = "${dbString(now)}.png";
+                    // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
+                    String result = await saveBytesToLocal(
+                        bytes, fileName, provider.selectWorkspace!.absPath);
+                    int? insert = await DBController.instance.insertHistory(
+                      History(
+                          prompt: prompt,
+                          negativePrompt: negativePrompt,
+                          width: provider.config.width,
+                          height: provider.config.height,
+                          imgPath: result,
+                          date: now.substring(0, 10),
+                          time: now.substring(10),
+                          workspace: provider.selectWorkspace?.name),
+                    );
+                  }
+                }
+
+                if (!provider.autoSave) {
+                  Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
+                    "datas": datas,
+                    "savePath": provider.selectWorkspace!.dirPath,
+                    "scanAvailable": provider.sdServiceAvailable
+                  });
+                }
               }
-            }
-            if (!provider.autoSave) {
-              Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-                "datas": datas,
-                "savePath": provider.selectWorkspace!.dirPath,
-                "scanAvailable": provider.sdServiceAvailable
-              });
+              model.isBusy(INIT);
+              provider.save();
             }
           });
         } else {
+          from['styles'] = provider.checkedStyles;
+
           post("$sdHttpService$RUN_PREDICT",
               formData: multiGenerateBody(
                   from, provider.batchCount, provider.batchSize),
               exceptionCallback: (e) {
+            logt(TAG, e.toString());
             model.isBusy(ERROR);
             Fluttertoast.showToast(
                 msg: e.toString(),
                 toastLength: Toast.LENGTH_LONG,
                 gravity: ToastGravity.CENTER);
           }).then((value) async {
+            logt(TAG, value?.data?.toString() ?? "null");
+
             List fileProt = value?.data['data'][0];
             if (provider.autoSave) {
               for (int i = 1; i < fileProt.length; i++) {
@@ -228,14 +239,14 @@ class _RollWidgetState extends State<RollWidget> {
                 String fileName = dbString("${DateTime.now()}.png");
                 String path = await saveUrlToLocal(nameToUrl(item['name']),
                     fileName, provider.selectWorkspace!.dirPath);
-                int insert = await DBController.instance.insertHistory(History(
-                    prompt: prompt,
-                    negativePrompt: negativePrompt,
-                    width: provider.config.width,
-                    height: provider.config.height,
-                    imgPath: path,
-                    workspace: provider.selectWorkspace?.name));
-                print('insert:$insert');
+                // int insert = await DBController.instance.insertHistory(History(
+                //     prompt: provider.config.prompt,
+                //     negativePrompt: negativePrompt,
+                //     width: provider.config.width,
+                //     height: provider.config.height,
+                //     imgPath: path,
+                //     workspace: provider.selectWorkspace?.name));
+                // print('insert:$insert');
               }
             } else {
               Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {

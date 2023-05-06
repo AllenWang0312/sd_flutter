@@ -1,25 +1,22 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:file_drag_and_drop/dropag_container_listener.dart';
+// import 'package:file_drag_and_drop/file_result.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/roll/RollModel.dart';
 import 'package:sd/sd/roll/roll_widget.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
-import 'package:sd/sd/tavern/tavern_widget.dart';
 
 import '../../common/third_util.dart';
-import '../../platform/web_drawer.dart';
-import '../MineWidget.dart';
 import '../history/history_widget.dart';
 import '../history/records_widget.dart';
 import '../history/remote_history_widget.dart';
 import '../http_service.dart';
-import '../widget/StatefulAppBar.dart';
 import 'web_home_model.dart';
 import '../mocker.dart';
 import '../setting/setting_page.dart';
@@ -33,7 +30,9 @@ class WebHomePage extends StatefulWidget {
   State<WebHomePage> createState() => _WebHomePageState();
 }
 
-class _WebHomePageState extends State<WebHomePage> {
+class _WebHomePageState extends State<WebHomePage>
+// with macOSFileDragger
+{
   static const TAG = 'WebHomePageState';
 
   @override

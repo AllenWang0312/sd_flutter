@@ -7,6 +7,8 @@ const CMD_CLEAN_SEED = 126;
 
 const CMD_MULTI_GENERAGE =244;
 
+const CMD_SINGLE_GENERAGE =291;
+
 const CMD_GET_LAST_SEED =288;
 
 
@@ -47,12 +49,12 @@ const BASE64_PREFIX = 'data:image/png;base64,';
 
 dynamic multiGenerateBody(dynamic data,int pi ,int times) {
   return {
-    "fn_index": CMD_MULTI_GENERAGE,
+    "fn_index": CMD_SINGLE_GENERAGE,
     "data": [
       "", //task(74b1tly1v240aog)
       data['prompt'],
       data['negative_prompt'],
-      [],
+      data['styles'],//选择的style
       data['steps'],
       data['sampler_name'],
       data['restore_faces'],
@@ -230,7 +232,23 @@ dynamic tagger(String encodeData,String interrogator,double threshold){
   };
 }
 
-
+dynamic setPluginCover(String remotePath,String pluginPathNoExt){
+  return {
+    "fn_index": 297,
+    "data": [
+      -1,
+      [
+        {
+          "name": remotePath,
+          "data": "file=$remotePath",
+          "is_file": true
+        }
+      ],
+      "$pluginPathNoExt.preview.png"
+    ],
+    "session_hash": "m7od6wwmtql"
+  };
+}
 dynamic getRemoteHistoryInfo(int fnIndex,int index,int page,String type){
   return {
     "fn_index": fnIndex,

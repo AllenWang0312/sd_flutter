@@ -23,6 +23,8 @@ import 'package:sd/sd/setting/setting_page.dart';
 import 'package:sd/sd/setting/style_edit_page.dart';
 import 'package:sd/sd/tavern/tavern_widget.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
+import 'package:universal_platform/universal_platform.dart';
+// import 'package:file_drag_and_drop/file_drag_and_drop_channel.dart';
 
 import 'common/third_util.dart';
 
@@ -136,7 +138,7 @@ Map<String, Function> get webRoutes => {
           )
     };
 
-void main() {
+void main() async{
   onGenerateRoute(RouteSettings settings) {
     final String? name = settings.name;
     final Function pageContentBuilder =
@@ -157,6 +159,10 @@ void main() {
 
   logt('isMobile', '${isMobile()}');
 
+  // if(UniversalPlatform.isMacOS){
+  //   WidgetsFlutterBinding.ensureInitialized();
+  //   await dragAndDropChannel.initializedMainView();
+  // }
   runApp(RestartableWidget(
     MultiProvider(
         providers: [

@@ -1,6 +1,6 @@
 
 
 class UserInfo{
-  int age = 30;
+  int age = 12;
 
 }

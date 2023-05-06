@@ -67,8 +67,8 @@ class UpScalerWidget extends StatelessWidget {
                   Slider(
                     value: newValue.toDouble(),
                     min: 512,
-                    max: 2560,
-                    divisions: 16,
+                    max: 5120,
+                    divisions: 18,
                     onChanged: (double value) {
                       provider.updateScalerWidth(value);
                       // samplerStepsController.text = samplerSteps.toString();

@@ -2,20 +2,24 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/empty_view.dart';
+import 'package:sd/sd/mocker.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 
 import '../../http_service.dart';
 import '../../const/config.dart';
 
+const TAG = "PluginWidget";
+
 class PluginWidget extends StatelessWidget {
- final String prefix;
- final String modelType;
- final String nameFilePath;
+  final String prefix;
+  final String modelType;
+  final String nameFilePath;
 
   const PluginWidget(this.prefix, this.modelType, this.nameFilePath);
 
   @override
   Widget build(BuildContext context) {
+    logt(TAG, nameFilePath);
     return FutureBuilder(
         future: get("$sdHttpService$nameFilePath"),
         builder: (context, snapshot) {
@@ -60,6 +64,17 @@ class PluginWidget extends StatelessWidget {
                                         },
                                       );
                                     })),
+                            // IconButton(
+                            //     onPressed: () {
+                            //       if (provider.lastGenerate.isNotEmpty) {
+                            //         post("$sdHttpService$RUN_PREDICT",
+                            //                 formData: setPluginCover(
+                            //                     provider.lastGenerate, 'pluginPathNoExt'),
+                            //                 exceptionCallback: (e) {})
+                            //             .then((value) async {});
+                            //       }
+                            //     },
+                            //     icon: Icon(Icons.refresh)),
                             Positioned(
                                 bottom: 0,
                                 child: Text(

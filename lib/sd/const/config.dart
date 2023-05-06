@@ -39,6 +39,7 @@ const int WS_COUNT = 3;
 const String SP_SHARE_HOST = 'share_host';
 const String SP_HOST = 'host';
 const String SP_SHARE = 'share';
+const String SP_GENERATE_TYPE = 'generate_type';
 
 const String SP_CURRENT_WS = 'current_ws';
 const String SP_WIDTH = "width";
@@ -87,8 +88,8 @@ placeHolderUrl({int width = 512, int height = 720}) {
   String remoteTXT2IMGDir = '';
   String remoteIMG2IMGDir= '';
   String remoteMoreDir= '';
-bool sdShare = false;
-String sdShareHost = '';
+
+  String sdShareHost = '';
 
 String remoteFavouriteDir= '';
 String sdHost = UniversalPlatform.isWeb

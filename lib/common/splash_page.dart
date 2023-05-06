@@ -20,25 +20,9 @@ import 'package:sd/platform/platform.dart';
 
 const int SPLASH_WATTING_TIME = 3;
 
-Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
-  String myData = await File(csvFilePath).readAsString();
-  List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
-  List<dynamic> colums = csvTable.removeAt(0);
-  int nameIndex = colums.indexOf(PromptStyle.NAME);
-  int typeIndex = colums.indexOf(PromptStyle.TYPE);
-  int promptIndex = colums.indexOf(PromptStyle.PROMPT);
-  int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
-  return csvTable
-      .map((e) => PromptStyle(
-          name: e[nameIndex],
-          type: e[typeIndex],
-          prompt: e[promptIndex],
-          negativePrompt: e[negPromptIndex]))
-      .toList();
-}
+const String TAG = "SplashPage";
 
 class SplashPage extends StatefulWidget {
-  static const String TAG = "SplashPage";
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -46,21 +30,16 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   late SharedPreferences sp;
-
   bool canSkip = false;
-
   int? getSettingSuccess;
-
   late AIPainterModel provider;
-
   Timer? _countdownTimer;
 
   @override
   Widget build(BuildContext context) {
-    logt(SplashPage.TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
 
-    provider.load();
+    provider.loadConfig();
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (provider.countdownNum <= 0) {
@@ -154,7 +133,7 @@ class _SplashPageState extends State<SplashPage> {
         exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) {
-      // logt(SplashPage.TAG, "get options${value?.data.toString() ?? ""}");
+      logt(TAG, "get options${value?.data.toString() ?? ""}");
       // Options op = Options.fromJson(value.data);
       String modelName = value?.data['sd_model_checkpoint'];
 
