@@ -6,6 +6,15 @@ const List<String> SUPPORT_IMAGE_TYPES = [
   '.webp'
 ];
 
+const FILE_PREFIX = 'file://';
+
+String removeFilePreIfExist(String s) {
+  if(s.startsWith(FILE_PREFIX)){
+    return s.substring(FILE_PREFIX.length);
+  }
+  return s;
+}
+
 String appendCommaIfNotExist(String str) {
   if (str.isEmpty || str.endsWith(",") || str.endsWith("，")) {
     return str;

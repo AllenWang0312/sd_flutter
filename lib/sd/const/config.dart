@@ -8,6 +8,8 @@ import 'package:universal_platform/universal_platform.dart';
 
 import '../bean/db/History.dart';
 
+const String APP_NAME = 'SD Flutter';
+
 const String PACKAGE_NAME = "edu.tjrac.swant.sd";
 
 // theme
@@ -25,6 +27,12 @@ const String DEFAULT_WORKSPACE_NAME = "default";
 const int DEFAULT_SAMPLER_STEPS = 30;
 const bool DEFAULT_FACE_FIX = false;
 const bool DEFAULT_HIRES_FIX = false;
+const bool DEFAULT_AUTO_SAVE = false;
+const bool DEFAULT_HIDE_NSFW = true;
+const bool DEFAULT_CHECK_IDENTITY = false;
+
+
+
 const int WS_COUNT = 3;
 
 // sharedperference
@@ -82,6 +90,7 @@ placeHolderUrl({int width = 512, int height = 720}) {
 bool sdShare = false;
 String sdShareHost = '';
 
+String remoteFavouriteDir= '';
 String sdHost = UniversalPlatform.isWeb
     ? SD_WIN_HOST
     : Platform.isWindows
@@ -145,9 +154,6 @@ final String TAG = "config";
 
 History mapToHistory(String remoteDir, int page, int offset, String name) {
   String url = nameToUrl(name);
-  logt(TAG, url + " ");
-  logt(TAG, " " + name);
-
   return History(
     // ageLevel: name.contains('18x') ? 18 : 16,
     page: page,

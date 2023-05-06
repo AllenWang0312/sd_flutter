@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 import '../../common/third_util.dart';
 import '../bean/db/PromptStyleFileConfig.dart';
 import '../bean/db/Workspace.dart';
@@ -41,13 +42,13 @@ class CreateWorkspaceWidget extends StatefulWidget {
 }
 
 class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
-  String getStoragePath(StorageType? value, String name) {
+  String getStoragePath(StorageType? value) {
     if (value == StorageType.Public) {
-      return "${widget.publicPath}/$name";
+      return widget.publicPath??"";
     } else if (value == StorageType.Hide) {
-      return "${widget.openHidePath}/$name";
+      return widget.openHidePath??"";
     } else {
-      return "${widget.imgSavePath}/$name";
+      return widget.imgSavePath??"";
     }
   }
 
@@ -84,7 +85,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
     controller = TextEditingController(
         text: widget.workspace == null ? '' : widget.workspace?.getName());
     controller.addListener(() {
-      pathController.text = getStoragePath(model.storageType, controller.text);
+      pathController.text = getStoragePath(model.storageType);
     });
     return Scaffold(
       appBar: AppBar(
@@ -96,9 +97,9 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                 if (widget.workspace == null) {
                   if (controller.text.isNotEmpty) {
                     if (await checkStoragePermission()) {
-                      if (createDirIfNotExit(pathController.text)) {
+                      if (createDirIfNotExit(asyncPath+pathController.text+"/"+controller.text)) {
                         var nw =
-                            Workspace(controller.text, pathController.text);
+                            Workspace(asyncPath+pathController.text,controller.text);
                         int id =
                             await DBController.instance.insertWorkSpace(nw);
 
@@ -122,9 +123,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
                                               PromptStyleFileConfig(
                                                   name: config.name,
                                                   type: ConfigType.public.index,
-                                                  belongTo: id,
-                                                  configPath:
-                                                      config.configPath)) >
+                                                  belongTo: id)) >
                                       0) {}
                             }
                           }
@@ -265,7 +264,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
   void onRadioChanged(StorageType? value) {
     // logt(TAG, value.toString());
     if (widget.workspace == null) {
-      pathController.text = getStoragePath(value, controller.text);
+      pathController.text = getStoragePath(value);
     } else {}
     model.updateStorageType(value!);
   }
@@ -278,7 +277,7 @@ class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
 
     if (null != publicStyles && publicStyles.isNotEmpty) {
       model.allConfig = publicStyles
-          .map((e) => PromptStyleFileConfig(configPath: e.path))
+          .map((e) => PromptStyleFileConfig(dynamicPath: syncPath))
           .toList();
       return Column(
         children: generateItems(model.allConfig),

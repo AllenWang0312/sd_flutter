@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/widget/AgeLevelCover.dart';
 
@@ -260,7 +260,7 @@ class _TavernWidgetState extends State<TavernWidget> {
             Navigator.pushNamed(context, ROUTE_WEBVIEW, arguments: {
               "title": info.name,
               "url": info.dirDes,
-              "savePath": info.localPath
+              "savePath": info.getLocalPath()
             });
           }
         } else {
@@ -268,7 +268,7 @@ class _TavernWidgetState extends State<TavernWidget> {
             Directory(info.getLocalPath()).createSync(recursive: true);
             if (null != info.dirDes && !File(info.iconFilePath).existsSync()) {
               saveUrlToLocal(
-                  "${info.dirDes!}/favicon.ico", 'favicon.ico', info.getLocalPath());
+                  "${info.dirDes!}/favicon.ico", 'favicon.ico',info.getLocalPath());
             }
           });
 
@@ -313,7 +313,7 @@ class _TavernWidgetState extends State<TavernWidget> {
                 Navigator.pushNamed(context, ROUTE_WEBVIEW, arguments: {
                   "title": info.name,
                   "url": info.dirDes,
-                  "savePath": info.localPath
+                  "savePath": info.getLocalPath()
                 });
               },
               child:

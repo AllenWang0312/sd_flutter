@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/platform/platform.dart';
+
+import 'package:sd/sd/provider/AIPainterModel.dart';
+import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/roll/RollModel.dart';
 import 'package:sd/sd/widget/sampler_widget.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -26,44 +29,62 @@ import '../widget/prompt_widget.dart';
 import '../widget/sd_model_widget.dart';
 import '../widget/upsacler_widget.dart';
 
-class RollWidget extends StatelessWidget {
+class RollWidget extends StatefulWidget {
+  RollWidget();
+
+  @override
+  State<RollWidget> createState() => _RollWidgetState();
+}
+
+class _RollWidgetState extends State<RollWidget> {
   final String TAG = "RollWidget";
+
   final PromptStylePicker promptStylePicker = PromptStylePicker();
 
-  // const RollWidget();
+  @override
+  void initState() {
+    super.initState();
+  }
 
+  Map<IconData, Function()> actions = {};
+
+  AppBarProvider? appBar;
+
+  // const RollWidget();
   @override
   Widget build(BuildContext context) {
     RollModel model = Provider.of<RollModel>(context, listen: false);
     AIPainterModel provider =
         Provider.of<AIPainterModel>(context, listen: false);
-    final samplerManager = SamplerWidget();
-    final upScalerManger = UpScalerWidget();
+    appBar = Provider.of<AppBarProvider?>(context, listen: false);
+    String? title = provider.selectWorkspace?.getName().toUpperCase();
 
+    if (UniversalPlatform.isAndroid) {
+      actions.putIfAbsent(
+          Icons.image, () => () => Navigator.pushNamed(context, ROUTE_TAVERN));
+    }
+    actions.putIfAbsent(
+        Icons.settings,
+        () => () async {
+              if (await checkStoragePermission()) {
+                Navigator.pushNamed(context, ROUTE_SETTING);
+              }
+              // HistoryWidget(dbController),
+            });
+    if (null != appBar) {
+      appBar?.updateTitle(title);
+      // appBar?.updateActions();
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        AppBar(
-          title: Text("${provider.selectWorkspace?.getName().toUpperCase()}"),
-          actions: [
-            if (UniversalPlatform.isAndroid)
-              IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, ROUTE_TAVERN);
-                },
-                icon: const Icon(Icons.image),
-              ),
-            IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () async {
-                  if (await checkStoragePermission()) {
-                    Navigator.pushNamed(context, ROUTE_SETTING);
-                  }
-                  // HistoryWidget(dbController),
-                }),
-          ],
-        ),
-        SDModelWidget(),
+        if (null == appBar)
+          AppBar(
+            title: Text(title ?? ""),
+            actions: actions.keys
+                .map((e) => IconButton(onPressed: actions[e], icon: Icon(e)))
+                .toList(),
+          ),
         // Row(
         //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
         //   children: [
@@ -76,275 +97,12 @@ class RollWidget extends StatelessWidget {
             SingleChildScrollView(
               child: Column(
                 children: [
+                  SDModelWidget(),
                   PromptWidget(),
                   promptStylePicker,
                   // TextButton(onPressed: getSamplers, child: Text("生成")),
-                  Selector<RollModel, SetType>(
-                      selector: (_, model) => model.setIndex,
-                      shouldRebuild: (pre, next) => pre != next,
-                      builder: (context, newValue, child) =>
-                          CupertinoSlidingSegmentedControl<SetType>(
-                            backgroundColor: CupertinoColors.systemGrey2,
-                            thumbColor: skyColors[newValue]!,
-                            // This represents the currently selected segmented control.
-                            groupValue: newValue,
-                            // Callback that sets the selected segmented control.
-                            onValueChanged: (SetType? value) {
-                              if (value == SetType.lora) {
-                                Navigator.pushNamed(context, ROUTE_PLUGINS);
-                                // showBottomSheet(
-                                //     context: context,
-                                //     builder: (context) {
-                                //       return PluginsWidget();
-                                //     });
-                              } else if (value != null) {
-                                model.updateSetIndex(value);
-                              }
-                            },
-                            children: <SetType, Widget>{
-                              SetType.basic: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 20),
-                                child: Text(
-                                  AppLocalizations.of(context).basic,
-                                  style:
-                                      TextStyle(color: CupertinoColors.white),
-                                ),
-                              ),
-                              SetType.advanced: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 20),
-                                child: Text(
-                                  AppLocalizations.of(context).advance,
-                                  style:
-                                      TextStyle(color: CupertinoColors.white),
-                                ),
-                              ),
-                              SetType.lora: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 20),
-                                  child: Selector<AIPainterModel, int?>(
-                                      selector: (_, model) =>
-                                          model.checkedPlugins.values.length,
-                                      builder: (context, value, child) {
-                                        return value == null || value == 0
-                                            ? child!
-                                            : Badge(
-                                                child: child,
-                                                label: Text(value.toString()),
-                                              );
-                                      },
-                                      child: Text(
-                                        AppLocalizations.of(context).plugin,
-                                        style: TextStyle(
-                                            color: CupertinoColors.white),
-                                      ))),
-                              // SetType.hyp: Padding(
-                              //   padding: EdgeInsets.symmetric(horizontal: 20),
-                              //   child: Text(
-                              //     'hyp',
-                              //     style: TextStyle(color: CupertinoColors.white),
-                              //   ),
-                              // ),
-                            },
-                          )),
-                  Selector<RollModel, SetType>(
-                    selector: (_, model) => model.setIndex,
-                    shouldRebuild: (pre, next) => pre != next,
-                    builder: (context, newValue, child) => IndexedStack(
-                      index: newValue.index,
-                      children: [
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Selector<AIPainterModel, bool>(
-                                    selector: (_, model) => model.faceFix,
-                                    shouldRebuild: (pre, next) => pre != next,
-                                    builder: (context, newValue, child) {
-                                      return MyCheckBox(newValue, (newValue) {
-                                        provider.setFaceFix(newValue!);
-                                      }, AppLocalizations.of(context).faceFix);
-                                    }),
-                                Selector<AIPainterModel, bool>(
-                                    selector: (_, model) => model.tiling,
-                                    shouldRebuild: (pre, next) => pre != next,
-                                    builder: (context, newValue, child) {
-                                      return MyCheckBox(newValue, (newValue) {
-                                        Provider.of<AIPainterModel>(context,
-                                                listen: false)
-                                            .setTiling(newValue!);
-                                      }, AppLocalizations.of(context).tiling);
-                                    }),
-                              ],
-                            ),
-                            samplerManager,
-                            Selector<AIPainterModel, int>(
-                                selector: (_, model) => model.config.width,
-                                shouldRebuild: (pre, next) => pre != next,
-                                builder: (context, newValue, child) {
-                                  AIPainterModel provider =
-                                      Provider.of<AIPainterModel>(context);
-
-                                  TextEditingController widthController =
-                                      TextEditingController(
-                                          text: newValue.toString());
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text("width"),
-                                      SizedBox(
-                                          width: 40,
-                                          child: TextField(
-                                              // initialValue: provider.samplerSteps.toString(),
-                                              controller: widthController)),
-                                      Slider(
-                                        value: newValue.toDouble(),
-                                        min: 512,
-                                        max: 2560,
-                                        divisions: 16,
-                                        onChanged: (double value) {
-                                          print("steps seek$value");
-                                          provider.updateWidth(value);
-                                          // samplerStepsController.text = samplerSteps.toString();
-                                        },
-                                      )
-                                    ],
-                                  );
-                                }),
-                            Selector<AIPainterModel, int>(
-                                selector: (_, model) => model.config.height,
-                                shouldRebuild: (pre, next) => pre != next,
-                                builder: (context, newValue, child) {
-                                  AIPainterModel provider =
-                                      Provider.of<AIPainterModel>(context);
-                                  TextEditingController heightController =
-                                      TextEditingController(
-                                          text: newValue.toString());
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text("height"),
-                                      SizedBox(
-                                          width: 40,
-                                          child: TextField(
-                                              // initialValue: provider.samplerSteps.toString(),
-                                              controller: heightController)),
-                                      Slider(
-                                        value: newValue.toDouble(),
-                                        min: 512,
-                                        max: 2560,
-                                        divisions: 16,
-                                        onChanged: (double value) {
-                                          print("steps seek$value");
-                                          provider.updateHeight(value);
-                                          // samplerStepsController.text = samplerSteps.toString();
-                                        },
-                                      )
-                                    ],
-                                  );
-                                }),
-                            Selector<AIPainterModel, bool>(
-                              selector: (_, model) => model.hiresFix,
-                              builder: (context, newValue, child) => Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Checkbox(
-                                          value: newValue,
-                                          onChanged: (newValue) {
-                                            // setState(() {
-                                            Provider.of<AIPainterModel>(context,
-                                                    listen: false)
-                                                .setHiresFix(newValue!);
-                                            // });
-                                          }),
-                                      Text(AppLocalizations.of(context).hires),
-                                      Text(newValue ? "resize:from to " : ""),
-                                    ],
-                                  ),
-                                  Visibility(
-                                    visible: newValue,
-                                    child: child!,
-                                  )
-                                ],
-                              ),
-                              child: upScalerManger,
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Selector<AIPainterModel, int>(
-                                selector: (_, model) => model.batchCount,
-                                shouldRebuild: (pre, next) => pre != next,
-                                builder: (context, newValue, child) {
-                                  TextEditingController widthController =
-                                      TextEditingController(
-                                          text: newValue.toString());
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(AppLocalizations.of(context)
-                                          .batchCount),
-                                      SizedBox(
-                                          width: 40,
-                                          child: TextField(
-                                              // initialValue: provider.samplerSteps.toString(),
-                                              controller: widthController)),
-                                      Slider(
-                                        value: newValue.toDouble(),
-                                        min: 1,
-                                        max: 100,
-                                        divisions: 99,
-                                        onChanged: (double value) {
-                                          provider.updateBatch(value);
-                                          // samplerStepsController.text = samplerSteps.toString();
-                                        },
-                                      )
-                                    ],
-                                  );
-                                }),
-                            Selector<AIPainterModel, int>(
-                                selector: (_, model) => model.batchSize,
-                                shouldRebuild: (pre, next) => pre != next,
-                                builder: (context, newValue, child) {
-                                  TextEditingController heightController =
-                                      TextEditingController(
-                                          text: newValue.toString());
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(AppLocalizations.of(context)
-                                          .batchSize),
-                                      SizedBox(
-                                          width: 40,
-                                          child: TextField(
-                                              // initialValue: provider.samplerSteps.toString(),
-                                              controller: heightController)),
-                                      Slider(
-                                        value: newValue.toDouble(),
-                                        min: 1,
-                                        max: 100,
-                                        divisions: 99,
-                                        onChanged: (double value) {
-                                          provider.updateBatchSize(value);
-                                          // samplerStepsController.text = samplerSteps.toString();
-                                        },
-                                      )
-                                    ],
-                                  );
-                                }),
-                          ],
-                        ),
-                        // TagWidget(TAG_MODELTYPE_LORA, TAG_PREFIX_LORA, GET_LORA_NAMES),
-                        // TagWidget(TAG_MODELTYPE_HPE, TAG_PREFIX_HPE, GET_HYP_NAMES),
-                      ],
-                    ),
-                  )
+                  _segments(model),
+                  _stack(provider, SamplerWidget(), UpScalerWidget()),
                 ],
               ),
             ),
@@ -357,6 +115,9 @@ class RollWidget extends StatelessWidget {
       ],
     );
   }
+
+  @override
+  void dispose() {}
 
   getPrompt(String prompt) =>
       appendCommaIfNotExist(prompt) + promptStylePicker.getStylePrompt();
@@ -426,7 +187,7 @@ class RollWidget extends StatelessWidget {
                 String fileName = "${dbString(now)}.png";
                 // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
                 String result = await saveBytesToLocal(
-                    bytes, fileName, provider.selectWorkspace!.dirPath);
+                    bytes, fileName, provider.selectWorkspace!.absPath);
                 int? insert = await DBController.instance.insertHistory(
                   History(
                       prompt: prompt,
@@ -443,7 +204,8 @@ class RollWidget extends StatelessWidget {
             if (!provider.autoSave) {
               Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
                 "datas": datas,
-                "savePath": provider.selectWorkspace!.dirPath
+                "savePath": provider.selectWorkspace!.dirPath,
+                "scanAvailable": provider.sdServiceAvailable
               });
             }
           });
@@ -480,7 +242,8 @@ class RollWidget extends StatelessWidget {
                 "urls": fileProt
                     .map((e) => GenerateResultItem.fromJson(e))
                     .toList(),
-                "savePath": provider.selectWorkspace!.dirPath
+                "savePath": provider.selectWorkspace!.dirPath,
+                "scanAvailable": provider.sdServiceAvailable
               });
             }
 
@@ -497,6 +260,286 @@ class RollWidget extends StatelessWidget {
             gravity: ToastGravity.CENTER);
       }
     }
+  }
+
+  Widget _segments(RollModel model) {
+    return Selector<RollModel, SetType>(
+        selector: (_, model) => model.setIndex,
+        shouldRebuild: (pre, next) => pre != next,
+        builder: (context, newValue, child) =>
+            CupertinoSlidingSegmentedControl<SetType>(
+              backgroundColor: CupertinoColors.systemGrey2,
+              thumbColor: skyColors[newValue]!,
+              // This represents the currently selected segmented control.
+              groupValue: newValue,
+              // Callback that sets the selected segmented control.
+              onValueChanged: (SetType? value) {
+                if (value == SetType.lora) {
+                  Navigator.pushNamed(context, ROUTE_PLUGINS);
+                  // showBottomSheet(
+                  //     context: context,
+                  //     builder: (context) {
+                  //       return PluginsWidget();
+                  //     });
+                } else if (value != null) {
+                  model.updateSetIndex(value);
+                }
+              },
+              children: <SetType, Widget>{
+                SetType.basic: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    AppLocalizations.of(context).basic,
+                    style: TextStyle(color: CupertinoColors.white),
+                  ),
+                ),
+                SetType.advanced: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    AppLocalizations.of(context).advance,
+                    style: TextStyle(color: CupertinoColors.white),
+                  ),
+                ),
+                SetType.lora: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Selector<AIPainterModel, int?>(
+                        selector: (_, model) =>
+                            model.checkedPlugins.values.length,
+                        builder: (context, value, child) {
+                          return value == null || value == 0
+                              ? child!
+                              : Badge(
+                                  child: child,
+                                  label: Text(value.toString()),
+                                );
+                        },
+                        child: Text(
+                          AppLocalizations.of(context).plugin,
+                          style: TextStyle(color: CupertinoColors.white),
+                        ))),
+                // SetType.hyp: Padding(
+                //   padding: EdgeInsets.symmetric(horizontal: 20),
+                //   child: Text(
+                //     'hyp',
+                //     style: TextStyle(color: CupertinoColors.white),
+                //   ),
+                // ),
+              },
+            ));
+  }
+
+  Widget _stack(AIPainterModel provider, Widget sampler, Widget upScaler) {
+    return Selector<RollModel, SetType>(
+        selector: (_, model) => model.setIndex,
+        shouldRebuild: (pre, next) => pre != next,
+        builder: (context, newValue, child) => IndexedStack(
+              index: newValue.index,
+              children: [
+                _basic(provider, sampler, upScaler),
+                Column(
+                  children: [
+                    Selector<AIPainterModel, int>(
+                        selector: (_, model) => model.batchCount,
+                        shouldRebuild: (pre, next) => pre != next,
+                        builder: (context, newValue, child) {
+                          TextEditingController widthController =
+                              TextEditingController(text: newValue.toString());
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(AppLocalizations.of(context).batchCount),
+                              SizedBox(
+                                  width: 40,
+                                  child: TextField(
+                                      // initialValue: provider.samplerSteps.toString(),
+                                      controller: widthController)),
+                              Slider(
+                                value: newValue.toDouble(),
+                                min: 1,
+                                max: 100,
+                                divisions: 99,
+                                onChanged: (double value) {
+                                  provider.updateBatch(value);
+                                  // samplerStepsController.text = samplerSteps.toString();
+                                },
+                              )
+                            ],
+                          );
+                        }),
+                    Selector<AIPainterModel, int>(
+                        selector: (_, model) => model.batchSize,
+                        shouldRebuild: (pre, next) => pre != next,
+                        builder: (context, newValue, child) {
+                          TextEditingController heightController =
+                              TextEditingController(text: newValue.toString());
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(AppLocalizations.of(context).batchSize),
+                              SizedBox(
+                                  width: 40,
+                                  child: TextField(
+                                      // initialValue: provider.samplerSteps.toString(),
+                                      controller: heightController)),
+                              Slider(
+                                value: newValue.toDouble(),
+                                min: 1,
+                                max: 100,
+                                divisions: 99,
+                                onChanged: (double value) {
+                                  provider.updateBatchSize(value);
+                                  // samplerStepsController.text = samplerSteps.toString();
+                                },
+                              )
+                            ],
+                          );
+                        }),
+                  ],
+                ),
+                // TagWidget(TAG_MODELTYPE_LORA, TAG_PREFIX_LORA, GET_LORA_NAMES),
+                // TagWidget(TAG_MODELTYPE_HPE, TAG_PREFIX_HPE, GET_HYP_NAMES),
+              ],
+            ));
+  }
+
+  Widget _basic(AIPainterModel provider, Widget sampler, Widget upScaler) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Selector<AIPainterModel, bool>(
+                selector: (_, model) => model.faceFix,
+                shouldRebuild: (pre, next) => pre != next,
+                builder: (context, newValue, child) {
+                  return MyCheckBox(newValue, (newValue) {
+                    provider.setFaceFix(newValue!);
+                  }, AppLocalizations.of(context).faceFix);
+                }),
+            Selector<AIPainterModel, bool>(
+                selector: (_, model) => model.tiling,
+                shouldRebuild: (pre, next) => pre != next,
+                builder: (context, newValue, child) {
+                  return MyCheckBox(newValue, (newValue) {
+                    Provider.of<AIPainterModel>(context, listen: false)
+                        .setTiling(newValue!);
+                  }, AppLocalizations.of(context).tiling);
+                }),
+            // Selector<AIPainterModel, int>(
+            //     selector: (_, model) => model.config.seed,
+            //     shouldRebuild: (pre, next) => pre != next,
+            //     builder: (context, newValue, child) {
+            //       TextEditingController control =
+            //           TextEditingController(text: newValue.toString());
+            //       return Row(
+            //         children: [
+            //           TextFormField(controller: control),
+            //           IconButton(
+            //               onPressed: () {
+            //                 post("$sdHttpService$RUN_PREDICT",
+            //                         formData: refreshModel())
+            //                     .then((value) {
+            //                   // logt(TAG, value.toString());
+            //                   double seed = value!.data['data'][0];
+            //                   control.text = seed.toInt.toString();
+            //                 });
+            //               },
+            //               icon: Icon(Icons.refresh))
+            //         ],
+            //       );
+            //     }),
+          ],
+        ),
+        sampler,
+        Selector<AIPainterModel, int>(
+            selector: (_, model) => model.config.width,
+            shouldRebuild: (pre, next) => pre != next,
+            builder: (context, newValue, child) {
+              AIPainterModel provider = Provider.of<AIPainterModel>(context);
+
+              TextEditingController widthController =
+                  TextEditingController(text: newValue.toString());
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("width"),
+                  SizedBox(
+                      width: 40,
+                      child: TextField(
+                          // initialValue: provider.samplerSteps.toString(),
+                          controller: widthController)),
+                  Slider(
+                    value: newValue.toDouble(),
+                    min: 512,
+                    max: 2560,
+                    divisions: 16,
+                    onChanged: (double value) {
+                      print("steps seek$value");
+                      provider.updateWidth(value);
+                      // samplerStepsController.text = samplerSteps.toString();
+                    },
+                  )
+                ],
+              );
+            }),
+        Selector<AIPainterModel, int>(
+            selector: (_, model) => model.config.height,
+            shouldRebuild: (pre, next) => pre != next,
+            builder: (context, newValue, child) {
+              AIPainterModel provider = Provider.of<AIPainterModel>(context);
+              TextEditingController heightController =
+                  TextEditingController(text: newValue.toString());
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("height"),
+                  SizedBox(
+                      width: 40,
+                      child: TextField(
+                          // initialValue: provider.samplerSteps.toString(),
+                          controller: heightController)),
+                  Slider(
+                    value: newValue.toDouble(),
+                    min: 512,
+                    max: 2560,
+                    divisions: 16,
+                    onChanged: (double value) {
+                      print("steps seek$value");
+                      provider.updateHeight(value);
+                      // samplerStepsController.text = samplerSteps.toString();
+                    },
+                  )
+                ],
+              );
+            }),
+        Selector<AIPainterModel, bool>(
+          selector: (_, model) => model.hiresFix,
+          builder: (context, newValue, child) => Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Checkbox(
+                      value: newValue,
+                      onChanged: (newValue) {
+                        // setState(() {
+                        Provider.of<AIPainterModel>(context, listen: false)
+                            .setHiresFix(newValue!);
+                        // });
+                      }),
+                  Text(AppLocalizations.of(context).hires),
+                  Text(newValue ? "resize:from to " : ""),
+                ],
+              ),
+              Visibility(
+                visible: newValue,
+                child: child!,
+              )
+            ],
+          ),
+          child: upScaler,
+        ),
+      ],
+    );
   }
 }
 

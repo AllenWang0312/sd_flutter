@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -5,38 +6,50 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/common/util/file_util.dart';
 import 'package:sd/platform/platform.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/bean/db/History.dart';
+import 'package:sd/sd/widget/PageListViewer.dart';
 
 import '../../common/util/ui_util.dart';
 import '../const/config.dart';
 import '../http_service.dart';
-import '../mocker.dart';
-import '../widget/AgeLevelCover.dart';
 
 const String TAG = "RemoteHistoryWidget";
 
-class RemoteHistoryWidget extends StatefulWidget {
+class RemoteHistoryWidget extends PageListViewer {
   final String dir;
-  final int fnIndex;
+  final int fnIndex; //remote +3 fav-10 del -12
+  bool? isFavourite;
+  String type;
 
-  const RemoteHistoryWidget(this.dir, this.fnIndex, {super.key});
+  RemoteHistoryWidget(this.dir, this.fnIndex, this.type,
+      {this.isFavourite = false});
+
+  _RemoteHistoryWidgetState state = _RemoteHistoryWidgetState();
 
   @override
-  State<RemoteHistoryWidget> createState() => _RemoteHistoryWidgetState();
+  State<RemoteHistoryWidget> createState() => state;
+
+  @override
+  void returnTopAndRefresh() {
+    state._scroller.jumpTo(0);
+    if (pageNum > 0) {
+      pageNum = 0;
+      state.loadData(pageNum, pageSize, dateOrder);
+    }
+  }
 }
 
-class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> with AutomaticKeepAliveClientMixin{
-  bool dateOrder = false;
-  int pageNum = 0;
-  int pageSize = 20;
+class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget>
+    with AutomaticKeepAliveClientMixin {
   List<History> history = [];
   int viewType = 0;
 
   //list grid flot scale
   late EasyRefreshController _controller;
+  late ScrollController _scroller;
+
   late AIPainterModel provider;
 
   @override
@@ -44,64 +57,64 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> with Automati
     provider = Provider.of<AIPainterModel>(context, listen: false);
 
     _controller = EasyRefreshController(
-      controlFinishRefresh: true,
-      controlFinishLoad: true,
-    );
+        controlFinishRefresh: true, controlFinishLoad: true);
+    _scroller = ScrollController();
 
     return Stack(children: [
       EasyRefresh.builder(
           refreshOnStart: true,
           controller: _controller,
-          onRefresh: () async {
-            pageNum = 0;
-            history.clear();
-            loadData(context, widget.dir, pageNum, pageSize);
-          },
+          onRefresh: refresh,
           onLoad: () async {
-            pageNum += 1;
-            loadData(context, widget.dir, pageNum, pageSize);
+            if (history.length % 36 == 0) {
+              widget.pageNum += 1;
+              return loadData(
+                  widget.pageNum, widget.pageSize, widget.dateOrder);
+            }
           },
           childBuilder: (context, physics) {
             return MasonryGridView.count(
+              controller: _scroller,
               physics: physics,
               itemCount: history.length,
               itemBuilder: (context, index) {
-                logt(TAG, "create item $index");
                 // History item = History.fromJson(snapshot.data![index]);
                 History item = history[index];
                 return item.url != null
                     ? GestureDetector(
-                        onLongPress: () async {
-                          if (item.localPath != null) {
-                            post("$sdHttpService$RUN_PREDICT",
-                                    formData: delateFile(
-                                        item.localPath,
-                                        pageNum + 1,
-                                        index % 36,
-                                        history.length % 36))
-                                .then((value) {
-                              logt(TAG, "delete file$value");
-                            });
-                          }
-                        },
+                        // onLongPress: () async {
+                        //
+                        // },
                         onTap: () async {
-                          Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
+                          Object? result = await Navigator.pushNamed(
+                              context, ROUTE_IMAGES_VIEWER,
                               arguments: {
                                 "urls": history,
+                                'fnIndex': widget.fnIndex,
                                 "index": index,
                                 "savePath": getWorkspacesPath(),
+                                "isFavourite": widget.isFavourite,
+                                "scanAvailable": provider.sdServiceAvailable,
+                                "type": widget.type,
                               });
+                          if (result is int) {
+                            //   _scroller.animateTo(newIndex.toDouble(),
+                            //       duration: Duration(microseconds: 300),
+                            //       curve: Curves.ease);
+                          } else if (result is List<String>) {
+                            _scroller.jumpTo(0);
+                            await refresh();
+                            // setState(() {
+                            //   history.removeWhere((element) => result.contains(element.getFileLocation()));
+                            // });
+                          }
                         },
                         child: Selector<AIPainterModel, int>(
                           selector: (_, model) => provider.hideNSFW
                               ? model.limitedUrl(item.url!)
                               : 0,
                           builder: (context, value, child) {
-                            return
-                              // AgeLevelCover(item);
-
-
-                              value >= 18
+                            return value >= 18
                                 ? ClipRect(
                                     child: ImageFiltered(
                                       imageFilter: AGE_LEVEL_BLUR,
@@ -131,27 +144,27 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> with Automati
             );
           }),
       IconButton(
-          icon: dateOrder
+          icon: widget.dateOrder
               ? const Icon(Icons.date_range_sharp)
               : const Icon(Icons.fiber_smart_record),
           onPressed: () {
-            setState(() {
-              dateOrder = !dateOrder;
-              pageNum = 0;
-              loadData(context, widget.dir, pageNum, pageSize);
+            setState(() async {
+              widget.dateOrder = !widget.dateOrder;
+              widget.pageNum = 0;
+              await loadData(widget.pageNum, widget.pageSize, widget.dateOrder);
             });
           }),
     ]);
   }
 
-  loadData(BuildContext context, String dir, int pageNum, int pageSize) {
+  Future<void> loadData(int pageNum, int pageSize, bool dateOrder) async {
     if (pageNum == 0) {
       history.clear();
     }
-    post("$sdHttpService$RUN_PREDICT", formData: {
+    await post("$sdHttpService$RUN_PREDICT", formData: {
       "data": [
         // "F:\\sd outputs\\txt2img-images",
-        dir,
+        widget.dir,
         pageNum + 1,
         null,
         "",
@@ -160,33 +173,37 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget> with Automati
       "fn_index": widget.fnIndex,
     }, exceptionCallback: (e) {
       if (pageNum == 0) {
-        _controller.finishRefresh(IndicatorResult.fail);
+        _controller.finishLoad(IndicatorResult.fail);
       } else {
         _controller.finishLoad(IndicatorResult.fail);
       }
     }).then((value) {
+      logt(TAG, value!.data.toString());
       List items = value!.data['data'][2] as List;
       List<History> newList = items
-          .map((e) => mapToHistory(dir, 1, items.indexOf(e) + 1, e['name']))
+          .map((e) =>
+              mapToHistory(widget.dir, 1, items.indexOf(e) + 1, e['name']))
           .toList();
       // List<History> newList2 =
       //     newList.where((element) => !history.contains(element)).toList();
       if (newList.isNotEmpty) {
         setState(() {
           history.addAll(newList);
+          _controller.finishRefresh(IndicatorResult.success);
+          _controller.finishLoad(newList.length == 36
+              ? IndicatorResult.success
+              : IndicatorResult.noMore);
         });
-        if (pageNum == 0) {
-          _controller.finishRefresh();
-        } else {
-          _controller.finishLoad(IndicatorResult.success);
-        }
-      } else {
-        logt(TAG, "nomore");
-        _controller.finishLoad(IndicatorResult.noMore);
       }
     });
   }
 
   @override
   bool get wantKeepAlive => true;
+
+  FutureOr refresh() {
+    history.clear();
+    widget.pageNum = 0;
+    return loadData(widget.pageNum, widget.pageSize, widget.dateOrder);
+  }
 }

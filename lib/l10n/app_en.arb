@@ -9,6 +9,7 @@
   "history": "History",
 
   "local": "Local",
+  "favourite": "Favourite",
   "remoteTxt2Img": "Remote(TXT2IMG)",
   "remoteImg2Img": "Remote(IMG2IMG)",
   "extras": "Extras",

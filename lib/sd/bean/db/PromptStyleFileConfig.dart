@@ -21,37 +21,38 @@ class PromptStyleFileConfig {
   static String TABLE_NAME = 'styles_file_config';
 
   static var TABLE_CREATE =
-      'id INTEGER PRIMARY KEY,name TEXT,type INTEGER,belongTo INTEGER,fromConfigId INTEGER,rawPath TEXT,configPath TEXT';
+      'id INTEGER PRIMARY KEY,name TEXT,type INTEGER,belongTo INTEGER,fromConfigId INTEGER,rawPath TEXT';
 
   PromptStyleFileConfig({
     this.id,
-    this.name = "",
+    this.name = "default",
     this.state = 0,
     this.type = 0,
     this.belongTo,
     this.fromConfigId,
     this.rawPath,
-    this.configPath,
-  });
+    String? dynamicPath,
+  }){
+  this._dynamicPath = dynamicPath;
+  }
 
   int state = 0; // 0 公共配置 1 存在于当前workspace  -1 需要执行删除 2 需要执行添加
 
-  PromptStyleFileConfig.fromJson(dynamic json, {int state = 0}) {
-    this.state = state;
+  PromptStyleFileConfig.fromJson(dynamic json,String? dynamicPath, {this.state = 0}) {
     id = json['id'];
     name = json['name'];
     type = json['type'];
     belongTo = json['belongTo'];
     fromConfigId = json['fromConfigId'];
     rawPath = json['rawPath'];
-    configPath = json['configPath'];
+    _dynamicPath = dynamicPath;
   }
 
   int? id;
   String name = ""; // 默认 xxx的promptStyles
   String getName() {
-    if (name.isEmpty && null != configPath && configPath!.isNotEmpty) {
-      name = configPath!.substring(configPath!.lastIndexOf('/') + 1);
+    if (name.isEmpty && null != configPath && configPath.isNotEmpty) {
+      name = configPath.substring(configPath.lastIndexOf('/') + 1);
     }
     return name;
   }
@@ -60,7 +61,11 @@ class PromptStyleFileConfig {
   int? belongTo; // 属于某个workspace
   int? fromConfigId; // 原始数据源 本表id
   String? rawPath; // 原path 拷贝模式不需要存储
-  String? configPath; // 现有path
+  String? _dynamicPath;
+
+  String get configPath{
+    return '$_dynamicPath/$name.csv';
+  }
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -70,7 +75,6 @@ class PromptStyleFileConfig {
     map['belongTo'] = belongTo;
     map['fromConfigId'] = fromConfigId;
     map['rawPath'] = rawPath;
-    map['configPath'] = configPath;
     return map;
   }
 
@@ -80,13 +84,13 @@ class PromptStyleFileConfig {
       other is PromptStyleFileConfig &&
           runtimeType == other.runtimeType &&
           state == other.state &&
-          configPath == other.configPath;
+          name == other.name;
 
   @override
-  int get hashCode => state.hashCode ^ configPath.hashCode;
+  int get hashCode => state.hashCode ^ name.hashCode;
 
   @override
   String toString() {
-    return 'PromptStyleFileConfig{state: $state, id: $id, name: $name, type: $type, belongTo: $belongTo, configPath: $configPath}';
+    return 'PromptStyleFileConfig{state: $state, id: $id, name: $name, type: $type, belongTo: $belongTo}';
   }
 }

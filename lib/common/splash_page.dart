@@ -12,25 +12,17 @@ import 'package:sd/common/util/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import '../sd/AIPainterModel.dart';
+import '../sd/provider/AIPainterModel.dart';
 import '../sd/bean/PromptStyle.dart';
 import '../sd/const/config.dart';
 import '../sd/http_service.dart';
 import 'package:sd/platform/platform.dart';
 
-
 const int SPLASH_WATTING_TIME = 3;
-
-class FromTo {
-  String from;
-  String to;
-
-  FromTo(this.from, this.to);
-}
 
 Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
   String myData = await File(csvFilePath).readAsString();
-  List<List<dynamic>> csvTable = CsvToListConverter().convert(myData);
+  List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
   List<dynamic> colums = csvTable.removeAt(0);
   int nameIndex = colums.indexOf(PromptStyle.NAME);
   int typeIndex = colums.indexOf(PromptStyle.TYPE);
@@ -45,20 +37,28 @@ Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
       .toList();
 }
 
-class SplashPage extends StatelessWidget {
+class SplashPage extends StatefulWidget {
   static const String TAG = "SplashPage";
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
   late SharedPreferences sp;
+
   bool canSkip = false;
+
   int? getSettingSuccess;
 
   late AIPainterModel provider;
+
   Timer? _countdownTimer;
 
   @override
   Widget build(BuildContext context) {
-    logt(TAG, 'build');
+    logt(SplashPage.TAG, 'build');
     provider = Provider.of<AIPainterModel>(context, listen: false);
-
 
     provider.load();
 
@@ -140,7 +140,6 @@ class SplashPage extends StatelessWidget {
   }
 
   void getSettings() async {
-
     // if(provider.workspace)
     // get("$sdHttpService$RUN_PREDICT", exceptionCallback: (e) {
     //   getSettingSuccess = -1;
@@ -151,16 +150,18 @@ class SplashPage extends StatelessWidget {
     //       .updateSDModel(modelName.substring(0, modelName.lastIndexOf('.')));
     //   getSettingSuccess = 1;
     // });
-    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 10,
+    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 8,
         exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) {
+      // logt(SplashPage.TAG, "get options${value?.data.toString() ?? ""}");
       // Options op = Options.fromJson(value.data);
       String modelName = value?.data['sd_model_checkpoint'];
 
       remoteTXT2IMGDir = value?.data['outdir_txt2img_samples'];
       remoteIMG2IMGDir = value?.data['outdir_img2img_samples'];
       remoteMoreDir = value?.data['outdir_extras_samples'];
+      remoteFavouriteDir = value?.data['outdir_save'];
 
       provider.sdServiceAvailable = true;
       provider.updateSDModel(modelName);
@@ -170,14 +171,24 @@ class SplashPage extends StatelessWidget {
 
   void jumpAndCancelTimerIfSettingIsReady(BuildContext context, String? token) {
     if (getSettingSuccess != null && getSettingSuccess != 0) {
-      if (_countdownTimer != null) {
-        _countdownTimer!.cancel();
-      }
       if (context.mounted) {
         Navigator.popAndPushNamed(context, ROUTE_HOME);
       }
     }
   }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   dependOnInheritedWidgetOfExactType()
+  // }
 
+  @override
+  void dispose() {
+    if (_countdownTimer != null) {
+      _countdownTimer?.cancel();
+      _countdownTimer = null;
+    }
 
+    super.dispose();
+  }
 }

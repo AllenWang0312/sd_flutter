@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:sd/sd/db_controler.dart';
@@ -72,4 +73,47 @@ bool createFileIfNotExit(File file) {
     }
   }
   return file.existsSync();
+}
+
+class FromTo {
+  String from;
+  String to;
+
+  FromTo(this.from, this.to);
+}
+
+
+FutureOr<dynamic> moveDirToAnotherPath(FromTo fromTo) async {
+  Directory pubPics = Directory(fromTo.from);
+  Directory priPics = Directory(fromTo.to);
+
+  List<FileSystemEntity> entitys = pubPics.listSync();
+  try {
+    for (FileSystemEntity entity in entitys) {
+      if (entity is Directory) {
+        await moveChildToAnotherPath(
+            getFileName(entity.path), entity.listSync(), priPics);
+      }
+    }
+    logt(TAG, "moveDirToAnotherPath Success");
+
+    return Future.value(1);
+  } catch (e) {
+    logt(TAG, "moveDirToAnotherPath failed ${e.toString()}");
+
+    return Future.error(-1);
+  }
+}
+
+Future<void> moveChildToAnotherPath(String fileName,
+    List<FileSystemEntity> listSync, Directory priPics) async {
+  listSync.forEach((element) async {
+    if (element is File) {
+      String newPath =
+          "${priPics.path}/$fileName/${getFileName(element.path)}";
+      logt(TAG, "${element.path} $newPath");
+      await element.copy(newPath);
+      await element.delete();
+    }
+  });
 }

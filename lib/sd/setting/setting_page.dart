@@ -12,11 +12,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
-import '../AIPainterModel.dart';
 import '../bean/db/Workspace.dart';
 import '../const/config.dart';
 import '../db_controler.dart';
 import '../http_service.dart';
+import '../provider/AIPainterModel.dart';
 
 final String TAG = "SettingPage";
 
@@ -80,16 +80,16 @@ class _SettingPageState extends State<SettingPage> {
             ),
             //https://d17eae44-da1d-413c.gradio.live
 
-            RadioListTile<ServiceNetLocation>(
+            Radio<ServiceNetLocation>(
                 value: ServiceNetLocation.share,
-                secondary: _netWorkSetting(shareController, true),
                 groupValue: value,
                 onChanged: _switchShare),
-            RadioListTile<ServiceNetLocation>(
+            _netWorkSetting(shareController, true),
+            Radio<ServiceNetLocation>(
                 value: ServiceNetLocation.private,
-                secondary: _netWorkSetting(hostController, false),
                 groupValue: value,
                 onChanged: _switchShare),
+            _netWorkSetting(hostController, false),
             Selector<AIPainterModel, bool>(
               selector: (_, model) => model.autoSave,
               shouldRebuild: (pre, next) => pre != next,
@@ -185,9 +185,10 @@ class _SettingPageState extends State<SettingPage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List datas = snapshot.data as List;
+                    logt(TAG,'ws count ${datas.length}');
                     if (datas.isNotEmpty) {
                       workspaces =
-                          datas.map((e) => Workspace.fromJson(e)).toList();
+                          datas.map((e) => Workspace.fromJson(e,asyncPath+WORKSPACES)).toList();
 
                       return Column(
                         children: workspaces!
@@ -250,7 +251,7 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<void> loadWorkSpacesFromDB() async {
     List? result = await DBController.instance.queryWorkspaces();
-    workspaces = result?.map((e) => Workspace.fromJson(e)).toList();
+    workspaces = result?.map((e) => Workspace.fromJson(e,asyncPath+WORKSPACES)).toList();
   }
 
   Future<void> editOrCreateWorkspace(BuildContext context,
@@ -275,7 +276,7 @@ class _SettingPageState extends State<SettingPage> {
 
         var map = await DBController.instance.queryStyles(workspace.id!);
         wsStyleConfigs = map!
-            .map((e) => PromptStyleFileConfig.fromJson(e, state: 1))
+            .map((e) => PromptStyleFileConfig.fromJson(e,getStylesPath(), state: 1))
             .toList();
       }
       logt(TAG, wsStyleConfigs.toString() ?? "null");
@@ -401,7 +402,7 @@ class _SettingPageState extends State<SettingPage> {
       height: 48,
       child: Row(
         children: [
-          const Text("  http;//"),
+          const Text("  http://"),
           Expanded(
             child: Container(
               padding: const EdgeInsets.only(left: 8, right: 8),

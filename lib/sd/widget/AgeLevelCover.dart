@@ -8,7 +8,7 @@ import 'package:sd/sd/const/config.dart';
 import '../../common/third_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
-import '../AIPainterModel.dart';
+import '../provider/AIPainterModel.dart';
 import '../tavern/bean/UniqueSign.dart';
 
 class AgeLevelCover extends StatelessWidget {

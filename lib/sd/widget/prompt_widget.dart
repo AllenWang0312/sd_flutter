@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/mocker.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 
 import '../bean/Configs.dart';
 import '../const/config.dart';
 import '../roll/tagger_widget.dart';
 import '../http_service.dart';
-
 
 class PromptWidget extends StatelessWidget {
   static const String TAG = "PromptWidget";
@@ -28,9 +27,7 @@ class PromptWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("${AppLocalizations
-            .of(context)
-            .prompt}:"),
+        Text("${AppLocalizations.of(context).prompt}:"),
         Row(
           children: [
             Expanded(
@@ -67,9 +64,7 @@ class PromptWidget extends StatelessWidget {
                           context: context,
                           builder: (_) {
                             return AlertDialog(
-                              title: Text(AppLocalizations
-                                  .of(context)
-                                  .tagger),
+                              title: Text(AppLocalizations.of(context).tagger),
                               content: ChangeNotifierProvider(
                                 create: (_) => TaggerModel(),
                                 child: TaggerWidget(),
@@ -93,9 +88,7 @@ class PromptWidget extends StatelessWidget {
             )
           ],
         ),
-        Text(AppLocalizations
-            .of(context)
-            .negativePrompt + ":"),
+        Text(AppLocalizations.of(context).negativePrompt + ":"),
         Row(
           children: [
             Expanded(
@@ -119,35 +112,34 @@ class PromptWidget extends StatelessWidget {
                     onPressed: () {
                       provider.cleanPrompts();
                     },
-                    child: Text(AppLocalizations
-                        .of(context)
-                        .clean)),
+                    child: Text(AppLocalizations.of(context).clean)),
                 TextButton(
                     onPressed: () {
                       post("$sdHttpService$RUN_PREDICT",
-                          formData: getLastPrompt())
+                              formData: getLastPrompt())
                           .then((value) {
                         // promptController.text = value?.data['data'][0]['value'];
                         // provider.cleanCheckedStyles();
-                        provider.updatePrompts(value?.data['data'][0]['value'],
-                            value?.data['data'][1]['value']);
+                        provider.updatePrompts(
+                          value?.data['data'][0]['value'],
+                          value?.data['data'][1]['value'],
+                          steps: value?.data['data'][2]['value'],
+                          sampler: value?.data['data'][3]['value'],
+                          cfgScale: value?.data['data'][5]['value'],
+                          seed: value?.data['data'][6]['value'],
+                        );
                       });
                     },
-                    child: Text(AppLocalizations
-                        .of(context)
-                        .load)),
+                    child: Text(AppLocalizations.of(context).load)),
                 TextButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(
+                    onPressed: () => Navigator.pushNamed(
                             context, ROUTE_STYLE_EDITTING,
                             arguments: {
                               "title": "新建style",
                               "prompt": promptController.text,
                               "negPrompt": negController.text
                             }),
-                    child: Text(AppLocalizations
-                        .of(context)
-                        .save)),
+                    child: Text(AppLocalizations.of(context).save)),
               ],
             ),
           ],

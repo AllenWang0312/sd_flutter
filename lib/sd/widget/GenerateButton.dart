@@ -11,13 +11,14 @@ import 'package:sd/sd/widget/LifecycleState.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 
-import '../AIPainterModel.dart';
+import '../provider/AIPainterModel.dart';
 import '../bean4json/GenerateProgress.dart';
 import '../const/config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
 import '../roll/RollModel.dart';
 
+const String TAG = "GenerateButton";
 class GenerateButton extends StatefulWidget{
   Function()? onPressed;
 
@@ -127,8 +128,9 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
   }
 
   void backgroundProgressCheck(GenerateProgress progress, RollModel model) {
-    if(null!=progress.active&&!progress.active!){
-      model.isBusy(REQUESTING);
+    if(null!=progress.completed&&!progress.completed!){
+      // model.isBusy(REQUESTING);
+      logt(TAG,'completed');
     }else{
       model.isBusy(INIT);
     }

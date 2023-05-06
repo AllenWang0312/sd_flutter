@@ -7,113 +7,106 @@ import 'package:provider/provider.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/roll/RollModel.dart';
 import 'package:sd/sd/roll/roll_widget.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/tavern/tavern_widget.dart';
 
 import '../MineWidget.dart';
 import '../history/records_widget.dart';
 import '../http_service.dart';
-import '../HomeModel.dart';
+import 'web_home_model.dart';
 
-class HomePage extends StatefulWidget {
+
+const TAG = 'HomePage';
+
+class HomePage extends StatelessWidget {
   int? index;
-  HomePage({super.key,this.index});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
+  HomePage({super.key, this.index});
 
-class _HomePageState extends State<HomePage>{
-  static const TAG = 'HomePageState';
 
-  @override
-  void didUpdateWidget(HomePage oldWidget) {
-    logt(TAG, 'didUpdateWidget');
-  }
+  GlobalKey<RecordsWidgetState> sonKey = GlobalKey();
 
-  late List<Widget> pages;
-
-  @override
-  void initState() {
-    super.initState();
-
-    pages = [
-      // LoraWidget(),
-      ChangeNotifierProvider(
-        create: (_) => RollModel(),
-        child: RollWidget(),
-      ),
-      ChangeNotifierProvider(
-        create: (_) => RecordsModel(),
-        child: RecordsWidget(),
-      ),
-      // MineWidget(),
-    ];
-  }
+  // List<Widget> pages = ;
 
   late AIPainterModel provider;
+
   // late HomeModel home;
 
   // late IpWidget ipManager;
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
-   if(null!=widget.index) provider.index = widget.index! ;
+    if (null != index) provider.index = index!;
     // home = Provider.of<HomeModel>(context, listen: false);
-    return DefaultTabController(
-        length: 4,
-        child: SafeArea(
-          child: Scaffold(
-            backgroundColor: COLOR_BACKGROUND,
-            bottomNavigationBar: Selector<AIPainterModel, int>(
-                selector: (_, model) => model.index,
-                shouldRebuild: (pre, next) => pre != next,
-                builder: (context, newValue, child) {
-                  return BottomNavigationBar(
-                    type: BottomNavigationBarType.fixed,
-                    currentIndex: newValue,
-                    items: [
-                      // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
-                      // BottomNavigationBarItem(
-                      //     icon: const Icon(Icons.find_in_page_outlined),
-                      //     label: AppLocalizations.of(context).tavern),
-
-                      BottomNavigationBarItem(
-                          icon: const Icon(Icons.draw_outlined),
-                          label: AppLocalizations.of(context).roll),
-                      BottomNavigationBarItem(
-                          icon: const Icon(Icons.find_in_page_outlined),
-                          label: AppLocalizations.of(context).history),
-
-                      // BottomNavigationBarItem(
-                      //     icon: const Icon(Icons.account_box_outlined),
-                      //     label: AppLocalizations.of(context).mine),
-                    ],
-                    onTap: (index) {
-                      Provider.of<AIPainterModel>(context, listen: false)
-                          .updateIndex(index);
-                    },
-                  );
-                  // return BottomAppBar(
-                  //   shape: const CircularNotchedRectangle(),
-                  //   child: Row(
-                  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  //     children: [
-                  //
-                  //     ],
-                  //   ),
-                  // );
-                }),
-            body: Selector<AIPainterModel, int>(
-              selector: (_, model) => model.index,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (context, newValue, child) => IndexedStack(
-                index: newValue,
-                children: pages,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: COLOR_BACKGROUND,
+        body: Selector<AIPainterModel, int>(
+          selector: (_, model) => model.index,
+          shouldRebuild: (pre, next) => pre != next,
+          builder: (context, newValue, child) => IndexedStack(
+            index: newValue,
+            children: [
+              // LoraWidget(),
+              ChangeNotifierProvider(
+                create: (_) => RollModel(),
+                child: RollWidget(),
               ),
-            ),
+              ChangeNotifierProvider(
+                create: (_) => RecordsModel(),
+                child: RecordsWidget(key: sonKey),
+              ),
+              // MineWidget(),
+            ],
           ),
-        ));
+        ),
+        bottomNavigationBar: Selector<AIPainterModel, int>(
+            selector: (_, model) => model.index,
+            shouldRebuild: (pre, next) => pre != next,
+            builder: (context, newValue, child) {
+              return BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                currentIndex: newValue,
+                items: [
+                  // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
+                  // BottomNavigationBarItem(
+                  //     icon: const Icon(Icons.find_in_page_outlined),
+                  //     label: AppLocalizations.of(context).tavern),
+
+                  BottomNavigationBarItem(
+                      icon: const Icon(Icons.draw_outlined),
+                      label: AppLocalizations.of(context).roll),
+                  BottomNavigationBarItem(
+                      icon: GestureDetector(
+                        onDoubleTap: () {
+                          logt(TAG, 'onDoubleTap');
+                          sonKey.currentState?.returnTopAndRefresh();
+                        },
+                        child: Icon(Icons.find_in_page_outlined),
+                      ),
+                      label: AppLocalizations.of(context).history),
+
+                  // BottomNavigationBarItem(
+                  //     icon: const Icon(Icons.account_box_outlined),
+                  //     label: AppLocalizations.of(context).mine),
+                ],
+                onTap: (index) {
+                  Provider.of<AIPainterModel>(context, listen: false)
+                      .updateIndex(index);
+                },
+              );
+              // return BottomAppBar(
+              //   shape: const CircularNotchedRectangle(),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //     children: [
+              //
+              //     ],
+              //   ),
+              // );
+            }),
+      ),
+    );
   }
 
   // get("$sdHttpService$GET_STYLES").then((value) {
@@ -134,12 +127,6 @@ class _HomePageState extends State<HomePage>{
   @override
   void deactivate() {
     logt(TAG, 'deactivate');
-  }
-
-  @override
-  Future<void> dispose() async {
-    logt(TAG, 'dispose');
-    super.dispose();
   }
 
   @override

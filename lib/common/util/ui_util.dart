@@ -19,7 +19,8 @@ var AGE_LEVEL_BLUR = ImageFilter.blur(
 var CHECK_IDENTITY = ImageFilter.blur(sigmaX: 15, sigmaY: 15);
 
 bottomSheetItem(String title, Function()? callback) {
-  return Expanded(
+  return SizedBox(
+    height:48,
     child: InkWell(
       onTap: callback,
       child: Center(

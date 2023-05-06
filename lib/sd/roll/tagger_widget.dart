@@ -18,14 +18,13 @@ import '../bean4json/PostPredictResult.dart';
 import '../const/config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
-import '../AIPainterModel.dart';
+import '../provider/AIPainterModel.dart';
 
 //todo 图片识别默认模型 从配置读取
-String DEFAULT_INTERROGATOR = 'wd14-vit-v2-git';
-
+String DEFAULT_INTERROGATOR = 'wd14-vit';
 
 class TaggerModel with ChangeNotifier, DiagnosticableTreeMixin {
-  String generate_prompt = "";
+  String? generate_prompt = "";
 
   int threshold = 30;
 
@@ -35,6 +34,8 @@ class TaggerModel with ChangeNotifier, DiagnosticableTreeMixin {
 
   void updateTaggerText(String value) {
     taggerText = value;
+    logt(TAG, "tagger updated");
+
     notifyListeners();
   }
 
@@ -48,7 +49,7 @@ class TaggerModel with ChangeNotifier, DiagnosticableTreeMixin {
     notifyListeners();
   }
 
-  void updatePrompt(String prompt) {
+  void updatePrompt(String? prompt) {
     this.generate_prompt = prompt;
     notifyListeners();
   }
@@ -56,10 +57,7 @@ class TaggerModel with ChangeNotifier, DiagnosticableTreeMixin {
 
 final String TAG = "TaggerWidget";
 
-
 class TaggerWidget extends StatelessWidget {
-
-
   TaggerWidget();
 
   List<String>? interrogators;
@@ -77,31 +75,53 @@ class TaggerWidget extends StatelessWidget {
         children: [
           InkWell(
             onTap: () async {
-              String prompt = await showModalBottomSheet(
+              XFile? target = await showModalBottomSheet(
                   useRootNavigator: true,
-                  // useSafeArea: false,
+                  // useSafeArea: true,
                   constraints: const BoxConstraints.expand(height: 98),
                   context: context,
                   builder: (context) {
                     return Column(
                       children: [
                         bottomSheetItem("从相册选择", () async {
-                          String prompt =
-                              await loadFileToImage(ImageSource.gallery);
-                          Navigator.pop(context, prompt);
+                          if (await checkStoragePermission()) {
+                            Navigator.pop(
+                                context,
+                                await loadFileToImageAndReturnPromptIfPosoable(
+                                    ImageSource.gallery));
+                          }
                         }),
                         const Divider(
                           height: 2,
                         ),
                         bottomSheetItem("拍摄", () async {
-                          String prompt =
-                              await loadFileToImage(ImageSource.camera);
-                          Navigator.pop(context, prompt);
+                          if (await checkStoragePermission()) {
+                            Navigator.pop(
+                                context,
+                                await loadFileToImageAndReturnPromptIfPosoable(
+                                    ImageSource.camera));
+                          }
                         })
                       ],
                     );
                   });
-              model.updatePrompt(prompt);
+
+              String? prompt;
+              if (null != target) {
+                Uint8List bytes = await target.readAsBytes();
+                model.updateBytes(bytes);
+                if (target.name.endsWith(".png") ||
+                    target.name.endsWith(".PNG")) {
+                  prompt = getPNGExtData(bytes);
+                } else {
+                  var exif = await readExifFromBytes(bytes);
+                  logt(TAG, "jpeg exif:" + exif.toString());
+                  prompt = exif.toString();
+                }
+                model.updatePrompt(prompt);
+
+                await syncTagger(bytes,provider.selectedInterrogator,model.threshold,model.updateTaggerText);
+              }
             },
             child: Selector<TaggerModel, Uint8List?>(
                 selector: (_, model) => model.selectedBytes,
@@ -137,6 +157,7 @@ class TaggerWidget extends StatelessWidget {
               if (snapshot.hasData) {
                 RunPredictResult result =
                     RunPredictResult.fromJson(snapshot.data?.data);
+                // logt(TAG,result.data[0].choices.toString());
                 interrogators = result.data[0].choices;
                 return Selector<AIPainterModel, String>(
                   selector: (_, model) => model.selectedInterrogator,
@@ -154,7 +175,7 @@ class TaggerWidget extends StatelessWidget {
                   },
                 );
               } else {
-                return  myPlaceholder(100,18);
+                return myPlaceholder(100, 18);
               }
             },
           ),
@@ -192,30 +213,29 @@ class TaggerWidget extends StatelessWidget {
               );
             },
           ),
-          Selector<TaggerModel, String>(
+          Selector<TaggerModel, String?>(
             selector: (_, model) => model.generate_prompt,
             shouldRebuild: (pre, next) => pre != next,
             builder: (_, newValue, child) {
               return Offstage(
-                offstage: newValue.isEmpty,
+                offstage: null == newValue || newValue.isEmpty,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text("生成关键词"),
+                        Text("文件头"),
                         Spacer(),
                         IconButton(
                             onPressed: () {
-                              provider.updatePrompt(model.generate_prompt);
+                              provider.updatePrompt(newValue);
                             },
                             icon: const RotatedBox(
                                 quarterTurns: -1,
                                 child: Icon(Icons.merge_type))),
                         IconButton(
                             onPressed: () {
-                              Clipboard.setData(
-                                  ClipboardData(text: model.generate_prompt));
+                              Clipboard.setData(ClipboardData(text: newValue!));
                               Fluttertoast.showToast(
                                   msg: "关键词已复制到剪切板",
                                   gravity: ToastGravity.CENTER);
@@ -223,7 +243,7 @@ class TaggerWidget extends StatelessWidget {
                             icon: const Icon(Icons.copy_all)),
                       ],
                     ),
-                    SelectableText(maxLines: 5, newValue),
+                    SelectableText(maxLines: 5, newValue!),
                   ],
                 ),
               );
@@ -231,8 +251,8 @@ class TaggerWidget extends StatelessWidget {
           ),
           Selector<TaggerModel, String>(
             selector: (_, model) => model.taggerText,
-            shouldRebuild: (pre, next) => pre != next,
             builder: (_, newValue, child) {
+              logt(TAG, "resolve newValue $newValue");
               return Offstage(
                 offstage: newValue.isEmpty,
                 child: Column(
@@ -243,14 +263,13 @@ class TaggerWidget extends StatelessWidget {
                       Spacer(),
                       IconButton(
                           onPressed: () {
-                            provider.updatePrompt(model.taggerText);
+                            provider.updatePrompt(newValue);
                           },
                           icon: const RotatedBox(
                               quarterTurns: -1, child: Icon(Icons.merge_type))),
                       IconButton(
                           onPressed: () {
-                            Clipboard.setData(
-                                ClipboardData(text: model.taggerText));
+                            Clipboard.setData(ClipboardData(text: newValue));
                             Fluttertoast.showToast(
                                 msg: "关键词已复制到剪切板",
                                 gravity: ToastGravity.CENTER);
@@ -268,40 +287,21 @@ class TaggerWidget extends StatelessWidget {
     );
   }
 
-  Future<String> loadFileToImage(ImageSource source) async {
-    if (await checkStoragePermission()) {
-      ImagePicker picker = ImagePicker();
-      XFile? file = await picker.pickImage(source: source);
-      if (null != file) {
-        Uint8List bytes = await file.readAsBytes();
-        model.updateBytes(bytes);
-        model.updateTaggerText(await getImageTagger(model.selectedBytes,
-            threshold: model.threshold));
-
-        if (file.name.endsWith(".png") || file.name.endsWith(".PNG")) {
-          return Future.value(getPNGExtData(bytes));
-        } else {
-          var exif = await readExifFromBytes(bytes);
-          logt(TAG, "jpeg exif:" + exif.toString());
-          return Future.value(exif.toString());
-        }
-      }
-    }
-    return Future.error("");
+  Future<XFile?> loadFileToImageAndReturnPromptIfPosoable(
+      ImageSource source) async {
+    ImagePicker picker = ImagePicker();
+    return await picker.pickImage(source: source);
   }
 }
 
-Future<String> getImageTagger(Uint8List? bytes, {int threshold = 30}) {
-  if (null != bytes) {
-    String encode = const Base64Encoder().convert(bytes);
-    post("$sdHttpService$RUN_PREDICT",
-            formData: tagger(encode, threshold / 100.0),
-            exceptionCallback: (e) {
-      logt(TAG,e.toString());
-            })
-        .then((value) {
-      return Future.value(value?.data['data'][0]);
-    });
-  }
-  return Future.error('');
+Future<void> syncTagger(Uint8List bytes,String interrogator,int threshold,Function(String) callback) async {
+  String encode = const Base64Encoder().convert(bytes);
+  await post("$sdHttpService$RUN_PREDICT",
+      formData: tagger(
+          encode, interrogator,threshold / 100.0),
+      exceptionCallback: (e) {
+        logt(TAG, e.toString());
+      }).then((value) {
+    callback(value?.data['data'].toString() ?? "");
+  });
 }

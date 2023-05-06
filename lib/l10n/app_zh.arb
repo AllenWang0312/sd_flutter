@@ -5,6 +5,8 @@
   "tavern": "酒馆",
   "history": "历史",
   "local": "本地",
+  "favourite": "喜欢",
+
   "remoteTxt2Img": "远端(文生图)",
   "remoteImg2Img": "远端(图生图)",
   "extras": "其他",
@@ -29,6 +31,8 @@
   "batchCount": "生成批次",
   "batchSize": "每批数量",
   "upscaler":"放大算法",
+  "resizeWidthTo": "宽度(放大到)",
+  "resizeHeightTo": "高度(放大到)",
   "hiresSteps":"放大步数",
 
   "upscaleBy": "放大倍数",

@@ -5,6 +5,7 @@ import 'package:sd/sd/tavern/bean/LocalFileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../common/util/file_util.dart';
 import 'tavern/bean/UniqueSign.dart';
 import 'bean/db/History.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
@@ -27,7 +28,7 @@ class DBController {
   String workspace = '';
   Database? database;
 
-  Future initDepends({String? workspace}) async {
+  Future initDepends(String dynamicPath,{String? workspace}) async {
     if (null != workspace) {
       this.workspace = workspace;
       if (null == database || !database!.isOpen) {
@@ -73,7 +74,7 @@ class DBController {
       var wss = await queryWorkspace(workspace);
       if (wss?.length == 1) {
         logt(TAG, wss![0].toString());
-        return Workspace.fromJson(wss![0]);
+        return Workspace.fromJson(wss![0],dynamicPath);
       }
     }
     return Future.value(null);
@@ -133,6 +134,8 @@ class DBController {
   }
 
   Future<int> insertWorkSpace(Workspace workspace) {
+    createDirIfNotExit(workspace.absPath);
+
     if (null != database && database!.isOpen) {
       return database!.insert(Workspace.TABLE_NAME, workspace.toJson());
     }

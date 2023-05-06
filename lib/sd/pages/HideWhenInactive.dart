@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sd/sd/widget/LifecycleState.dart';
 
 import '../../common/util/ui_util.dart';
-import '../AIPainterModel.dart';
+import '../provider/AIPainterModel.dart';
 import '../http_service.dart';
 
 const TAG = "HideWhenInactive";
@@ -122,6 +122,9 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
       }
     } else if (state == AppLifecycleState.inactive) {
       logt(TAG, "inactive");
+
+    } else if (state == AppLifecycleState.paused) {
+      logt(TAG, "paused");
       if (widget.needCheckUserIdentity &&
           provider.checkIdentityWhenReEnter &&
           availableBiometrics != null &&
@@ -130,8 +133,7 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
           showFilter = true;
         });
       }
-    } else if (state == AppLifecycleState.paused) {
-      logt(TAG, "paused");
+
     } else if (state == AppLifecycleState.detached) {
       logt(TAG, "detached");
     }

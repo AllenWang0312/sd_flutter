@@ -13,7 +13,7 @@ class RollModel with ChangeNotifier, DiagnosticableTreeMixin {
 
   double? progress = 0;
   Uint8List? previewData;
-  bool backgroundProgress = true; //主动检查 progress
+  bool backgroundProgress = true; //后台10s 检查progress 或者请求时 主动1s检查 progress
 
   void isBusy(int i) {
     isGenerating = i;

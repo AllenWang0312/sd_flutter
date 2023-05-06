@@ -1,38 +1,53 @@
 import 'dart:io';
-import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:sd/platform/platform.dart';
+import 'package:provider/provider.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/widget/AgeLevelCover.dart';
-
-import '../http_service.dart';
+import '../widget/PageListViewer.dart';
 
 
 const TAG = "HistoryWidget";
-class HistoryWidget extends StatefulWidget {
-  const HistoryWidget({super.key});
+class HistoryWidget extends PageListViewer {
+   // HistoryWidget({super.key});
+
+
+   bool asc = false;
+
+_HistoryWidgetState state = _HistoryWidgetState();
+  @override
+  State<HistoryWidget> createState() => state;
+
 
   @override
-  State<HistoryWidget> createState() => _HistoryWidgetState();
+  void returnTopAndRefresh() {
+    state._scroller.jumpTo(0);
+
+    if(pageNum>0){
+      pageNum=0;
+      state.loadData(pageNum, pageSize, dateOrder, asc);
+    }
+
+    // state._controller.callRefresh()
+  }
 }
 
 class _HistoryWidgetState extends State<HistoryWidget> with AutomaticKeepAliveClientMixin{
-  int pageNum = 0;
-  int pageSize = 20;
+
   List<History> history = [];
 
   int viewType = 0;
 
   //list grid flot scale
-  bool dateOrder = true;
-  bool asc = false;
+
 
   late EasyRefreshController _controller;
+  late ScrollController _scroller;
 
   @override
   Widget build(BuildContext context) {
@@ -40,40 +55,47 @@ class _HistoryWidgetState extends State<HistoryWidget> with AutomaticKeepAliveCl
       controlFinishRefresh: true,
       controlFinishLoad: true,
     );
+    _scroller = ScrollController();
     return EasyRefresh.builder(
         refreshOnStart: true,
         controller: _controller,
         onRefresh: () async {
-          pageNum = 0;
+          widget.pageNum = 0;
           history.clear();
-          loadData(pageNum, pageSize, dateOrder, asc);
+          loadData(widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
         },
         onLoad: () async {
-          pageNum += 1;
-          loadData(pageNum, pageSize, dateOrder, asc);
+          widget.pageNum += 1;
+          loadData(widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
         },
         childBuilder: (context, physics) {
           return MasonryGridView.count(
             physics: physics,
+            controller: _scroller,
             itemCount: history.length,
             itemBuilder: (context, index) {
               // History item = History.fromJson(snapshot.data![index]);
               History item = history[index];
-              var file = File(item.localPath!);
-              logt(TAG,item.localPath!);
-              return InkWell(
+              // Uri uri = Uri.file(item.localPath!);
+              // File(uri.ab);
+
+              File file = File(item.localPath!);
+              AIPainterModel provider = Provider.of<AIPainterModel>(context);
+              return file.existsSync()?InkWell(
                 onTap: () async {
                   Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
                       arguments: {
                         "urls": history,
                         "index": index,
-                        "savePath": getWorkspacesPath(),
+                        // "savePath": WORKSPACES,
+                        "scanAvailable":provider.sdServiceAvailable,
+                        "isFavourite":true,
                       });
                 },
                 // child: AgeLevelCover(item),
                 child: Image.file(file),
 
-              );
+              ):CachedNetworkImage(imageUrl: placeHolderUrl(width:256,height:256));
             },
             crossAxisCount: 2,
             mainAxisSpacing: 2,
@@ -94,7 +116,6 @@ class _HistoryWidgetState extends State<HistoryWidget> with AutomaticKeepAliveCl
         ?.then((value) {
       // setState(() {
       var list = value.map((e) => History.fromJson(e)).toList();
-logt(TAG,list.toString());
       if (filterNotExist) {
         list.removeWhere((element) =>
         element.localPath == null || !File(element.localPath!).existsSync());

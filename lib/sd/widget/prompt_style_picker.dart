@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
-import 'package:sd/sd/AIPainterModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
 
 import '../../common/util/string_util.dart';
 
@@ -81,30 +81,31 @@ class PromptStylePicker extends StatelessWidget {
 
   Future<void> showStyleDialog(BuildContext context) async {
     if (null != provider.publicStyles) {
-      var result = await showDialog(
+      showModalBottomSheet(
           context: context,
           builder: (context) {
             AIPainterModel provider = Provider.of<AIPainterModel>(context);
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context).choseStyles),
-              content: SingleChildScrollView(
-                child: Column(
-                  children: generateStyles(provider.publicStyles!!),
-                ),
+            return SingleChildScrollView(
+              child: Column(
+                children: generateStyles(provider.publicStyles!),
               ),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, "cancel");
-                    },
-                    child: Text(AppLocalizations.of(context).cancel)),
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, "");
-                    },
-                    child: Text(AppLocalizations.of(context).ok)),
-              ],
             );
+            // return AlertDialog(
+            //   title: Text(AppLocalizations.of(context).choseStyles),
+            //   content:
+            //   actions: [
+            //     TextButton(
+            //         onPressed: () {
+            //           Navigator.pop(context, "cancel");
+            //         },
+            //         child: Text(AppLocalizations.of(context).cancel)),
+            //     TextButton(
+            //         onPressed: () {
+            //           Navigator.pop(context, "");
+            //         },
+            //         child: Text(AppLocalizations.of(context).ok)),
+            //   ],
+            // );
           });
     }
   }

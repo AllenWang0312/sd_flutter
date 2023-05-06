@@ -1,5 +1,6 @@
 
 import '../bean/Data.dart';
+import '../http_service.dart';
 
 class RunPredictResult {
   RunPredictResult({
@@ -12,7 +13,12 @@ class RunPredictResult {
     if (json['data'] != null) {
       data = [];
       json['data'].forEach((v) {
-        data.add(Data.fromJson(v));
+        if(v is String){
+          logt(TAG,v);
+        }else{
+          data.add(Data.fromJson(v));
+        }
+
       });
     }
     isGenerating = json['is_generating'];

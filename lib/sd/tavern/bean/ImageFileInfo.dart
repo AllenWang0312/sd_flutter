@@ -23,7 +23,10 @@ abstract class ImageFileInfo extends Showable{
 
   File get file => File(getLocalPath());
 
-
+  @override
+  String getFileLocation() {
+    return url??localPath??"";
+  }
 
   String getLocalPath() {
     localPath ??= "${getCollectionsPath()}/$name";
@@ -94,10 +97,7 @@ abstract class ImageFileInfo extends Showable{
     return _exif;
   }
 
-  @override
-  String getFileLocation() {
-    return url??localPath??"";
-  }
+
 
   String getFileMD5(Uint8List data) {
     _fileMD5 ??= md5.convert(data).toString();

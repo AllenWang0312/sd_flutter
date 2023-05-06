@@ -1,4 +1,6 @@
+import 'package:sd/common/util/file_util.dart';
 import 'package:sd/platform/platform.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 const int PATH_TYPE_APP_PRIVATE = 0;
 const int PATH_TYPE_HIDE = 1;
@@ -7,21 +9,22 @@ const int PATH_TYPE_PUBLIC = 2;
 class Workspace {
   static String TABLE_NAME = 'workspaces';
   static String TABLE_CREATE =
-      "id INTEGER PRIMARY KEY, name TEXT,dirPath TEXT,pathType INTEGER,recordCount INTEGER,imageCount INTEGER";
+      "id INTEGER PRIMARY KEY, name TEXT,pathType INTEGER,recordCount INTEGER,imageCount INTEGER";
 
   Workspace(
-    this.name,
-    String dirPath, {
+    String dynamicPath,
+      this.name,{
     this.recordCount,
     this.imageCount,
   }){
-    this._dirPath = dirPath;
+    this._dynamicPath = dynamicPath;
   }
 
-  Workspace.fromJson(dynamic json) {
+  Workspace.fromJson(dynamic json,String dynamicPath) {
     id = json['id'];
     name = json['name'];
-    _dirPath = json['dirPath'];
+    _dynamicPath = dynamicPath;
+
     pathType = json['pathType'];
 
     recordCount = json['recordCount'];
@@ -30,7 +33,7 @@ class Workspace {
 
   int? id;
   String name = '';
-  String _dirPath = '';
+  String _dynamicPath="";
   int? pathType = 0;
 
   int? recordCount;
@@ -47,7 +50,6 @@ class Workspace {
     final map = <String, dynamic>{};
     map['id'] = id;
     map['name'] = name;
-    map['dirPath'] = _dirPath;
     map['pathType'] = pathType;
     map['recordCount'] = recordCount;
     map['imageCount'] = imageCount;
@@ -55,11 +57,18 @@ class Workspace {
   }
 
   String get dirPath {
-    return "$_dirPath/$name";
+    return "$_dynamicPath";
+  }
+  String get absPath{
+    return "$_dynamicPath/$name";
   }
 
   String getDesc() {
-    return removeAndroidPrePathIfIsPublic(dirPath);
+   if(UniversalPlatform.isAndroid)
+     return removeAndroidPrePathIfIsPublic(dirPath);
+   if(UniversalPlatform.isAndroid)
+     return absPath.substring(absPath.indexOf('/Library'));
+   return dirPath;
     // return '记录数：$recordCount, 图片数：$imageCount';
   }
 

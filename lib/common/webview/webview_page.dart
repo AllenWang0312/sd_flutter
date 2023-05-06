@@ -6,6 +6,7 @@ import 'package:sd/common/webview/WebControlModel.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+import '../../platform/platform.dart';
 import '../third_util.dart';
 import 'NavigationControls.dart';
 import 'const.dart';
@@ -129,7 +130,7 @@ class _WebViewStatefulPageState extends State<WebViewStatefulPage> {
                         Fluttertoast.showToast(msg:
                         // result
                             saveUrlToLocal(
-                                    menu, getRemoteFileNameNoExtend(widget.title, menu), widget.savePath!,domain: widget.title)
+                                    menu, getRemoteFileNameNoExtend(widget.title, menu),widget.savePath!,domain: widget.title)
                                 .toString()
                             );
                         // platform.invokeMethod(

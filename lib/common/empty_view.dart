@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class EmptyView extends StatelessWidget {
   bool? error = false;
-
 
   EmptyView({this.error});
 
@@ -11,12 +11,15 @@ class EmptyView extends StatelessWidget {
   // }
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
+    return Expanded(
+      child: Center(
+        child: Column(
           children: [
-      // Image.asset(Named)
-      Text(error==true?"发生了一些错误":"暂无数据")
-      ],
-    ),);
+            Icon(Icons.error_outline),
+            Text(error == true ? "发生了一些错误" : "暂无数据")
+          ],
+        ),
+      ),
+    );
   }
 }

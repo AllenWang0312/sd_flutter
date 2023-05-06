@@ -6,7 +6,7 @@ import 'package:sd/sd/pages/home_page.dart';
 import 'package:sd/sd/roll/RollModel.dart';
 
 import '../../common/ui_util.dart';
-import '../AIPainterModel.dart';
+import '../provider/AIPainterModel.dart';
 import '../bean4json/PostPredictResult.dart';
 import '../const/config.dart';
 import '../http_service.dart';

@@ -1,24 +1,47 @@
 const CMD_REFRESH_MODEL = 0;
-const CMD_GET_LAST_PROMPT = 9;
-const CMD_REFRESH_STYLE = 124;
-const CMD_CLEAN_SEED = 128;
+const CMD_REFRESH_STYLE = CMD_REFRESH_MODEL+6;
+
+const CMD_GET_LAST_PROMPT = CMD_REFRESH_MODEL+9;//9
+
+const CMD_CLEAN_SEED = 126;
+
 const CMD_MULTI_GENERAGE =244;
+
+const CMD_GET_LAST_SEED =288;
+
+
 const CMD_SAVE_STYLE = 499;
 
-const CMD_GET_TXT2IMG_HISTORY = 565;
-const CMD_GET_IMG2IMG_HISTORY = 587;
+const CMD_GET_INTERROGATORS = 704;
 
-const CMD_GET_TXT2IMG_GRID_HISTORY = 579;
-const CMD_GET_IMG2IMG_GRID_HISTORY = 601;
+const CMD_IMG_TAGGER = 708;
 
-const CMD_GET_MORE_HISTORY = 623;
+const CMD_SWITCH_SD_MODEL = 731;
 
-const CMD_DELETE_FILE = 875;
-const CMD_GET_INTERROGATORS = 858;
-const CMD_IMG_TAGGER = 679;
-const CMD_GET_ALL_SETTING = 885;
-const CMD_SWITCH_SD_MODEL = 656;
-const CMD_GET_CONFIGS = 897;
+
+
+
+const CMD_GET_TXT2IMG_HISTORY = 688;
+
+// const CMD_GET_IMG2IMG_HISTORY = CMD_GET_TXT2IMG_HISTORY+22;
+//
+// const CMD_GET_TXT2IMG_GRID_HISTORY = CMD_GET_TXT2IMG_HISTORY+34;
+//
+// const CMD_GET_IMG2IMG_GRID_HISTORY = CMD_GET_TXT2IMG_HISTORY+66;
+
+const CMD_DELETE_FILE = 752;//664
+
+const CMD_ADD_TO_FAVOURITE = CMD_DELETE_FILE+2;
+
+
+const CMD_GET_MORE_HISTORY = CMD_GET_TXT2IMG_HISTORY+88;//776; delete 764
+
+const CMD_FAVOURITE_HISTORY = CMD_GET_TXT2IMG_HISTORY+109;//797 delete 786
+
+
+const CMD_GET_ALL_SETTING = 1008;
+
+const CMD_GET_CONFIGS = CMD_GET_ALL_SETTING +12;
 
 const BASE64_PREFIX = 'data:image/png;base64,';
 
@@ -181,7 +204,7 @@ dynamic getPreview(int id){
   };
 }
 //data:image/png;base64,
-dynamic tagger(String encodeData,double threshold){
+dynamic tagger(String encodeData,String interrogator,double threshold){
   return {
     "fn_index": CMD_IMG_TAGGER,
     "data": [
@@ -192,8 +215,7 @@ dynamic tagger(String encodeData,double threshold){
       "[name].[output_extension]",
       "ignore",
       false,
-      false,
-      "wd14-vit-v2-git",//interrogator 858刷新
+      interrogator,//interrogator 858刷新
       threshold,
       "",
       "",
@@ -209,10 +231,29 @@ dynamic tagger(String encodeData,double threshold){
 }
 
 
-
-dynamic delateFile(String? filePath,int page,int index,int pageSize){
+dynamic getRemoteHistoryInfo(int fnIndex,int index,int page,String type){
   return {
-    "fn_index": CMD_DELETE_FILE,
+    "fn_index": fnIndex,
+    "data": [
+      type,
+      "$index",
+      page
+    ],
+    // "session_hash": "ilpmq48h4ug"
+  };
+}
+dynamic addToFavourite(int fnIndex,String remoteFilePath){
+  return {
+    "fn_index": fnIndex,
+    "data": [
+      remoteFilePath
+    ],
+    // "session_hash": "ilpmq48h4ug"
+  };
+}
+dynamic delateFile(int fnIndex,String? filePath,int page,int index,int pageSize){
+  return {
+    "fn_index": fnIndex,
     "data": [
       1,
       filePath,

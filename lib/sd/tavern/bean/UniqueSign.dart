@@ -2,7 +2,7 @@
 
 import 'dart:typed_data';
 
-import '../../AIPainterModel.dart';
+import '../../provider/AIPainterModel.dart';
 import 'ImageFileInfo.dart';
 
 Map<String, Object?> toDynamic(String sign,int ageLevel){
