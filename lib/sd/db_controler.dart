@@ -128,6 +128,15 @@ class DBController {
     return Future.value(-1);
   }
 
+  Future<int> deleteLocalRecord(String localFilePath) async {
+    if (null != database && database!.isOpen) {
+      return database!.delete(History.TABLE_NAME,
+          where: "imgPath = ?",
+          whereArgs: [localFilePath]);
+    }
+    return Future.value(-1);
+  }
+
   Future<List<dynamic>>? queryAgeLevelRecord() {
     return database?.rawQuery(
         'SELECT * FROM ${LocalFileInfo.TABLE_NAME} ORDER BY ageLevel DESC');

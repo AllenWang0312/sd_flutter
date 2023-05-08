@@ -7,10 +7,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
-
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/roll/RollModel.dart';
+import 'package:sd/sd/roll/plgins/plugins_widget.dart';
 import 'package:sd/sd/widget/sampler_widget.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -61,7 +61,11 @@ class _RollWidgetState extends State<RollWidget> {
 
     if (UniversalPlatform.isAndroid) {
       actions.putIfAbsent(
-          Icons.image, () => () => Navigator.pushNamed(context, ROUTE_TAVERN));
+          Icons.image,
+          () => () {
+                logt(TAG, "added action taped");
+                Navigator.pushNamed(context, ROUTE_TAVERN);
+              });
     }
     actions.putIfAbsent(
         Icons.settings,
@@ -73,7 +77,7 @@ class _RollWidgetState extends State<RollWidget> {
             });
     if (null != appBar) {
       appBar?.updateTitle(title);
-      // appBar?.updateActions();
+      appBar?.addActions(actions);
     }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -130,7 +134,7 @@ class _RollWidgetState extends State<RollWidget> {
         //todo autosave 在要求权限
         model.isBusy(REQUESTING);
         var from = {
-          "steps": provider.config.steps,
+          "steps": provider.promptType==3?provider.config.steps*2:provider.config.steps,
           "denoising_strength": 0.3,
           "firstphase_width": provider.config.width,
           "firstphase_height": provider.config.height,
@@ -150,18 +154,21 @@ class _RollWidgetState extends State<RollWidget> {
           // "sampler_index": provider.selectedSampler,
           // "script_name": sdModelManager.getModel(provider.selectedSDModel),
           "save_images": kDebugMode,
-          "seed": provider.config.seed,
+          "seed": -1,//provider.config.seed,
         };
         // if (true) {
-        if (provider.generateType == 0 && provider.batchCount == 1) {
-          String prompt = appendCommaIfNotExist(provider.config.prompt) +
-              promptStylePicker.getStylePrompt();
-          String negativePrompt =
-              appendCommaIfNotExist(provider.config.negativePrompt) +
-                  promptStylePicker.getStyleNegPrompt();
-          from['prompt'] = prompt + provider.getCheckedPluginsString();
-          from['negative_prompt'] = negativePrompt;
 
+        String prompt = appendCommaIfNotExist(provider.config.prompt) +
+            promptStylePicker.getStylePrompt();
+        logt(TAG, prompt);
+        String negativePrompt =
+            appendCommaIfNotExist(provider.config.negativePrompt) +
+                promptStylePicker.getStyleNegPrompt();
+        from['prompt'] = prompt + provider.getCheckedPluginsString();
+        from['negative_prompt'] = negativePrompt;
+        if (
+            // provider.generateType == 0 &&
+            provider.batchCount == 1) {
           post("$sdHttpService$TXT_2_IMG", formData: from,
               exceptionCallback: (e) {
             model.isBusy(ERROR);
@@ -171,39 +178,32 @@ class _RollWidgetState extends State<RollWidget> {
                 gravity: ToastGravity.CENTER);
           }).then((value) async {
             if (value != null) {
-              if (provider.batchCount == 1) {
-                provider.lastGenerate = value.data['data'][0][0]['name'];
-                Fluttertoast.showToast(
-                    msg: '生成成功:远端地址 ${provider.lastGenerate}');
-              } else {
-                // saveBytes(context,value?.data["images"],provider.batchSize);
-                List<Uint8List> datas = [];
-                for (String item in value.data["images"]) {
-                  Uint8List? bytes = base64Decode(item);
-                  datas.add(bytes);
-                  // prefs.then((sp) => {});
-                  if (provider.autoSave) {
-                    String now = DateTime.now().toString();
-                    logt(TAG, now.substring(0, 10));
-                    String fileName = "${dbString(now)}.png";
-                    // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
-                    String result = await saveBytesToLocal(
-                        bytes, fileName, provider.selectWorkspace!.absPath);
-                    int? insert = await DBController.instance.insertHistory(
-                      History(
-                          prompt: prompt,
-                          negativePrompt: negativePrompt,
-                          width: provider.config.width,
-                          height: provider.config.height,
-                          imgPath: result,
-                          date: now.substring(0, 10),
-                          time: now.substring(10),
-                          workspace: provider.selectWorkspace?.name),
-                    );
-                  }
-                }
-
-                if (!provider.autoSave) {
+              logt(TAG, value.data.toString());
+              // saveBytes(context,value?.data["images"],provider.batchSize);
+              List<Uint8List> datas = [];
+              for (String item in value.data["images"]) {
+                Uint8List? bytes = base64Decode(item);
+                datas.add(bytes);
+                // prefs.then((sp) => {});
+                if (provider.autoSave) {
+                  String now = DateTime.now().toString();
+                  logt(TAG, now.substring(0, 10));
+                  String fileName = "${dbString(now)}.png";
+                  // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
+                  String result = await saveBytesToLocal(
+                      bytes, fileName, provider.selectWorkspace!.absPath);
+                  int? insert = await DBController.instance.insertHistory(
+                    History(
+                        prompt: prompt,
+                        negativePrompt: negativePrompt,
+                        width: provider.config.width,
+                        height: provider.config.height,
+                        imgPath: result,
+                        date: now.substring(0, 10),
+                        time: now.substring(10),
+                        workspace: provider.selectWorkspace?.name),
+                  );
+                } else {
                   Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
                     "datas": datas,
                     "savePath": provider.selectWorkspace!.dirPath,
@@ -216,7 +216,7 @@ class _RollWidgetState extends State<RollWidget> {
             }
           });
         } else {
-          from['styles'] = provider.checkedStyles;
+          // from['styles'] = provider.checkedStyles;
 
           post("$sdHttpService$RUN_PREDICT",
               formData: multiGenerateBody(
@@ -230,32 +230,40 @@ class _RollWidgetState extends State<RollWidget> {
                 gravity: ToastGravity.CENTER);
           }).then((value) async {
             logt(TAG, value?.data?.toString() ?? "null");
+            List? fileProt = value?.data['data'][0];
+            if (null != fileProt) {
+              if (provider.autoSave) {
+                for (int i = 1; i < fileProt.length; i++) {
+                  //tode 默认不保存grid
+                  dynamic item = fileProt[i];
+                  String fileName = dbString("${DateTime.now()}.png");
+                  String path = await saveUrlToLocal(nameToUrl(item['name']),
+                      fileName, provider.selectWorkspace!.dirPath);
 
-            List fileProt = value?.data['data'][0];
-            if (provider.autoSave) {
-              for (int i = 1; i < fileProt.length; i++) {
-                //tode 默认不保存grid
-                dynamic item = fileProt[i];
-                String fileName = dbString("${DateTime.now()}.png");
-                String path = await saveUrlToLocal(nameToUrl(item['name']),
-                    fileName, provider.selectWorkspace!.dirPath);
-                // int insert = await DBController.instance.insertHistory(History(
-                //     prompt: provider.config.prompt,
-                //     negativePrompt: negativePrompt,
-                //     width: provider.config.width,
-                //     height: provider.config.height,
-                //     imgPath: path,
-                //     workspace: provider.selectWorkspace?.name));
-                // print('insert:$insert');
+                  // provider.lastGenerate = value.data['data'][0][0]['name'];
+                  // Fluttertoast.showToast(
+                  //     msg: '生成成功:远端地址 ${provider.lastGenerate}');
+
+                  // int insert = await DBController.instance.insertHistory(History(
+                  //     prompt: provider.config.prompt,
+                  //     negativePrompt: negativePrompt,
+                  //     width: provider.config.width,
+                  //     height: provider.config.height,
+                  //     imgPath: path,
+                  //     workspace: provider.selectWorkspace?.name));
+                  // print('insert:$insert');
+                }
+              } else {
+                Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
+                  "urls": fileProt!
+                      .map((e) => GenerateResultItem.fromJson(e))
+                      .toList(),
+                  "savePath": provider.selectWorkspace!.dirPath,
+                  "scanAvailable": provider.sdServiceAvailable
+                });
               }
             } else {
-              Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-                "urls": fileProt
-                    .map((e) => GenerateResultItem.fromJson(e))
-                    .toList(),
-                "savePath": provider.selectWorkspace!.dirPath,
-                "scanAvailable": provider.sdServiceAvailable
-              });
+              Fluttertoast.showToast(msg: '接口错误');
             }
 
             model.isBusy(INIT);
@@ -286,33 +294,36 @@ class _RollWidgetState extends State<RollWidget> {
               // Callback that sets the selected segmented control.
               onValueChanged: (SetType? value) {
                 if (value == SetType.lora) {
-                  Navigator.pushNamed(context, ROUTE_PLUGINS);
-                  // showBottomSheet(
-                  //     context: context,
-                  //     builder: (context) {
-                  //       return PluginsWidget();
-                  //     });
+                  if (isMobile()) {
+                    Navigator.pushNamed(context, ROUTE_PLUGINS);
+                  } else {
+                    showBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return const PluginsWidget();
+                        });
+                  }
                 } else if (value != null) {
                   model.updateSetIndex(value);
                 }
               },
               children: <SetType, Widget>{
                 SetType.basic: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     AppLocalizations.of(context).basic,
-                    style: TextStyle(color: CupertinoColors.white),
+                    style: const TextStyle(color: CupertinoColors.white),
                   ),
                 ),
                 SetType.advanced: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     AppLocalizations.of(context).advance,
-                    style: TextStyle(color: CupertinoColors.white),
+                    style: const TextStyle(color: CupertinoColors.white),
                   ),
                 ),
                 SetType.lora: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Selector<AIPainterModel, int?>(
                         selector: (_, model) =>
                             model.checkedPlugins.values.length,
@@ -326,7 +337,7 @@ class _RollWidgetState extends State<RollWidget> {
                         },
                         child: Text(
                           AppLocalizations.of(context).plugin,
-                          style: TextStyle(color: CupertinoColors.white),
+                          style: const TextStyle(color: CupertinoColors.white),
                         ))),
                 // SetType.hyp: Padding(
                 //   padding: EdgeInsets.symmetric(horizontal: 20),

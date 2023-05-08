@@ -65,7 +65,7 @@ class SDModelWidget extends StatelessWidget {
                             onChanged: (newValue) async {
                               roll.isBusy(REQUESTING);
                               post("$sdHttpService$RUN_PREDICT", formData: {
-                                "data": [getModel(newValue)],
+                                "data": [newValue],//getModel
                                 "fn_index": CMD_SWITCH_SD_MODEL
                               }, exceptionCallback: (e) {
                                 roll.isBusy(ERROR);

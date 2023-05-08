@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:csv/csv.dart';
-import 'package:sd/sd/db_controler.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
+import 'package:sd/sd/db_controler.dart';
+
 import '../../sd/bean/PromptStyle.dart';
 import '../../sd/http_service.dart';
 
@@ -26,22 +28,23 @@ const EXIF_IMAGE_KEYWORDS_KEY = 'Image XPKeywords';
 const EXIF_IMAGE_PADDING_KEY = 'Image Padding';
 const EXIF_EXIF_PADDING_KEY = 'EXIF Padding';
 
-
 Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
   String myData = await File(csvFilePath).readAsString();
+  return loadPromptStyleFromString(myData);
+}
+
+List<PromptStyle> loadPromptStyleFromString(String myData, {int flag = 0}) {
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
-  List<dynamic> colums = csvTable.removeAt(0);
-  int nameIndex = colums.indexOf(PromptStyle.NAME);
-  int typeIndex = colums.indexOf(PromptStyle.TYPE);
-  int promptIndex = colums.indexOf(PromptStyle.PROMPT);
-  int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
-  return csvTable
-      .map((e) => PromptStyle(
-      name: e[nameIndex],
-      type: e[typeIndex],
-      prompt: e[promptIndex],
-      negativePrompt: e[negPromptIndex]))
-      .toList();
+  List colums = csvTable.removeAt(0);
+  // int nameIndex = colums.indexOf(PromptStyle.NAME);
+  // int promptIndex = colums.indexOf(PromptStyle.PROMPT);
+  // int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
+  return csvTable.map((e) {
+    return PromptStyle(e.isNotEmpty?e[0]:'',
+        prompt: e.length>1?e[1]:null,
+        negativePrompt: e.length>2?e[2]:null,
+    flag: flag);
+  }).toList();
 }
 
 String? getPNGExtData(Uint8List bytes) {
@@ -56,7 +59,6 @@ String? getPNGExtData(Uint8List bytes) {
   }
   return null;
 }
-
 
 bool createDirIfNotExit(String dirPath) {
   Directory dir = Directory(dirPath);
@@ -73,8 +75,10 @@ bool createDirIfNotExit(String dirPath) {
 String getFileName(String absPath) {
   return absPath.substring(absPath.lastIndexOf("/") + 1);
 }
-String getRemoteFileNameNoExtend(String domain,String url) {
-  if(domain.contains('pixai.art')){//domain.contains('krea.ai')||
+
+String getRemoteFileNameNoExtend(String domain, String url) {
+  if (domain.contains('pixai.art')) {
+    //domain.contains('krea.ai')||
     return dbString(DateTime.now().toString());
   }
   return url.substring(url.lastIndexOf("/") + 1);
@@ -102,7 +106,6 @@ class FromTo {
   FromTo(this.from, this.to);
 }
 
-
 FutureOr<dynamic> moveDirToAnotherPath(FromTo fromTo) async {
   Directory pubPics = Directory(fromTo.from);
   Directory priPics = Directory(fromTo.to);
@@ -125,12 +128,11 @@ FutureOr<dynamic> moveDirToAnotherPath(FromTo fromTo) async {
   }
 }
 
-Future<void> moveChildToAnotherPath(String fileName,
-    List<FileSystemEntity> listSync, Directory priPics) async {
+Future<void> moveChildToAnotherPath(
+    String fileName, List<FileSystemEntity> listSync, Directory priPics) async {
   listSync.forEach((element) async {
     if (element is File) {
-      String newPath =
-          "${priPics.path}/$fileName/${getFileName(element.path)}";
+      String newPath = "${priPics.path}/$fileName/${getFileName(element.path)}";
       logt(TAG, "${element.path} $newPath");
       await element.copy(newPath);
       await element.delete();

@@ -52,8 +52,8 @@ class CreateStyleModel with ChangeNotifier, DiagnosticableTreeMixin {
     List<PromptStyle> result = [];
     for (PromptStyle style in split) {
       result.add(PromptStyle(
-          name: style.name,
-          type: style.type,
+          style.name,
+          // type: style.type,
           prompt: style.prompt,
           negativePrompt: style.negativePrompt));
     }

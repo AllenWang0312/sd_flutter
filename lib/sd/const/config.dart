@@ -40,6 +40,7 @@ const String SP_SHARE_HOST = 'share_host';
 const String SP_HOST = 'host';
 const String SP_SHARE = 'share';
 const String SP_GENERATE_TYPE = 'generate_type';
+const String SP_PROMPT_TYPE = 'prompt_type';
 
 const String SP_CURRENT_WS = 'current_ws';
 const String SP_WIDTH = "width";

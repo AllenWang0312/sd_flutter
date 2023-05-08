@@ -1,0 +1,12 @@
+name,prompt,negative_prompt
+镜头,"",
+默认关键词,"masterpiece,best quality,official art,extremely detailed CG unity 8k wallpaper,illustration highres original,ultra-detailed,masterpiece,lifelike,vivid, intricate details","EasyNegative,"
+negative ext,"","paintings,sketches,(worst quality:2),(low quality:2),(normal quality:2),lowres,normal quality,((monochrome)),((grayscale)),skin spots,acnes,skin blemishes,age spot,glans,extra fingers,fewer fingers,((watermark:2)),((white letters:1)),lowres,bad anatomy,bad hands,error,missing fingers,extra digit,fewer digits,cropped,worst quality,low qualitynormal quality,jpeg aritfacts,signture,watermark,username,blurry,bad feet,{Multipie people},lowres,bad anatomy,bad hands,text,error,missing fingers,extrad digit,fewer digits,cropped,worstquality,poorly drawn hands,poorly drawn face,mutation,deformed,worst quality,low quality,normal quality,extra limbs,extra arms,extra legs,maltormed limbs,fused fingers,too many fingers,mutate hands,bad body,error,gross proportions,"
+背景虚化,"blurry, blurry background,depth of field",
+正确透视,"correct perspective",
+幻想风格*,"(fantasy style:1.3) look,godlike, fantasy, dreamlike, unreal",
+真实的*,"photo-realistic",
+solo focus,"solo focus",
+图片类型,"",
+杂志封面*,"Magazine cover style",
+no text*,"","text"

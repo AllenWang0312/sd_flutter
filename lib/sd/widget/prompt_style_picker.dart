@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
@@ -11,19 +10,29 @@ class PromptStylePicker extends StatelessWidget {
 
   String getStylePrompt() {
     String prompt = "";
+    String mainPrompt = "";
+    String detailPrompt = "";
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        prompt += appendCommaIfNotExist(style.prompt??"");
+        if (style.flag == 0) {
+          prompt += appendCommaIfNotExist(style.prompt ?? "");
+        } else if (style.flag == 1) {
+          mainPrompt += appendCommaIfNotExist(style.prompt ?? "");
+        } else {
+          detailPrompt += appendCommaIfNotExist(style.prompt ?? "");
+        }
       }
     }
-    return prompt;
+    return mainPrompt.isEmpty
+        ? prompt
+        : "$prompt(($mainPrompt)|($detailPrompt))";
   }
 
   String getStyleNegPrompt() {
     String prompt = "";
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        prompt += appendCommaIfNotExist(style.negativePrompt??"");
+        prompt += appendCommaIfNotExist(style.negativePrompt ?? "");
       }
     }
     return prompt;
@@ -53,13 +62,23 @@ class PromptStylePicker extends StatelessWidget {
       ),
       Column(
         children: [
-          InkWell(
-            child: const SizedBox(
-                width: 36, height: 36, child: Icon(Icons.add_box_outlined)),
-            onTap: () {
-              showStyleDialog(context);
+          IconButton(
+              onPressed: () => showStyleDialog(context),
+              icon: Icon(Icons.add_box_outlined)),
+          Selector<AIPainterModel, bool>(
+            selector: (_, model) => model.checkedStyles.isEmpty,
+            builder: (_, newValue, child) {
+              return Offstage(
+                offstage: newValue,
+                child: IconButton(
+                    onPressed: () {
+                      provider.cleanCheckedStyles();
+                    },
+                    icon: const Icon(Icons.delete)),
+              );
             },
           ),
+
           // Selector<AIPainterModel, List<PromptStyleFileConfig>?>(
           //   selector: (_, model) => model.selectWorkspace?.styleConfigs,
           //   shouldRebuild: (pre,next)=>pre?.length!=next?.length,
@@ -86,13 +105,13 @@ class PromptStylePicker extends StatelessWidget {
           builder: (context) {
             AIPainterModel provider = Provider.of<AIPainterModel>(context);
             return SingleChildScrollView(
-              child: Column(
-                children: generateStyles(provider.publicStyles!),
-              ),
+              child: provider.promptType == 3
+                  ? provider.optional.generate(provider)
+                  : generateStyles(provider.publicStyles!),
             );
             // return AlertDialog(
             //   title: Text(AppLocalizations.of(context).choseStyles),
-            //   content:
+            //   content:,
             //   actions: [
             //     TextButton(
             //         onPressed: () {
@@ -126,7 +145,7 @@ class PromptStylePicker extends StatelessWidget {
   //   });
   // }
 
-  List<Widget> generateStyles(Map<String, List<PromptStyle>?> map) {
+  Widget generateStyles(Map<String, List<PromptStyle>?> map) {
     List<Widget> result = [];
     for (String key in map.keys) {
       List<PromptStyle>? value = map[key];
@@ -149,6 +168,8 @@ class PromptStylePicker extends StatelessWidget {
         ));
       }
     }
-    return result;
+    return Column(
+      children: result,
+    );
   }
 }

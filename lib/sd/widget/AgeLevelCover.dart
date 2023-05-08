@@ -8,9 +8,11 @@ import 'package:sd/sd/const/config.dart';
 import '../../common/third_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
+import '../http_service.dart';
 import '../provider/AIPainterModel.dart';
 import '../tavern/bean/UniqueSign.dart';
 
+const TAG = 'AgeLevelCover';
 class AgeLevelCover extends StatelessWidget {
   UniqueSign info;
   bool? needInfoLogo;
@@ -22,8 +24,9 @@ class AgeLevelCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
-
-    if (null != info.url && info.url!.isNotEmpty&&info.url!.endsWith(".png")) {
+    String fileLocation = info.getFileLocation();
+    logt(TAG,fileLocation);
+    if (fileLocation.startsWith("http")&&fileLocation.endsWith(".png")) {
       // bytes = await getBytesWithDio(info.url!);
       return Card(
         clipBehavior: Clip.antiAlias,

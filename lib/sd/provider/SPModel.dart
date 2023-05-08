@@ -1,4 +1,4 @@
-
+import 'dart:math';
 
 import 'package:sd/sd/provider/db_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,10 +7,9 @@ import 'package:universal_platform/universal_platform.dart';
 import '../bean/Configs.dart';
 import '../const/config.dart';
 
-class SPModel extends DBModel{
-
+class SPModel extends DBModel {
   bool share = false;
-  int generateType = 1;//单次请求接口方式 0 优先api 1 优先predict
+  int generateType = 1; //单次请求接口方式 0 优先api 1 优先predict
   // String _cover =
   //     'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
 
@@ -34,11 +33,11 @@ class SPModel extends DBModel{
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
 
-  void loadFromSP(SharedPreferences sp){
-    share = sp.getBool(SP_SHARE)??false;
+  void loadFromSP(SharedPreferences sp) {
+    share = sp.getBool(SP_SHARE) ?? false;
     sdHost = sp.getString(SP_HOST) ??
         (UniversalPlatform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
-    sdShareHost = sp.getString(SP_SHARE_HOST) ??'d17eae44-da1d-413c';
+    sdShareHost = sp.getString(SP_SHARE_HOST) ?? 'd17eae44-da1d-413c';
     sdHost = sp.getString(SP_HOST) ??
         (UniversalPlatform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
     if (share) {
@@ -46,10 +45,10 @@ class SPModel extends DBModel{
     } else {
       sdHttpService = "http://$sdHost:$SD_PORT";
     }
-    generateType = sp.getInt(SP_GENERATE_TYPE)??1;
-
+    generateType = sp.getInt(SP_GENERATE_TYPE) ?? 1;
+    promptType = sp.getInt(SP_PROMPT_TYPE) ?? 3;
     // if (!UniversalPlatform.isIOS) {
-      splashImg = '$sdHttpService/favicon.ico';
+    splashImg = '$sdHttpService/favicon.ico';
     // } else {
     //   splashImg = 'https://stability.ai/favicon.ico'; // ios 第一次https 调用才会触发授权弹框
     // }
@@ -68,7 +67,6 @@ class SPModel extends DBModel{
     hideNSFW = sp.getBool(SP_HIDE_NSFW) ?? DEFAULT_HIDE_NSFW;
     checkIdentityWhenReEnter =
         sp.getBool(SP_CHECK_IDENTITY) ?? DEFAULT_CHECK_IDENTITY;
-
   }
 
   save() async {
@@ -85,23 +83,20 @@ class SPModel extends DBModel{
     await sp.setInt(SP_BATCH_SIZE, batchSize);
   }
 
-
   static RegExp getPluginMarch(String prefix, String name) {
     return RegExp(r"<" + prefix + ":" + name + ":+([0-1]\.\d)>+");
   }
-
-
 
   void updateGenerateType(int type) {
     this.generateType = type;
     notifyListeners();
   }
 
-
-  void updateShare(bool share){
+  void updateShare(bool share) {
     this.share = share;
     notifyListeners();
   }
+
   void removePluginPrompt(String prefix, String name) {
     config.prompt.replaceAll(getPluginMarch(prefix, name), "");
   }
@@ -119,10 +114,10 @@ class SPModel extends DBModel{
       {int? steps, String? sampler, double? cfgScale, double? seed}) {
     this.config.prompt = prompt;
     this.config.negativePrompt = negPrompt;
-    if(null!=steps) this.config.steps = steps;
-    if(null!=sampler) this.config.sampler = sampler;
-    if(null!=cfgScale) this.config.cfgScale = cfgScale;
-    if(null!=seed) this.config.seed = seed.toInt();
+    if (null != steps) this.config.steps = min(100,steps);
+    if (null != sampler) this.config.sampler = sampler;
+    if (null != cfgScale) this.config.cfgScale = cfgScale;
+    if (null != seed) this.config.seed = seed.toInt();
 
     notifyListeners();
   }
@@ -167,8 +162,6 @@ class SPModel extends DBModel{
     notifyListeners();
   }
 
-
-
   void selectSampler(String newValue) {
     config.sampler = newValue;
     notifyListeners();
@@ -182,6 +175,19 @@ class SPModel extends DBModel{
     }
     notifyListeners();
   }
+  void cleanCheckedStyles(){
+    checkedStyles.clear();
+    notifyListeners();
+  }
+
+  void replaceChecked(String? old, String? newValue) {
+    if (checkedStyles.contains(old)) {
+      checkedStyles.remove(old);
+    }
+    if (null != newValue) {
+      switchChecked(newValue);
+    }
+  }
 
   void updateWidth(double value) {
     config.width = value.toInt();
@@ -190,6 +196,7 @@ class SPModel extends DBModel{
     }
     notifyListeners();
   }
+
   void updateScale(double value) {
     upscale = value;
     scalerWidth = (config.width * upscale).toInt();
@@ -201,6 +208,7 @@ class SPModel extends DBModel{
     config = Configs();
     notifyListeners();
   }
+
   void updateHeight(double value) {
     config.height = value.toInt();
     if (hiresFix) {
@@ -214,20 +222,13 @@ class SPModel extends DBModel{
     notifyListeners();
   }
 
-  cleanCheckedStyles() {
-    checkedStyles.clear();
-  }
-
   void updateHideNSFW(bool value) {
     hideNSFW = value;
     notifyListeners();
   }
 
-
   void updateCheckIdentity(bool value) {
     this.checkIdentityWhenReEnter = value;
     notifyListeners();
   }
-
-
 }

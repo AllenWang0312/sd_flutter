@@ -1,22 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/common/util/file_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:universal_platform/universal_platform.dart';
 
 import '../sd/provider/AIPainterModel.dart';
-import '../sd/bean/PromptStyle.dart';
 import '../sd/const/config.dart';
 import '../sd/http_service.dart';
-import 'package:sd/platform/platform.dart';
 
 const int SPLASH_WATTING_TIME = 3;
 
@@ -37,6 +30,7 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
+
     provider = Provider.of<AIPainterModel>(context, listen: false);
 
     provider.loadConfig();
@@ -45,7 +39,7 @@ class _SplashPageState extends State<SplashPage> {
       if (provider.countdownNum <= 0) {
         jumpAndCancelTimerIfSettingIsReady(context, null);
       }
-      if (provider.countdownNum == 1) {
+      if (provider.countdownNum == SPLASH_WATTING_TIME-2) {
         getSettings();
       }
       provider.countDown();
@@ -119,6 +113,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void getSettings() async {
+
     // if(provider.workspace)
     // get("$sdHttpService$RUN_PREDICT", exceptionCallback: (e) {
     //   getSettingSuccess = -1;

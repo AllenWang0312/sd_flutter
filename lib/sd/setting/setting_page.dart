@@ -7,7 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/db/PromptStyleFileConfig.dart';
-import 'package:sd/sd/bean/enum/ServiceNetLocation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../common/util/file_util.dart';
@@ -110,6 +109,7 @@ class _SettingPageState extends State<SettingPage> {
                 )
               ],
             ),
+            Text('接口优先级'),
             Selector<AIPainterModel, int>(
               selector: (_, model) => model.generateType,
               builder: (_, newValue, child) {
@@ -131,6 +131,50 @@ class _SettingPageState extends State<SettingPage> {
                 );
               },
             ),
+            // Text('prompt 主次执行'),
+            // Selector<AIPainterModel, int>(
+            //     selector: (_, model) => model.promptType,
+            //     shouldRebuild: (pre, next) => pre != next,
+            //     builder: (_, newValue, child) {
+            //       return Column(
+            //         children: [
+            //           RadioListTile<int>(
+            //               value: 2,
+            //               title: const Text('根据配置'),
+            //               toggleable: true,
+            //               groupValue: newValue,
+            //               onChanged: _switchPromptType),
+            //           RadioListTile<int>(
+            //               value: 3,
+            //               title: const Text('内部分类'),
+            //               toggleable: true,
+            //               groupValue: newValue,
+            //               onChanged: _switchPromptType),
+            //         ],
+            //       );
+            //     }),
+            Selector<AIPainterModel, int>(
+                selector: (_, model) => model.promptType,
+                shouldRebuild: (pre, next) => pre != next,
+                builder: (_, newValue, child) {
+                  return SizedBox(
+                    height: 48,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'prompt 主次执行',
+                          style: settingTitle,
+                        ),
+                        CupertinoSwitch(
+                            value: newValue == 3,
+                            onChanged: (value) {
+                              _switchPromptType(value ? 3 : 2);
+                            })
+                      ],
+                    ),
+                  );
+                }),
             Selector<AIPainterModel, bool>(
               selector: (_, model) => model.autoSave,
               shouldRebuild: (pre, next) => pre != next,
@@ -488,6 +532,14 @@ class _SettingPageState extends State<SettingPage> {
     if (null != share) {
       provider.updateShare(share);
       sp.setBool(SP_SHARE, share);
+    }
+  }
+
+  void _switchPromptType(int? type) {
+    logt(TAG, type?.toString() ?? 'null');
+    if (null != type) {
+      provider.updatePromptType(type);
+      sp.setInt(SP_PROMPT_TYPE, type);
     }
   }
 

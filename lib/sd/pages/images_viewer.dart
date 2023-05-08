@@ -1,80 +1,29 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
-import 'package:sd/sd/tavern/bean/UniqueSign.dart';
 import 'package:sd/sd/db_controler.dart';
-import 'package:sd/sd/roll/tagger_widget.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
+import 'package:sd/sd/roll/tagger_widget.dart';
+import 'package:sd/sd/tavern/bean/UniqueSign.dart';
 
 import '../../common/third_util.dart';
 import '../const/config.dart';
-import '../mocker.dart';
 import '../http_service.dart';
+import '../mocker.dart';
 import '../widget/AgeLevelCover.dart';
+import 'ImagesModel.dart';
 
 const String TAG = "ImageViewer";
 
 class ExtInfo {
   String? prompts;
   String? remoteFilePath;
-  bool favourite = false;
-}
-
-class ImagesModel with ChangeNotifier, DiagnosticableTreeMixin {
-  String? currentRemoteFilePath;
-
-  int index = 0;
-
-  List<ExtInfo?> exts = [];
-
-  void pageChanged(int index) {
-    this.index = index;
-    notifyListeners();
-  }
-
-  void updateCurrentDes(int index, String? des) {
-    this.index = index;
-    exts[index]?.prompts = des;
-    notifyListeners();
-  }
-
-  void updateRemoteFilePath(int page, String data) {
-    exts[page]?.remoteFilePath = data;
-    notifyListeners();
-  }
-
-  void updateFavourete(int page, bool bool) {
-    exts[page]?.favourite = bool;
-    notifyListeners();
-  }
-
-  void removeExtsAt(int index) {
-    exts.removeAt(index);
-    if (this.index == index) {
-      this.index--;
-    }
-
-    notifyListeners();
-  }
-
-  void updateIndex(int page) {
-    index = page;
-    notifyListeners();
-  }
-
-  void initExts(int size) {
-    exts = [];
-    for (int i = 0; i < size; i++) {
-      exts.add(ExtInfo());
-    }
-    notifyListeners();
-  }
+  bool favourite = true;
 }
 
 enum ImagesType {
@@ -150,23 +99,26 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
     }
 
     return SafeArea(
-      child: Stack(
-        children: [
-          _pageView(controller),
+      child: WillPopScope(
+        onWillPop: () async {
+          return true;
+        },
+        child: Stack(
+          children: [
+            _pageView(controller),
+            _appBar(context, controller),
+            // Positioned(
+            //   left: 0,
+            //   right: 0,
+            //   bottom: 0,
+            //   child: Selector<ImagesModel, int>(
+            //     selector: (_, model) => model.index,
+            //     builder: (context, value, child) {
+            //       return Text('${(value + 1).toString()}/${datas.length}');
+            //     },
+            //   )
 
-          _appBar(context, controller),
-          // Positioned(
-          //   left: 0,
-          //   right: 0,
-          //   bottom: 0,
-          //   child: Selector<ImagesModel, int>(
-          //     selector: (_, model) => model.index,
-          //     builder: (context, value, child) {
-          //       return Text('${(value + 1).toString()}/${datas.length}');
-          //     },
-          //   )
-
-          //               TextButton(
+            //               TextButton(
 //                   onPressed: () async {
 //                     var width = MediaQuery.of(context).size.width;
 //                     var height = MediaQuery.of(context).size.height;
@@ -178,15 +130,15 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
 //                   },
 //                   child: Text('设为壁纸'))
 
-          // ),
-        ],
+            // ),
+          ],
+        ),
       ),
     );
   }
 
   onPageChange(int page) async {
     UniqueSign item = urls![page];
-
     if (null != type && item.getFileLocation().startsWith("http")) {
       images.updateIndex(page);
       String? currentRemotePath = images.exts[page]?.remoteFilePath;
@@ -257,7 +209,9 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
             detail.globalPosition.dy, double.infinity, double.infinity);
         if (context.mounted) {
           showMenu(context: context, position: position, items: [
-            if (images.exts[index]?.remoteFilePath != null)
+            if ((dataType == ImagesType.urls &&
+                    images.exts[index]?.remoteFilePath != null) ||
+                dataType == ImagesType.files)
               const PopupMenuItem(value: -100, child: Text('删除文件')),
             if (currentLevel != 12) itemMenu(12),
             if (currentLevel != 16) itemMenu(16),
@@ -283,24 +237,34 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                 }
               }
             } else if (value == -100) {
-              // if (images.remoteFilePath[index] != null) {
-              post("$sdHttpService$RUN_PREDICT",
-                      formData: delateFile(
-                          fnIndex - 12,
-                          images.exts[index]?.remoteFilePath,
-                          index ~/ 36 + 1,
-                          index % 36,
-                          36))
-                  .then((value) {
-                logt(TAG, "delete file$value");
+              if (dataType == ImagesType.urls) {
+                post("$sdHttpService$RUN_PREDICT",
+                        formData: delateFile(
+                            fnIndex - 12,
+                            images.exts[index]?.remoteFilePath,
+                            index ~/ 36 + 1,
+                            index % 36,
+                            36))
+                    .then((value) {
+                  logt(TAG, "delete file$value");
 
-                urls?.removeAt(index);
-                images.removeExtsAt(index);
-                removedItems ??= [];
-                removedItems?.add(data.getFileLocation());
-                onPageChange(index);
-              });
-              // }
+                  urls?.removeAt(index);
+                  images.removeExtsAt(index);
+                  removedItems ??= [];
+                  removedItems?.add(data.getFileLocation());
+                  onPageChange(index);
+                });
+              } else {
+                String? localPath = urls?[index].getLocalPath();
+                if(null!=localPath){
+                  int result = await DBController.instance.deleteLocalRecord(localPath);
+                  if(result>0){
+                    File(localPath).deleteSync(recursive: true);
+                  }
+                  logt(TAG,"delete result $result $localPath");
+                }
+
+              }
             } else {
               if (await DBController.instance
                       .removetAgeLevelRecord(data, datas[index]) >
@@ -341,17 +305,18 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
               );
             },
           ),
-          Selector<ImagesModel, bool>(
-            selector: (_, model) => images.exts[model.index]!.favourite,
+          Selector<ImagesModel, int>(
+            selector: (_, model) => model.index,
             builder: (context, value, child) {
+              ExtInfo? info = images.exts[value];
               return Offstage(
-                  offstage: true == isFavourite,
+                  offstage: true == isFavourite || info == null,
                   child: IconButton(
-                    icon: Icon(value
+                    icon: Icon(info!.favourite
                         ? Icons.favorite_outlined
                         : Icons.favorite_border),
                     onPressed: () async {
-                      if (value) {
+                      if (info.favourite) {
                         Fluttertoast.showToast(msg: '暂不支持取消');
                       } else {
                         int? page = controller.page?.toInt();

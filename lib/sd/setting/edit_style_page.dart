@@ -39,7 +39,7 @@ class StyleConfigPage extends StatelessWidget{
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   columnWidths: const {
                     0:FixedColumnWidth(80),
-                    1:FixedColumnWidth(50),
+                    // 1:FixedColumnWidth(50),
                     2:FixedColumnWidth(200),
                     3:FixedColumnWidth(200),
                   },
@@ -49,9 +49,8 @@ class StyleConfigPage extends StatelessWidget{
                       TableCell(child: InkWell(onTap:(){
                         Fluttertoast.showToast(msg: e.name,gravity: ToastGravity.CENTER);
                       },child: TextFormField(initialValue:e.name))),
-                      TableCell(child: TextFormField(
-
-                          initialValue:e.type??'null')),
+                      // TableCell(child: TextFormField(
+                      //     initialValue:e.type??'null')),
                       TableCell(child: TextFormField(
                           keyboardType: TextInputType.multiline,
                           maxLines: 5,

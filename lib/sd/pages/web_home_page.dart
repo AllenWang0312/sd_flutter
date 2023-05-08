@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+
 // import 'package:file_drag_and_drop/dropag_container_listener.dart';
 // import 'package:file_drag_and_drop/file_result.dart';
 import 'package:flutter/foundation.dart';
@@ -30,9 +31,8 @@ class WebHomePage extends StatefulWidget {
   State<WebHomePage> createState() => _WebHomePageState();
 }
 
-class _WebHomePageState extends State<WebHomePage>
-// with macOSFileDragger
-{
+class _WebHomePageState extends State<WebHomePage> // with macOSFileDragger
+    {
   static const TAG = 'WebHomePageState';
 
   @override
@@ -40,7 +40,7 @@ class _WebHomePageState extends State<WebHomePage>
     logt(TAG, 'didUpdateWidget');
   }
 
-  late List<Widget> pages= [
+  late List<Widget> pages = [
     // LoraWidget(),
     ChangeNotifierProvider(
       create: (_) => RollModel(),
@@ -99,7 +99,7 @@ class _WebHomePageState extends State<WebHomePage>
               ],
             ),
           ),
-          () => () => {});
+              () => () => {});
     }
 
     if (layoutType < 2) {
@@ -115,10 +115,12 @@ class _WebHomePageState extends State<WebHomePage>
     if (layoutType >= 1) {
       actions.putIfAbsent(
           Icons.settings,
-          () => () async => {
-                if (isMobile() && (await checkStoragePermission()))
-                  {provider?.updateIndex(5)}
-              });
+              () =>
+              () async =>
+          {
+            if (isMobile() && (await checkStoragePermission()))
+              {provider?.updateIndex(5)}
+          });
       actions.putIfAbsent(Icons.menu, () => () => {});
       actions.putIfAbsent(_userPortrait(), () => () => {});
     }
@@ -148,14 +150,11 @@ class _WebHomePageState extends State<WebHomePage>
     appBar = Provider.of<AppBarProvider>(context, listen: false);
 
     appBar?.updateLeadingIcon(home?.layoutType == 0 ? Icons.menu : null, () {
-
-      if(_globalKey.currentState!.isDrawerOpen){
+      if (_globalKey.currentState!.isDrawerOpen) {
         _globalKey.currentState?.closeDrawer();
-      }else{
+      } else {
         _globalKey.currentState?.openDrawer();
       }
-
-
     },
         notify: false);
     appBar?.updateTitle(APP_NAME, notify: false);
@@ -167,8 +166,8 @@ class _WebHomePageState extends State<WebHomePage>
       home?.updateLayoutType(maxWidth < 480
           ? 0
           : maxWidth < 960
-              ? 1
-              : 3);
+          ? 1
+          : 3);
 
       return Selector<WebHomeModel, int>(
         selector: (_, model) => model.layoutType,
@@ -176,13 +175,16 @@ class _WebHomePageState extends State<WebHomePage>
         builder: (context, layoutType, child) {
           logt(TAG, layoutType.toString());
           return Scaffold(
-            key: _globalKey,
+              key: _globalKey,
               backgroundColor: COLOR_BACKGROUND,
               appBar: PreferredSize(
-                  preferredSize: Size(MediaQuery.of(context).size.width, 48),
+                  preferredSize: Size(MediaQuery
+                      .of(context)
+                      .size
+                      .width, 48),
                   child: Consumer<AppBarProvider>(
                     builder: (_, model, child) {
-                      logt(TAG,'appbar config changed');
+                      logt(TAG, 'appbar config changed');
                       return AppBar(
                         leading: IconButton(
                           icon: Icon(model.leading),
@@ -196,11 +198,11 @@ class _WebHomePageState extends State<WebHomePage>
                       );
                     },
                   )
-                  // StatefulAppBar(
-                  //   key: appbarKey,
-                  //   actions: getActions(layoutType, maxWidth),
-                  // ),
-                  ),
+                // StatefulAppBar(
+                //   key: appbarKey,
+                //   actions: getActions(layoutType, maxWidth),
+                // ),
+              ),
               drawer: getDrawer(layoutType, 300, maxWidth),
               // onDrawerChanged: ,
               // onEndDrawerChanged: ,
@@ -215,17 +217,18 @@ class _WebHomePageState extends State<WebHomePage>
 
                   SizedBox(
                       width: getDrawerWidth(layoutType),
-                      child: layoutType==0?null:layoutType == 1||layoutType == 2
+                      child: layoutType == 0 ? null : layoutType == 1 ||
+                          layoutType == 2
                           ? OverflowBox(
                         alignment: Alignment.topLeft,
                         maxWidth: layoutType == 1 ? 60 : 240,
                         child: MouseRegion(
                           onEnter: (_) {
-                            logt(TAG,"enter $layoutType");
+                            logt(TAG, "enter $layoutType");
                             home?.updateLayoutType(2);
                           },
                           onExit: (_) {
-                            logt(TAG,"exit $layoutType");
+                            logt(TAG, "exit $layoutType");
                             home?.updateLayoutType(1);
                           },
                           child: _content(layoutType),
@@ -238,10 +241,11 @@ class _WebHomePageState extends State<WebHomePage>
         child: Selector<AIPainterModel, int>(
           selector: (_, model) => model.index,
           shouldRebuild: (pre, next) => pre != next,
-          builder: (context, newValue, child) => IndexedStack(
-            index: newValue,
-            children: pages,
-          ),
+          builder: (context, newValue, child) =>
+              IndexedStack(
+                index: newValue,
+                children: pages,
+              ),
         ),
       );
     });
@@ -250,82 +254,112 @@ class _WebHomePageState extends State<WebHomePage>
   bool mouseEnter = false;
 
   Widget _content(int layoutType) {
-    bool expand = layoutType>=2;
+    bool expand = layoutType >= 2;
     return Container(
       color: Colors.orange,
-      child: Column(
-          // mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              leading: Icon(Icons.photo),
-              title: expand ? Text('照片') : null,
-            ),
-            ListTile(
-              leading: Icon(Icons.search),
-              title: expand ? Text('探索') : null,
-            ),
-            ListTile(
-              leading: Icon(Icons.group_outlined),
-              title: expand ? Text('分享') : null,
-            ),
-            Container(
-              margin: EdgeInsets.only(left: 12),
-              height: 24,
-              child: expand ?Text( '图片库'):null,
-            ),
-            ListTile(
-              leading: Icon(Icons.star_border_outlined),
-              title: expand ? Text('收藏夹') : null,
-            ),
-            ListTile(
-              leading: Icon(Icons.collections_bookmark_outlined),
-              title: expand ? Text('影集') : null,
-            ),
-            ListTile(
-              leading: Icon(Icons.check_box_outlined),
-              title: expand ? Text('实用工具') : null,
-            ),
-            ListTile(
-              leading: Icon(Icons.file_download_outlined),
-              title: expand ? Text('归档') : null,
-            ),
-            ListTile(
-              leading: Icon(Icons.delete_outline),
-              title: expand ? Text('回收站') : null,
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.cloud_outlined),
-              title: expand ? Text('存储空间') : null,
-            ),
-            if (expand)
-              Container(
-                margin: EdgeInsets.only(left: 12,top: 8,bottom: 8,right: 12),
-                child: LinearProgressIndicator(
-                  value: 0.3,
+      child: Selector<AIPainterModel, int>(
+        selector: (_, model) => model.index,
+        builder: (context, newValue, child) {
+          return Column(
+            // mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.draw,'生成',expand),
+                  value: 0,
+                  onChanged:_menuChanged,
                 ),
-              ),
-            if(expand)
-              Container(
-                  margin: EdgeInsets.only(left: 12,top: 8,bottom: 8,right: 12),
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.group_outlined,'分享',expand),
+                  value: -1,
+                  onChanged:_menuChanged,
+                ),
+                Container(
+                  margin: EdgeInsets.only(left: 12),
+                  height: 24,
+                  child: expand ? Text('图片库') : null,
+                ),
 
-                  child: Text('已使用3.9GB,共15GB')),
-            Spacer(),
-            if (expand)
-              Container(
-                margin: EdgeInsets.only(left: 12,bottom: 12),
-                child: Row(
-                  children: [
-                    Text('隐私权'),
-                    Text('·'),
-                    Text('条款'),
-                    Text('·'),
-                    Text('政策'),
-                  ],
+
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.star_border_outlined,'收藏',expand),
+                  value: 2,
+                  onChanged: _menuChanged,
                 ),
-              )
-          ]),
+
+
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.image,'TXT2IMG',expand),
+                  value: 3,
+                  onChanged:_menuChanged,
+                ),
+
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.collections_bookmark_outlined,'更多',expand),
+                  value: 4,
+                  onChanged: _menuChanged,
+                ),
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.check_box_outlined,'实用工具',expand),
+                  value: -1,
+                  onChanged:_menuChanged,
+                ),
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.file_download_outlined,'归档',expand),
+                  value: 2,
+                  onChanged:_menuChanged,
+                ),
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.delete_outline,'回收站',expand),
+                  value: -1,
+                  onChanged: _menuChanged,
+                ),
+                Divider(),
+                RadioListTile(
+                  groupValue: newValue,
+                  title: _drawerMenu(Icons.cloud_outlined,'存储空间',expand),
+                  value: -1,
+                  onChanged: _menuChanged,
+                ),
+                if (expand)
+                  Container(
+                    margin: EdgeInsets.only(
+                        left: 12, top: 8, bottom: 8, right: 12),
+                    child: LinearProgressIndicator(
+                      value: 0.3,
+                    ),
+                  ),
+                if(expand)
+                  Container(
+                      margin: EdgeInsets.only(
+                          left: 12, top: 8, bottom: 8, right: 12),
+
+                      child: Text('已使用3.9GB,共15GB')),
+                Spacer(),
+                if (expand)
+                  Container(
+                    margin: EdgeInsets.only(left: 12, bottom: 12),
+                    child: Row(
+                      children: [
+                        Text('隐私权'),
+                        Text('·'),
+                        Text('条款'),
+                        Text('·'),
+                        Text('政策'),
+                      ],
+                    ),
+                  )
+              ]);
+        },
+      ),
     );
   }
 
@@ -405,7 +439,22 @@ class _WebHomePageState extends State<WebHomePage>
     return layoutType == 0
         ? 0
         : layoutType == 1 || layoutType == 2
-            ? 60
-            : 240;
+        ? 60
+        : 240;
+  }
+
+  _drawerMenu(IconData icon,String name,bool expand) {
+    return Row(
+      children: [
+        Icon(icon),
+        if(expand) Text(name)
+      ],
+    );
+  }
+
+  void _menuChanged(int? value) {
+    if(null!=value&&value>=0){
+      provider?.updateIndex(value);
+    }
   }
 }

@@ -172,8 +172,6 @@ class _TavernWidgetState extends State<TavernWidget> {
           body: GridView(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                // mainAxisSpacing: 10,
-                // crossAxisSpacing: 10,
                 childAspectRatio: 512 / 768),
             controller: controller,
             children: currentDir

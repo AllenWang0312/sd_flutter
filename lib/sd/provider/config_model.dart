@@ -1,32 +1,30 @@
-
-
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sd/sd/bean/PromptStyle.dart';
+import 'package:sd/sd/bean/options.dart';
 import 'package:sd/sd/provider/SPModel.dart';
-import 'package:sd/sd/provider/db_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import '../../common/util/file_util.dart';
 import '../../platform/platform.dart';
-import '../bean/Configs.dart';
 import '../bean/db/Workspace.dart';
 import '../const/config.dart';
 import '../http_service.dart';
 
 const TAG = 'ConfigModel';
-class ConfigModel extends SPModel{
 
+class ConfigModel extends SPModel {
   late SharedPreferences sp;
 
   bool tiling = false;
   int hiresSteps = 30;
 
-
-
   Map<String, double> checkedPlugins = Map();
   String selectedUpScale = DEFAULT_UPSCALE;
+
 
   loadConfig() async {
     printDir(
@@ -71,6 +69,9 @@ class ConfigModel extends SPModel{
     initConfigFromDB(name);
 
     notifyListeners();
+    // List<String> split = view.split("\r\n");
+    // logt(TAG, "view:${split.length} ${split.toString()}");
+
 
     createDirIfNotExit(getCollectionsPath());
     createDirIfNotExit(getStylesPath());
@@ -78,9 +79,6 @@ class ConfigModel extends SPModel{
     // await compute(moveDirToAnotherPath,
     //     FromTo(SYSTEM_DOWNLOAD_APP_PATH, getCollectionsPath()));
   }
-
-
-
 
   printDir(Directory? dir) {
     if (null != dir) {
@@ -94,13 +92,10 @@ class ConfigModel extends SPModel{
     }
   }
 
-
-
   void updateHiresSteps(double value) {
     hiresSteps = value.toInt();
     notifyListeners();
   }
-
 
   void setTiling(bool bool) {
     tiling = bool;
@@ -112,7 +107,6 @@ class ConfigModel extends SPModel{
     notifyListeners();
   }
 
-
   void updateScalerWidth(double value) {
     scalerWidth = value.toInt();
     notifyListeners();
@@ -123,12 +117,9 @@ class ConfigModel extends SPModel{
     notifyListeners();
   }
 
-
-
   void updateSelectWorkspace(Workspace value) {
     selectWorkspace = value;
     sp.setString(SP_CURRENT_WS, value.name);
     notifyListeners();
   }
-
 }
