@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:sd/sd/http_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import '../bean/db/History.dart';
@@ -31,11 +30,10 @@ const bool DEFAULT_AUTO_SAVE = false;
 const bool DEFAULT_HIDE_NSFW = true;
 const bool DEFAULT_CHECK_IDENTITY = false;
 
-
-
 const int WS_COUNT = 3;
 
 // sharedperference
+const String SP_ALT_ADDRESS = "alt_address";
 const String SP_SHARE_HOST = 'share_host';
 const String SP_HOST = 'host';
 const String SP_SHARE = 'share';
@@ -63,10 +61,12 @@ const String ROUTE_PLUGINS = "/home/plugins";
 const String ROUTE_SETTING = "/home/setting";
 const String ROUTE_WEBVIEW = "/home/webview";
 const String ROUTE_TAVERN = "/home/tavern";
+const String ROUTE_AUTO_COMPLETE = "/home/roll/auto";
 
 const String ROUTE_STYLE_EDITTING = "/home/setting/styles/edit";
 // const String ROUTE_IMAGE_VIEWER = "/viewer";
 const String ROUTE_IMAGES_VIEWER = "/home/viewers";
+
 const String ROUTE_CREATE_WORKSPACE = "/home/setting/workspace/create";
 const String ROUTE_CREATE_STYLE = "/home/setting/style/create";
 const String ROUTE_EDIT_STYLE = "/home/setting/style/edit";
@@ -86,20 +86,21 @@ const SD_PORT = 7860;
 placeHolderUrl({int width = 512, int height = 720}) {
   return 'https://via.placeholder.com/$width x$height';
 }
-  String remoteTXT2IMGDir = '';
-  String remoteIMG2IMGDir= '';
-  String remoteMoreDir= '';
 
-  String sdShareHost = '';
+String remoteTXT2IMGDir = '';
+String remoteIMG2IMGDir = '';
+String remoteMoreDir = '';
 
-String remoteFavouriteDir= '';
-String sdHost = UniversalPlatform.isWeb
-    ? SD_WIN_HOST
-    : Platform.isWindows
+String? sdPublicDomain = null;
+String? sdHttpService = null;
+
+// String sdShareHost = 'https://huggingface.co/spaces';
+
+String remoteFavouriteDir = '';
+String sdHost = UniversalPlatform.isWeb|| Platform.isWindows
         ? SD_WIN_HOST
         : SD_CLINET_HOST;
 
-String sdHttpService = '';
 
 const TXT_2_IMG = "/sdapi/v1/txt2img";
 
@@ -116,15 +117,11 @@ const GET_OPTIONS = "/sdapi/v1/options";
 const RUN_PREDICT = '/run/predict';
 const GET_PROGRESS = '/internal/progress';
 
+const TAG_COMPUTE = '/file=extensions/tagcomplete/tags';
+
+const TAG_COMPUTE_CN = '$TAG_COMPUTE/zh_cn.csv';
+
 const FILE_TEMP_PATH = "/file=extensions/tagcomplete/tags/temp";
-const TAG_PREFIX_LORA = 'lora';
-const TAG_MODELTYPE_LORA = 'Lora';
-
-const TAG_PREFIX_HPE = 'hypernet';
-const TAG_MODELTYPE_HPE = 'hypernetworks';
-
-const TAG_PREFIX_EMB = 'emb';
-const TAG_MODELTYPE_EMB = 'embding';
 
 const GET_LORA_NAMES = '$FILE_TEMP_PATH/lora.txt';
 const GET_EMB_NAMES = '$FILE_TEMP_PATH/emb.txt';
@@ -132,6 +129,16 @@ const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
 // const GET_WCET_NAMES = '$FILE_TEMP_PATH/wcet.txt';
 // const GET_WC_NAMES = '$FILE_TEMP_PATH/wc.txt';
 // const GET_WCE_NAMES = '$FILE_TEMP_PATH/wce.txt';
+
+const TAG_PREFIX_LORA = 'lora';
+
+const TAG_MODELTYPE_LORA = 'Lora';
+
+const TAG_PREFIX_HPE = 'hypernet';
+const TAG_MODELTYPE_HPE = 'hypernetworks';
+
+const TAG_PREFIX_EMB = 'emb';
+const TAG_MODELTYPE_EMB = 'embding';
 
 // //platform
 // bool isGallerySaverSupportPlatform =
@@ -171,8 +178,12 @@ String nameToUrl(String name) {
   return "$sdHttpService/file=${urlEncode}";
 }
 
-getModelImageUrl(String modelType, String name) {
-  return sdHttpService + '/file=models/$modelType/' + name + ".png";
+getModelImageUrl(String modelType, String name, {bool preview = true}) {
+  return sdHttpService! +
+      '/file=models/$modelType/' +
+      name +
+      (preview ? ".preview" : "") +
+      ".png";
 }
 
 const GET_DEFAULT_SCRIPTS =

@@ -52,7 +52,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
     );
     scroller = ScrollController();
     return EasyRefresh.builder(
-        refreshOnStart: false,
+        refreshOnStart: true,
         controller: controller,
         onRefresh: () async {
           widget.pageNum = 0;

@@ -14,7 +14,7 @@ import '../../common/util/file_util.dart';
 import '../../common/util/string_util.dart';
 import '../http_service.dart';
 import '../channel.dart';
-import 'bean/LocalFileInfo.dart';
+import '../bean/db/LocalFileInfo.dart';
 
 List<LocalFileInfo> downloadRoot = [
   LocalFileInfo(

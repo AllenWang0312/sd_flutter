@@ -1,22 +1,22 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/sd/db_controler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../sd/provider/AIPainterModel.dart';
 import '../sd/const/config.dart';
 import '../sd/http_service.dart';
+import '../sd/provider/AIPainterModel.dart';
 
 const int SPLASH_WATTING_TIME = 3;
 
 const String TAG = "SplashPage";
 
 class SplashPage extends StatefulWidget {
-
   @override
   State<SplashPage> createState() => _SplashPageState();
 }
@@ -30,7 +30,6 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-
     provider = Provider.of<AIPainterModel>(context, listen: false);
 
     provider.loadConfig();
@@ -39,7 +38,7 @@ class _SplashPageState extends State<SplashPage> {
       if (provider.countdownNum <= 0) {
         jumpAndCancelTimerIfSettingIsReady(context, null);
       }
-      if (provider.countdownNum == SPLASH_WATTING_TIME-2) {
+      if (provider.countdownNum == SPLASH_WATTING_TIME - 2) {
         getSettings();
       }
       provider.countDown();
@@ -112,20 +111,25 @@ class _SplashPageState extends State<SplashPage> {
     );
   }
 
-  void getSettings() async {
 
-    // if(provider.workspace)
-    // get("$sdHttpService$RUN_PREDICT", exceptionCallback: (e) {
-    //   getSettingSuccess = -1;
-    // }).then((value) {
-    //   // Options op = Options.fromJson(value.data);
-    //   String modelName = value?.data['sd_model_checkpoint'];
-    //   provider
-    //       .updateSDModel(modelName.substring(0, modelName.lastIndexOf('.')));
-    //   getSettingSuccess = 1;
-    // });
-    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 8,
-        exceptionCallback: (e) {
+  void getSettings() async {
+    get("$sdHttpService$TAG_COMPUTE_CN").then((value) async {
+      if (null != value) {
+        List<List<dynamic>> csvTable = CsvToListConverter().convert(value.data);
+        int year = 0;
+        for (List<dynamic> item in csvTable) {
+          if (item[0] is int && item[0] == item[2]) {
+            year = item[0];
+          }else{
+            // todo 第二次全量插入 第一条就直接报错了 所以不能根据远端配置动态升级
+            int result = await DBController.instance.insertTranslate(item,year);
+          }
+        }
+        logt(TAG,"insert translate finish");
+      }
+    });
+
+    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 8, exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) {
       logt(TAG, "get options${value?.data.toString() ?? ""}");
@@ -150,6 +154,7 @@ class _SplashPageState extends State<SplashPage> {
       }
     }
   }
+
   // @override
   // void didChangeDependencies() {
   //   super.didChangeDependencies();
@@ -162,7 +167,7 @@ class _SplashPageState extends State<SplashPage> {
       _countdownTimer?.cancel();
       _countdownTimer = null;
     }
-
+    logt(TAG,"dispose");
     super.dispose();
   }
 }

@@ -88,10 +88,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
     provider = Provider.of<AIPainterModel>(context, listen: false);
     images = Provider.of<ImagesModel>(context, listen: false);
 
-    if (urls != null) {
-      // List<ExtInfo?>.filled(urls!.length, ExtInfo(),growable: true) //会导致所有的item指向同一个bean
-      images.initExts(urls!.length);
-    }
+    images.initExts(this.datas.length);
 
     PageController controller = PageController(initialPage: index ?? 0);
     if (null != urls) {

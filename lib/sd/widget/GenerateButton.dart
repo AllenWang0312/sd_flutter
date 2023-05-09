@@ -36,6 +36,7 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
   bool isActive = true;
   Timer? _countdownTimer;
 
+  int nextCheckTime = 10;
   @override
   Widget build(BuildContext context) {
     RollModel model= Provider.of<RollModel>(context, listen: false);
@@ -48,7 +49,8 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
         if(!model.backgroundProgress){
           post("$sdHttpService$GET_PROGRESS",
               formData: getPreview(id_live_preview), exceptionCallback: (e) {
-                // _countdownTimer?.cancel();
+                nextCheckTime = 10;
+                countDown = 0;
               }).then((value) {
             if (null != value) {
               GenerateProgress progress = GenerateProgress.fromJson(value.data);
@@ -57,9 +59,11 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
           });
         }else{
           countDown ++;
-          if(countDown%10==0){
+          if(countDown==nextCheckTime){
+            nextCheckTime == nextCheckTime*2;
             post("$sdHttpService$GET_PROGRESS",formData: getPreview(-1), exceptionCallback: (e) {
-              // _countdownTimer?.cancel();
+              nextCheckTime = 10;
+              countDown = 0;
             }).then((value) {
               if (null != value) {
                 GenerateProgress progress = GenerateProgress.fromJson(value.data);

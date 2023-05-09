@@ -101,7 +101,6 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
             }
           }
         }
-
         logt(TAG, optional.toString());
       }
     }
@@ -132,7 +131,6 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
           List<PromptStyle> remote =
               re.map((e) => PromptStyle.fromJson(e)).toList();
           // logt(TAG, re.toString());
-
           if (remote[0].isEmpty) {
             PromptStyle? head;
             List<PromptStyle> group = [];

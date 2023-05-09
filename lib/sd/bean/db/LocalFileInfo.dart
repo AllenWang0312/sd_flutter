@@ -1,13 +1,9 @@
 import 'dart:io';
 import '../../../common/util/file_util.dart';
 import '../../../common/util/string_util.dart';
-import 'UniqueSign.dart';
+import '../../tavern/bean/UniqueSign.dart';
 
 const TAG = "FileInfo";
-
-
-
-
 
 class LocalFileInfo extends UniqueSign {
   static const TABLE_NAME = "age_level_record";

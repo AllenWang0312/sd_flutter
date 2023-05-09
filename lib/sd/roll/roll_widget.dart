@@ -203,13 +203,13 @@ class _RollWidgetState extends State<RollWidget> {
                         time: now.substring(10),
                         workspace: provider.selectWorkspace?.name),
                   );
-                } else {
+                }
+                //todo 自动保存之后 是不是不该显示下载按钮 或者 下载到Download
                   Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
                     "datas": datas,
-                    "savePath": provider.selectWorkspace!.dirPath,
+                    "savePath": provider.autoSave?null:provider.selectWorkspace!.dirPath,
                     "scanAvailable": provider.sdServiceAvailable
                   });
-                }
               }
               model.isBusy(INIT);
               provider.save();

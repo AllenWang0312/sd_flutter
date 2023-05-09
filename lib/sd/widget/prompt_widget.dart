@@ -83,7 +83,14 @@ class PromptWidget extends StatelessWidget {
                     icon: Transform.rotate(
                       angle: -pi / 4,
                       child: Icon(Icons.arrow_back),
-                    ))
+                    )),
+                IconButton(
+                    onPressed: () {
+                     Navigator.pushNamed(context,ROUTE_AUTO_COMPLETE,arguments: {
+                       "prompt":promptController.text
+                     });
+                    },
+                    icon: Icon(Icons.auto_awesome))
               ],
             )
           ],

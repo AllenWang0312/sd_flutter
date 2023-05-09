@@ -6,6 +6,9 @@ import 'package:universal_platform/universal_platform.dart';
 
 import '../bean/Configs.dart';
 import '../const/config.dart';
+import '../http_service.dart';
+
+const TAG = "SPModel";
 
 class SPModel extends DBModel {
   bool share = false;
@@ -34,17 +37,7 @@ class SPModel extends DBModel {
   int scalerHeight = DEFAULT_HEIGHT;
 
   void loadFromSP(SharedPreferences sp) {
-    share = sp.getBool(SP_SHARE) ?? false;
-    sdHost = sp.getString(SP_HOST) ??
-        (UniversalPlatform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
-    sdShareHost = sp.getString(SP_SHARE_HOST) ?? 'd17eae44-da1d-413c';
-    sdHost = sp.getString(SP_HOST) ??
-        (UniversalPlatform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
-    if (share) {
-      sdHttpService = "https://$sdShareHost.gradio.live";
-    } else {
-      sdHttpService = "http://$sdHost:$SD_PORT";
-    }
+
     generateType = sp.getInt(SP_GENERATE_TYPE) ?? 1;
     promptType = sp.getInt(SP_PROMPT_TYPE) ?? 3;
     // if (!UniversalPlatform.isIOS) {
@@ -114,7 +107,7 @@ class SPModel extends DBModel {
       {int? steps, String? sampler, double? cfgScale, double? seed}) {
     this.config.prompt = prompt;
     this.config.negativePrompt = negPrompt;
-    if (null != steps) this.config.steps = min(100,steps);
+    if (null != steps) this.config.steps = min(100, steps);
     if (null != sampler) this.config.sampler = sampler;
     if (null != cfgScale) this.config.cfgScale = cfgScale;
     if (null != seed) this.config.seed = seed.toInt();
@@ -175,7 +168,8 @@ class SPModel extends DBModel {
     }
     notifyListeners();
   }
-  void cleanCheckedStyles(){
+
+  void cleanCheckedStyles() {
     checkedStyles.clear();
     notifyListeners();
   }
@@ -230,5 +224,24 @@ class SPModel extends DBModel {
   void updateCheckIdentity(bool value) {
     this.checkIdentityWhenReEnter = value;
     notifyListeners();
+  }
+
+  void initNetworkConfig(SharedPreferences sp) {
+    if (null==sdHttpService||sdHttpService!.isEmpty) {
+      share = sp.getBool(SP_SHARE) ?? false;
+      if (share) {
+        sdPublicDomain = sp.getString(SP_SHARE_HOST);
+        sdHttpService = "https://$sdPublicDomain.gradio.live";
+      } else {
+        sdHost = sp.getString(SP_HOST) ??
+            (UniversalPlatform.isWindows ? SD_WIN_HOST : SD_CLINET_HOST);
+        sdHttpService = "http://$sdHost:$SD_PORT";
+      }
+    } else {
+      share = true;
+      sdPublicDomain = sdHttpService!.substring(8, sdHttpService!.length - 13);
+      sp.setBool(SP_SHARE, true);
+      sp.setString(SP_SHARE_HOST, sdPublicDomain!);
+    }
   }
 }

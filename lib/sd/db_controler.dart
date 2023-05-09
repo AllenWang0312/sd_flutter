@@ -1,15 +1,16 @@
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
-import 'package:sd/sd/tavern/bean/LocalFileInfo.dart';
+import 'package:sd/sd/bean/db/LocalFileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../common/util/file_util.dart';
-import 'tavern/bean/UniqueSign.dart';
 import 'bean/db/History.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
+import 'bean/db/Translate.dart';
 import 'http_service.dart';
+import 'tavern/bean/UniqueSign.dart';
 
 String dbString(String string) {
   return string.replaceAll(":", "_");
@@ -28,53 +29,50 @@ class DBController {
   String workspace = '';
   Database? database;
 
-  Future initDepends(String dynamicPath,{String? workspace}) async {
+  Future initDepends(String dynamicPath, {String? workspace}) async {
     if (null != workspace) {
       this.workspace = workspace;
       if (null == database || !database!.isOpen) {
         var databasePath = await getDatabasesPath();
         // String ext = workspace.isEmpty ? '' : '_$workspace';
         var dbpath = join(databasePath, 'ai_paint.db');
-        database = await openDatabase(dbpath,
-            version: 3,
+        database = await openDatabase(dbpath, version: 3,
             onCreate: (Database db, int version) async {
-              logt(TAG, "db create");
-              await db.execute(
-                  'CREATE TABLE ${Workspace.TABLE_NAME} (${Workspace.TABLE_CREATE})');
-              await db.execute(
-                  'CREATE TABLE ${PromptStyleFileConfig.TABLE_NAME} (${PromptStyleFileConfig.TABLE_CREATE})');
-              await db.execute(
-                  'CREATE TABLE ${History.TABLE_NAME} (${History.TABLE_CREATE})');
-              await db.execute(
-                  'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
+          logt(TAG, "db create");
+          await db.execute(
+              'CREATE TABLE ${Workspace.TABLE_NAME} (${Workspace.TABLE_CREATE})');
+          await db.execute(
+              'CREATE TABLE ${PromptStyleFileConfig.TABLE_NAME} (${PromptStyleFileConfig.TABLE_CREATE})');
+          await db.execute(
+              'CREATE TABLE ${History.TABLE_NAME} (${History.TABLE_CREATE})');
+          await db.execute(
+              'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
 
-              // await db.execute(
-              //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
-            },
-            onUpgrade: (Database db, int oldVersion, int newVersion) async {
-              await db.execute(
-                  'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
-
-
-            },
-            onDowngrade: (Database db, int oldVersion, int newVersion) async {
-              // logt(TAG,"db downgrade $oldVersion to $newVersion");
-              //
-              // for (int i = oldVersion; i > newVersion; i--) {
-              //   if (i == 1) {
-              //     await db.execute('DELETE TABLE ${History.TABLE_NAME}');
-              //   } else if (i == 2) {
-              //     await db.execute('DELETE TABLE ${Workspace.TABLE_NAME}');
-              //   } else if (i == 3) {
-              //     await db.execute('DELETE TABLE prompt_styles');
-              //   }
-              // }
-            });
+          await db.execute(
+              'CREATE TABLE ${Translate.TABLE_NAME} (${Translate.TABLE_CREATE})');
+          // await db.execute(
+          //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
+        }, onUpgrade: (Database db, int oldVersion, int newVersion) async {
+          await db.execute(
+              'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
+        }, onDowngrade: (Database db, int oldVersion, int newVersion) async {
+          // logt(TAG,"db downgrade $oldVersion to $newVersion");
+          //
+          // for (int i = oldVersion; i > newVersion; i--) {
+          //   if (i == 1) {
+          //     await db.execute('DELETE TABLE ${History.TABLE_NAME}');
+          //   } else if (i == 2) {
+          //     await db.execute('DELETE TABLE ${Workspace.TABLE_NAME}');
+          //   } else if (i == 3) {
+          //     await db.execute('DELETE TABLE prompt_styles');
+          //   }
+          // }
+        });
       }
       var wss = await queryWorkspace(workspace);
       if (wss?.length == 1) {
         logt(TAG, wss![0].toString());
-        return Workspace.fromJson(wss![0],dynamicPath);
+        return Workspace.fromJson(wss![0], dynamicPath);
       }
     }
     return Future.value(null);
@@ -100,30 +98,34 @@ class DBController {
     }
     return Future.error('insert error');
   }
-  Future<int> insertAgeLevelRecord(UniqueSign info,Uint8List? data,int ageLevel) async {
+
+  Future<int> insertAgeLevelRecord(
+      UniqueSign info, Uint8List? data, int ageLevel) async {
     // String ext = null != workspace && workspace.isNotEmpty ? '_$workspace' : '';
 
     if (null != database && database!.isOpen) {
-      return Future.value(
-          database?.insert(LocalFileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel)));
+      return Future.value(database?.insert(
+          LocalFileInfo.TABLE_NAME, toDynamic(info.getSign(data), ageLevel)));
     }
     return Future.error('insert error');
   }
 
-  Future<int> updateAgeLevelRecord(UniqueSign info,Uint8List? data,int ageLevel) async {
+  Future<int> updateAgeLevelRecord(
+      UniqueSign info, Uint8List? data, int ageLevel) async {
     // String ext = null != workspace && workspace.isNotEmpty ? '_$workspace' : '';
 
     if (null != database && database!.isOpen) {
-      return Future.value(
-          database?.update(LocalFileInfo.TABLE_NAME,toDynamic(info.getSign(data),ageLevel),where: "sign = ? ",whereArgs: [info.getSign(data)]));
+      return Future.value(database?.update(
+          LocalFileInfo.TABLE_NAME, toDynamic(info.getSign(data), ageLevel),
+          where: "sign = ? ", whereArgs: [info.getSign(data)]));
     }
     return Future.error('insert error');
   }
-  Future<int> removetAgeLevelRecord(UniqueSign info,Uint8List? data) async {
+
+  Future<int> removetAgeLevelRecord(UniqueSign info, Uint8List? data) async {
     if (null != database && database!.isOpen) {
       return database!.delete(LocalFileInfo.TABLE_NAME,
-          where: "sign = ?",
-          whereArgs: [info.getSign(data)]);
+          where: "sign = ?", whereArgs: [info.getSign(data)]);
     }
     return Future.value(-1);
   }
@@ -131,8 +133,7 @@ class DBController {
   Future<int> deleteLocalRecord(String localFilePath) async {
     if (null != database && database!.isOpen) {
       return database!.delete(History.TABLE_NAME,
-          where: "imgPath = ?",
-          whereArgs: [localFilePath]);
+          where: "imgPath = ?", whereArgs: [localFilePath]);
     }
     return Future.value(-1);
   }
@@ -144,12 +145,28 @@ class DBController {
 
   Future<int> insertWorkSpace(Workspace workspace) {
     createDirIfNotExit(workspace.absPath);
-
     if (null != database && database!.isOpen) {
       return database!.insert(Workspace.TABLE_NAME, workspace.toJson());
     }
     return Future.value(-1);
   }
+
+  Future<int> insertTranslate(List<dynamic> prompts,int year) {
+    if (null != database && database!.isOpen) {
+      return database!.insert(Translate.TABLE_NAME, {
+        Translate.Columns[0]: prompts[0],
+        Translate.Columns[1]: prompts[1],
+        Translate.Columns[2]:year,
+        Translate.Columns[3]: prompts[2]
+      });
+    }
+    return Future.value(-1);
+  }
+  Future<List<dynamic>>? queryTranslate(String columnName,String like,int pageNum,int pageSize) {
+    return database?.rawQuery(
+        "SELECT * FROM ${Translate.TABLE_NAME} WHERE $columnName LIKE '%$like%' limit $pageNum ,$pageSize");
+  }
+
 
   Future<int> insertStyleFileConfig(PromptStyleFileConfig config) {
     if (null != database && database!.isOpen) {

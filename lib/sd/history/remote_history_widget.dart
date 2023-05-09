@@ -182,22 +182,26 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget>
       }
     }).then((value) {
       logt(TAG, value!.data.toString());
-      List items = value!.data['data'][2] as List;
-      List<History> newList = items
-          .map((e) =>
-              mapToHistory(widget.dir, 1, items.indexOf(e) + 1, e['name']))
-          .toList();
-      // List<History> newList2 =
-      //     newList.where((element) => !history.contains(element)).toList();
-      if (newList.isNotEmpty) {
-        setState(() {
-          history.addAll(newList);
-          _controller.finishRefresh(IndicatorResult.success);
-          _controller.finishLoad(newList.length == 36
-              ? IndicatorResult.success
-              : IndicatorResult.noMore);
-        });
+      List datas = value.data['data'];
+      if(null!=datas&&datas.length>=3){
+        List items = datas[2] as List;
+        List<History> newList = items
+            .map((e) =>
+            mapToHistory(widget.dir, 1, items.indexOf(e) + 1, e['name']))
+            .toList();
+        // List<History> newList2 =
+        //     newList.where((element) => !history.contains(element)).toList();
+        if (newList.isNotEmpty) {
+          setState(() {
+            history.addAll(newList);
+            _controller.finishRefresh(IndicatorResult.success);
+            _controller.finishLoad(newList.length == 36
+                ? IndicatorResult.success
+                : IndicatorResult.noMore);
+          });
+        }
       }
+
     });
   }
 

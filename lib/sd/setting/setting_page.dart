@@ -51,7 +51,7 @@ class _SettingPageState extends State<SettingPage> {
     provider = Provider.of<AIPainterModel>(context);
 
     TextEditingController shareController =
-        TextEditingController(text: sdShareHost);
+        TextEditingController(text: sdPublicDomain);
     TextEditingController hostController = TextEditingController(text: sdHost);
 
     return Scaffold(
@@ -486,7 +486,7 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   Widget _netWorkSetting(TextEditingController hostController, bool share) {
-    String target = share ? sdShareHost : sdHost;
+    String? target = share ? sdPublicDomain : sdHost;
     return SizedBox(
       height: 48,
       child: Row(
@@ -508,7 +508,7 @@ class _SettingPageState extends State<SettingPage> {
                   if (share) {
                     sp.setString(SP_SHARE_HOST, hostController.text);
                     sp.setBool(SP_SHARE, true);
-                    sdShareHost = hostController.text;
+                    sdPublicDomain = hostController.text;
                   } else {
                     sp.setString(SP_HOST, hostController.text);
                     sp.setBool(SP_SHARE, false);

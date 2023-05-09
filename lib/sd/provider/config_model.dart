@@ -1,9 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sd/sd/bean/PromptStyle.dart';
-import 'package:sd/sd/bean/options.dart';
 import 'package:sd/sd/provider/SPModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -24,7 +21,6 @@ class ConfigModel extends SPModel {
 
   Map<String, double> checkedPlugins = Map();
   String selectedUpScale = DEFAULT_UPSCALE;
-
 
   loadConfig() async {
     printDir(
@@ -57,21 +53,37 @@ class ConfigModel extends SPModel {
       // }
     }
 
-    logt(TAG, asyncPath);
-    logt(TAG, syncPath);
+    // logt(TAG, asyncPath);
+    // logt(TAG, syncPath);
 
     // sp初始化前不该有太多耗时操作
     sp = await SharedPreferences.getInstance();
+
+    if(null==sdHttpService){
+      String host = 'raw.githubusercontent.com';
+      String githubSetting = sp.getString(SP_ALT_ADDRESS) ??
+          "https://$host/AllenWang0312/mock/sd_flutter/alt.json";
+      get(githubSetting, exceptionCallback: (e) {
+        initNetworkConfig(sp);
+      }).then((value) {
+        List? services = value?.data['services'];
+        if (null != services && services.isNotEmpty) {
+          logt(TAG,services.toString());
+          sdHttpService = services[0];
+        }
+        initNetworkConfig(sp);
+      });
+    }else{
+      initNetworkConfig(sp);
+    }
+
+
     loadFromSP(sp);
-
     String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
-
     initConfigFromDB(name);
-
     notifyListeners();
     // List<String> split = view.split("\r\n");
     // logt(TAG, "view:${split.length} ${split.toString()}");
-
 
     createDirIfNotExit(getCollectionsPath());
     createDirIfNotExit(getStylesPath());

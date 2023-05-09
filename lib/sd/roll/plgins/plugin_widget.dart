@@ -2,11 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/empty_view.dart';
-import 'package:sd/sd/mocker.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 
-import '../../http_service.dart';
 import '../../const/config.dart';
+import '../../http_service.dart';
 
 const TAG = "PluginWidget";
 
@@ -44,8 +43,15 @@ class PluginWidget extends StatelessWidget {
                           children: [
                             CachedNetworkImage(
                                 fit: BoxFit.fitWidth,
-                                imageUrl:
-                                    getModelImageUrl(modelType, names[index]),
+                                // placeholder: (context, url) {
+                                //   return CachedNetworkImage(
+                                //     imageUrl: getModelImageUrl(
+                                //         modelType, names[index],
+                                //         preview: true),
+                                //   );
+                                // },
+                                imageUrl: getModelImageUrl(
+                                    modelType, names[index]),
                                 errorWidget: (_, url, data) =>
                                     CachedNetworkImage(
                                       imageUrl: placeHolderUrl(),
@@ -77,20 +83,29 @@ class PluginWidget extends StatelessWidget {
                             //     icon: Icon(Icons.refresh)),
                             Positioned(
                                 bottom: 0,
-                                child: Text(
-                                  names[index],
-                                  style: const TextStyle(color: Colors.white),
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: EdgeInsets.all(4),
+                                  color: Colors.black38,
+                                  child: Text(
+                                    names[index],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.clip,
+                                    // textDirection: TextDecoration.,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                                 ))
                           ],
                         ),
                       );
                     });
               } else {
-                return EmptyView();
+                return EmptyView(error: true);
               }
             }
           }
-          return EmptyView(error: true);
+          return EmptyView();
         });
   }
 }

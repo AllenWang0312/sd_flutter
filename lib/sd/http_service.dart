@@ -24,7 +24,6 @@ logt(String tag, String msg) {
 const HTTP_TIME_OUT = 10 * 60;
 final String TAG = "http_service";
 
-
 Future<String> download(String url, String savePath,
     {Map<String, dynamic>? queryParams,
     CancelToken? cancelToken,
@@ -56,12 +55,13 @@ Future<String> download(String url, String savePath,
 Future<Response?> get(url,
     {formData,
     int timeOutSecond = HTTP_TIME_OUT,
+    dynamic headers,
     Function? exceptionCallback}) async {
   logt(TAG, "get:$url");
   try {
     Response response;
-    Dio dio = Dio(baseOptions(timeOutSecond));
-    if(PROXY)addProxy(dio);
+    Dio dio = Dio(baseOptions(timeOutSecond, headers: headers));
+    if (PROXY) addProxy(dio);
     if (formData == null) {
       response = await dio.get(url);
     } else {
@@ -77,12 +77,16 @@ Future<Response?> get(url,
   }
 }
 
-Future<Response?> post(url, {formData,int timeOut = HTTP_TIME_OUT, Function? exceptionCallback}) async {
+Future<Response?> post(url,
+    {formData,
+    int timeOut = HTTP_TIME_OUT,
+    dynamic headers,
+    Function? exceptionCallback}) async {
   logt(TAG, "post:$url");
   try {
     Response response;
-    Dio dio = Dio(baseOptions(timeOut));
-    if(PROXY)addProxy(dio);
+    Dio dio = Dio(baseOptions(timeOut, headers: headers));
+    if (PROXY) addProxy(dio);
     if (formData == null) {
       response = await dio.post(url);
     } else {
@@ -114,22 +118,26 @@ Future<Response?> catchError(Response response, Function? callback) async {
 }
 
 void addProxy(Dio dio) {
-    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-        (HttpClient client) {
-      client.findProxy = (uri) {
-        //proxy all request to localhost:8888
-        // return "PROXY 10.10.2.22:8888";
-        return "PROXY 192.168.0.110:8888";
-      };
-      client.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
+  (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+      (HttpClient client) {
+    client.findProxy = (uri) {
+      //proxy all request to localhost:8888
+      // return "PROXY 10.10.2.22:8888";
+      return "PROXY 192.168.0.110:8888";
     };
+    client.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+  };
 }
 
-BaseOptions? baseOptions(int timeOutSeconds) {
-  return BaseOptions(
+BaseOptions? baseOptions(int timeOutSeconds, {dynamic headers}) {
+  BaseOptions options = BaseOptions(
       sendTimeout: Duration(seconds: timeOutSeconds),
       receiveTimeout: Duration(seconds: timeOutSeconds));
+  if (null != headers) {
+    options.headers = headers;
+  }
+  return options;
 }
 
 // abstract class NESubscriber {

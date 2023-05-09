@@ -49,10 +49,8 @@ class SDModelWidget extends StatelessWidget {
 // logd(model.selectedSDModel);
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Selector<AIPainterModel, String>(
+                    child: Selector<AIPainterModel, String?>(
                       selector: (context, model) => model.selectedSDModel,
-                      shouldRebuild: (pre, next) =>
-                          next != pre && next.isNotEmpty,
                       builder: (context, sdModel, child) {
                         RollModel roll =
                             Provider.of<RollModel>(context, listen: false);
@@ -69,6 +67,9 @@ class SDModelWidget extends StatelessWidget {
                                 "fn_index": CMD_SWITCH_SD_MODEL
                               }, exceptionCallback: (e) {
                                 roll.isBusy(ERROR);
+                                Provider.of<AIPainterModel>(context,
+                                    listen: false)
+                                    .updateSDModel(null);
                                 Fluttertoast.showToast(
                                     msg: "模型切换失败",
                                     gravity: ToastGravity.CENTER);

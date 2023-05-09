@@ -1,22 +1,46 @@
 const CMD_REFRESH_MODEL = 0;
-const CMD_REFRESH_STYLE = CMD_REFRESH_MODEL+6;
 
-const CMD_GET_LAST_PROMPT = CMD_REFRESH_MODEL+9;//9
+const CMD_REFRESH_STYLE = CMD_REFRESH_MODEL + 6;
+
+const CMD_GET_LAST_PROMPT = CMD_REFRESH_MODEL + 9; //9
 
 const CMD_CLEAN_SEED = 126;
 
-const CMD_MULTI_GENERAGE =244;
+const CMD_MULTI_GENERAGE = 244;
+const options = [
+  'Nothing',
+  'Seed',
+  'Var. seed',
+  'Var. strength',
+  'Steps',
+  'Hires steps',
+  'CFG Scale',
+  'Prompt S/R',
+  'Prompt order',
+  'Sampler',
+  'Sampler',
+  'Checkpoint name',
+  'Sigma Churn',
+  'Sigma min',
+  'Sigma max',
+  'Sigma noise',
+  'Eta',
+  'Clip skip',
+  'Denoising',
+  'Hires upscaler',
+  'Cond. Image Mask Weight',
+  'VAE',
+  'Styles'
+];
+const CMD_SET_X = 262;
 
-const CMD_SET_X =262;
+const CMD_SET_Y = CMD_SET_X + 1;
 
-const CMD_SET_Y =CMD_SET_X+1;
+const CMD_SET_Z = CMD_SET_X + 2;
 
-const CMD_SET_Z =CMD_SET_X+2;
+const CMD_SINGLE_GENERAGE = 291;
 
-const CMD_SINGLE_GENERAGE =291;
-
-const CMD_GET_LAST_SEED =288;
-
+const CMD_GET_LAST_SEED = 288;
 
 const CMD_SAVE_STYLE = 499;
 
@@ -24,7 +48,6 @@ const CMD_GET_INTERROGATORS = 704;
 
 const CMD_IMG_TAGGER = 708;
 
-const CMD_GET_TXT2IMG_HISTORY = 688;
 
 // const CMD_GET_IMG2IMG_HISTORY = CMD_GET_TXT2IMG_HISTORY+22;
 //
@@ -32,40 +55,40 @@ const CMD_GET_TXT2IMG_HISTORY = 688;
 //
 // const CMD_GET_IMG2IMG_GRID_HISTORY = CMD_GET_TXT2IMG_HISTORY+66;
 
-const CMD_DELETE_FILE = 752;//664
+const CMD_DELETE_FILE = 741;
 
-const CMD_ADD_TO_FAVOURITE = CMD_DELETE_FILE+2;
+const CMD_ADD_TO_FAVOURITE = CMD_DELETE_FILE + 2;
 
+const CMD_GET_TXT2IMG_HISTORY = 686;
 
-const CMD_GET_MORE_HISTORY = CMD_GET_TXT2IMG_HISTORY+88;//776; delete 764
+const CMD_GET_MORE_HISTORY = CMD_GET_TXT2IMG_HISTORY + 88;
 
-const CMD_FAVOURITE_HISTORY = CMD_GET_TXT2IMG_HISTORY+109;//797 delete 786
+const CMD_FAVOURITE_HISTORY = CMD_GET_TXT2IMG_HISTORY + 109;
 
-const CMD_SWITCH_SD_MODEL = 855;
+const CMD_SWITCH_SD_MODEL = 853;
 
-
-const CMD_GET_ALL_SETTING = 1008;
-
-const CMD_GET_CONFIGS = CMD_GET_ALL_SETTING +12;
+// const CMD_GET_ALL_SETTING = 1008;
+// const CMD_GET_CONFIGS = CMD_GET_ALL_SETTING + 12;
 
 const BASE64_PREFIX = 'data:image/png;base64,';
 
-dynamic multiGenerateBody(dynamic data,int pi ,int times) {
+
+dynamic multiGenerateBody(dynamic data, int pi, int times) {
   return {
     "fn_index": CMD_SINGLE_GENERAGE,
     "data": [
       "", //task(74b1tly1v240aog)
       data['prompt'],
       data['negative_prompt'],
-      data['styles'],//选择的style
+      data['styles'], //选择的style
       data['steps'],
       data['sampler_name'],
       data['restore_faces'],
       data['tiling'],
       times,
-      pi,//每批数量
-      7,//cfg scale
-      data['seed'],//第一张图seed 后面累加
+      pi, //每批数量
+      7, //cfg scale
+      data['seed'], //第一张图seed 后面累加
       -1,
       0,
       0,
@@ -76,7 +99,7 @@ dynamic multiGenerateBody(dynamic data,int pi ,int times) {
       true,
       0.3,
       2,
-      "Latent",//data['hr_upscaler'],
+      "Latent", //data['hr_upscaler'],
       0,
       0,
       0,
@@ -307,14 +330,16 @@ dynamic multiGenerateBody(dynamic data,int pi ,int times) {
     // "session_hash": "pi2wtd3ckx8"
   };
 }
-dynamic getPreview(int id){
+
+dynamic getPreview(int id) {
   return {
     // "id_task": "task(9drtdfvly2g47gc)",
     "id_live_preview": id
   };
 }
+
 //data:image/png;base64,
-dynamic tagger(String encodeData,String interrogator,double threshold){
+dynamic tagger(String encodeData, String interrogator, double threshold) {
   return {
     "fn_index": CMD_IMG_TAGGER,
     "data": [
@@ -325,7 +350,7 @@ dynamic tagger(String encodeData,String interrogator,double threshold){
       "[name].[output_extension]",
       "ignore",
       false,
-      interrogator,//interrogator 858刷新
+      interrogator, //interrogator 858刷新
       threshold,
       "",
       "",
@@ -340,64 +365,54 @@ dynamic tagger(String encodeData,String interrogator,double threshold){
   };
 }
 
-dynamic setPluginCover(String remotePath,String pluginPathNoExt){
+dynamic setPluginCover(String remotePath, String pluginPathNoExt) {
   return {
     "fn_index": 297,
     "data": [
       -1,
       [
-        {
-          "name": remotePath,
-          "data": "file=$remotePath",
-          "is_file": true
-        }
+        {"name": remotePath, "data": "file=$remotePath", "is_file": true}
       ],
       "$pluginPathNoExt.preview.png"
     ],
     "session_hash": "m7od6wwmtql"
   };
 }
-dynamic getRemoteHistoryInfo(int fnIndex,int index,int page,String type){
+
+dynamic getRemoteHistoryInfo(int fnIndex, int index, int page, String type) {
   return {
     "fn_index": fnIndex,
-    "data": [
-      type,
-      "$index",
-      page
-    ],
+    "data": [type, "$index", page],
     // "session_hash": "ilpmq48h4ug"
   };
 }
-dynamic addToFavourite(int fnIndex,String remoteFilePath){
+
+dynamic addToFavourite(int fnIndex, String remoteFilePath) {
   return {
     "fn_index": fnIndex,
-    "data": [
-      remoteFilePath
-    ],
+    "data": [remoteFilePath],
     // "session_hash": "ilpmq48h4ug"
   };
 }
-dynamic delateFile(int fnIndex,String? filePath,int page,int index,int pageSize){
+
+dynamic delateFile(
+    int fnIndex, String? filePath, int page, int index, int pageSize) {
   return {
     "fn_index": fnIndex,
-    "data": [
-      1,
-      filePath,
-      null,
-      "$index",
-      pageSize
-    ],
+    "data": [1, filePath, null, "$index", pageSize],
     // "session_hash": "cqewqfm6sps"
   };
 }
-dynamic getInterrogators(){
+
+dynamic getInterrogators() {
   return {
     "fn_index": CMD_GET_INTERROGATORS,
     "data": [],
     // "session_hash": "lcm8sq8kso"
   };
 }
-dynamic getLastPrompt(){
+
+dynamic getLastPrompt() {
   return {
     "fn_index": CMD_GET_LAST_PROMPT,
     "data": [
@@ -482,25 +497,27 @@ dynamic getLastPrompt(){
     // "session_hash": "b2810whwrvs"
   };
 }
-dynamic cleanSeed(){
+
+dynamic cleanSeed() {
   return {
     "fn_index": CMD_CLEAN_SEED,
     "data": [],
     // "session_hash": "xo1qqnyjm6"
   };
 }
-dynamic refreshModel(){
+
+dynamic refreshModel() {
   return {
     "fn_index": CMD_REFRESH_MODEL,
     "data": [],
     // "session_hash": "xo1qqnyjm6"
   };
 }
-dynamic getConfigs(){
-  return {
-    "fn_index": CMD_GET_CONFIGS,
-    "data": [],
-    // "session_hash": "7vuvdqy85iv"
-  };
-}
 
+// dynamic getConfigs() {
+//   return {
+//     "fn_index": CMD_GET_CONFIGS,
+//     "data": [],
+//     // "session_hash": "7vuvdqy85iv"
+//   };
+// }

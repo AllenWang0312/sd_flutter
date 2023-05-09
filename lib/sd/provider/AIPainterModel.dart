@@ -32,7 +32,7 @@ class AIPainterModel extends ConfigModel with IndexRecorder{
 
   // UserInfo? userInfo = null;
   bool sdServiceAvailable = false;
-  String selectedSDModel = "";
+  String? selectedSDModel = "";
   String selectedInterrogator = DEFAULT_INTERROGATOR;
   List<UpScaler> upScalers = [];
 
@@ -67,9 +67,9 @@ class AIPainterModel extends ConfigModel with IndexRecorder{
   }
 
 
-  updateSDModel(String model) {
+  updateSDModel(String? model) {
     selectedSDModel = model;
-    logt(TAG, model);
+    logt(TAG, model??"null");
     notifyListeners();
   }
 
