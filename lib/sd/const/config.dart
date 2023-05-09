@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import '../bean/db/History.dart';
+import '../mocker.dart';
 
 const String APP_NAME = 'SD Flutter';
 
@@ -91,8 +92,11 @@ String remoteTXT2IMGDir = '';
 String remoteIMG2IMGDir = '';
 String remoteMoreDir = '';
 
-String? sdPublicDomain = null;
-String? sdHttpService = null;
+// String? sdPublicDomain = null;
+// String? sdHttpService = null;
+
+String? sdPublicDomain = "be12e76f-dfbd-435b";
+String? sdHttpService = "https://$sdPublicDomain.gradio.live";
 
 // String sdShareHost = 'https://huggingface.co/spaces';
 
@@ -117,12 +121,6 @@ const GET_OPTIONS = "/sdapi/v1/options";
 const RUN_PREDICT = '/run/predict';
 const GET_PROGRESS = '/internal/progress';
 
-const TAG_COMPUTE = '/file=extensions/tagcomplete/tags';
-
-const TAG_COMPUTE_CN = '$TAG_COMPUTE/zh_cn.csv';
-
-const FILE_TEMP_PATH = "/file=extensions/tagcomplete/tags/temp";
-
 const GET_LORA_NAMES = '$FILE_TEMP_PATH/lora.txt';
 const GET_EMB_NAMES = '$FILE_TEMP_PATH/emb.txt';
 const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
@@ -131,7 +129,6 @@ const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
 // const GET_WCE_NAMES = '$FILE_TEMP_PATH/wce.txt';
 
 const TAG_PREFIX_LORA = 'lora';
-
 const TAG_MODELTYPE_LORA = 'Lora';
 
 const TAG_PREFIX_HPE = 'hypernet';

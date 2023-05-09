@@ -25,6 +25,7 @@ import '../http_service.dart';
 import 'index_recorder.dart';
 
 //存放需要在闪屏页初始化的配置
+//todo 类瘦身 没必要常态化持有的 拆分出去
 
 class AIPainterModel extends ConfigModel with IndexRecorder{
   static const String TAG = 'AIPainterModel';
@@ -32,7 +33,7 @@ class AIPainterModel extends ConfigModel with IndexRecorder{
 
   // UserInfo? userInfo = null;
   bool sdServiceAvailable = false;
-  String? selectedSDModel = "";
+  String? selectedSDModel;
   String selectedInterrogator = DEFAULT_INTERROGATOR;
   List<UpScaler> upScalers = [];
 

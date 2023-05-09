@@ -99,8 +99,8 @@ flutter:
 #   assets:
 #     - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-  assets:
-    - assets/csv/
+#  assets:
+#    - assets/csv/
 
   #    - packages/baseflow_plugin_template/logo.png
 #    - packages/baseflow_plugin_template/poweredByBaseflow.png

@@ -46,4 +46,9 @@ class SdModel implements Named {
   String getInterfaceName() {
     return title;
   }
+
+  @override
+  String toString() {
+    return title;
+  }
 }

@@ -1,21 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:sd/sd/roll/roll_widget.dart';
 
-const REQUESTING = 1;
-const INIT = 0;
-const ERROR = -1;
+import 'NetWorkStateProvider.dart';
 
 
-class RollModel with ChangeNotifier, DiagnosticableTreeMixin {
+
+class RollModel with ChangeNotifier, DiagnosticableTreeMixin, NetWorkStateProvider {
   SetType setIndex = SetType.basic;
 
-  int isGenerating = 0; //-1 表示上次执行报错 点击历史查看 0表示刚初始化/请求成功 1 表示正在请求
 
   double? progress = 0;
   Uint8List? previewData;
   bool backgroundProgress = true; //后台10s 检查progress 或者请求时 主动1s检查 progress
 
-  void isBusy(int i) {
+  @override
+  void updateNetworkState(int i) {
     isGenerating = i;
     notifyListeners();
   }

@@ -11,6 +11,7 @@ import '../bean4json/PostPredictResult.dart';
 import '../const/config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
+import '../roll/NetWorkStateProvider.dart';
 
 const TAG = "SDModelWidget";
 
@@ -51,6 +52,9 @@ class SDModelWidget extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     child: Selector<AIPainterModel, String?>(
                       selector: (context, model) => model.selectedSDModel,
+                      shouldRebuild: (pre,next){
+                        return models.contains(next); //todo 总是说没有项目 过滤一下
+                      },
                       builder: (context, sdModel, child) {
                         RollModel roll =
                             Provider.of<RollModel>(context, listen: false);
@@ -61,12 +65,10 @@ class SDModelWidget extends StatelessWidget {
                             //     : "请选择模型"),
                             items: getNamesItems(models),
                             onChanged: (newValue) async {
-                              roll.isBusy(REQUESTING);
                               post("$sdHttpService$RUN_PREDICT", formData: {
                                 "data": [newValue],//getModel
                                 "fn_index": CMD_SWITCH_SD_MODEL
-                              }, exceptionCallback: (e) {
-                                roll.isBusy(ERROR);
+                              },provider: roll, exceptionCallback: (e) {
                                 Provider.of<AIPainterModel>(context,
                                     listen: false)
                                     .updateSDModel(null);
@@ -78,7 +80,6 @@ class SDModelWidget extends StatelessWidget {
                                   RunPredictResult result =
                                       RunPredictResult.fromJson(value?.data);
                                   if (result.duration > 0) {
-                                    roll.isBusy(INIT);
                                     Fluttertoast.showToast(
                                         msg: "模型切换成功",
                                         gravity: ToastGravity.CENTER);
@@ -86,13 +87,11 @@ class SDModelWidget extends StatelessWidget {
                                             listen: false)
                                         .updateSDModel(result.data[0].value!);
                                   } else {
-                                    roll.isBusy(ERROR);
                                     Fluttertoast.showToast(
                                         msg: "模型切换失败",
                                         gravity: ToastGravity.CENTER);
                                   }
                                 } else {
-                                  roll.isBusy(ERROR);
                                   Fluttertoast.showToast(
                                       msg: "模型切换失败",
                                       gravity: ToastGravity.CENTER);

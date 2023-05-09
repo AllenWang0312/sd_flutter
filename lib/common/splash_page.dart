@@ -5,9 +5,11 @@ import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../sd/bean/PromptStyle.dart';
 import '../sd/const/config.dart';
 import '../sd/http_service.dart';
 import '../sd/provider/AIPainterModel.dart';
@@ -113,22 +115,12 @@ class _SplashPageState extends State<SplashPage> {
 
 
   void getSettings() async {
-    get("$sdHttpService$TAG_COMPUTE_CN").then((value) async {
-      if (null != value) {
-        List<List<dynamic>> csvTable = CsvToListConverter().convert(value.data);
-        int year = 0;
-        for (List<dynamic> item in csvTable) {
-          if (item[0] is int && item[0] == item[2]) {
-            year = item[0];
-          }else{
-            // todo 第二次全量插入 第一条就直接报错了 所以不能根据远端配置动态升级
-            int result = await DBController.instance.insertTranslate(item,year);
-          }
-        }
-        logt(TAG,"insert translate finish");
-      }
-    });
 
+    provider.networkInitPromptStyle();
+
+    provider.networkInitTranlates();
+
+    // provider.networkInitApiOptions();
     get("$sdHttpService$GET_OPTIONS", timeOutSecond: 8, exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) {
@@ -143,7 +135,7 @@ class _SplashPageState extends State<SplashPage> {
 
       provider.sdServiceAvailable = true;
       provider.updateSDModel(modelName);
-      getSettingSuccess = 1;
+      getSettingSuccess = 1; //todo 最后发起的不一定最后完成
     });
   }
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sd/sd/provider/SPModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,9 +8,13 @@ import 'package:universal_platform/universal_platform.dart';
 
 import '../../common/util/file_util.dart';
 import '../../platform/platform.dart';
+import '../bean/PromptStyle.dart';
 import '../bean/db/Workspace.dart';
+import '../bean/options.dart';
 import '../const/config.dart';
+import '../db_controler.dart';
 import '../http_service.dart';
+import '../mocker.dart';
 
 const TAG = 'ConfigModel';
 
@@ -81,6 +86,7 @@ class ConfigModel extends SPModel {
     loadFromSP(sp);
     String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
     initConfigFromDB(name);
+
     notifyListeners();
     // List<String> split = view.split("\r\n");
     // logt(TAG, "view:${split.length} ${split.toString()}");
@@ -92,6 +98,68 @@ class ConfigModel extends SPModel {
     //     FromTo(SYSTEM_DOWNLOAD_APP_PATH, getCollectionsPath()));
   }
 
+  Future<void> networkInitPromptStyle() async {
+    if (null != selectWorkspace?.id) {
+      if (promptType == 2) {
+        await loadStylesFromDB(selectWorkspace!.id!);
+      } else if (promptType == 3) {
+        String? csv;
+        for (int i = 0;i<3; i++) {
+          // try {
+          //   // csv = await rootBundle.loadString("assets/csv/$i.csv");
+          // } catch (e) {
+          //   logt(TAG, e.toString());
+          //   break;
+          // }
+          get("$sdHttpService$TAG_MY_TAGS/$i.csv",exceptionCallback: (e){
+            return;
+          }).then((value){
+            if(null!=value&&null!=value.data){
+              csv = value.data.toString();
+              List<PromptStyle> styles = loadPromptStyleFromString(csv!, flag: i);//todo 这里根据i 区分执行步骤 用户配置 3.4... 时 都会被视为细节
+              publicStyles?.putIfAbsent(i.toString(), () => styles);
+              // PromptStyle? head;
+              logt(TAG, styles.toString());
+              Optional? target;
+              for (PromptStyle item in styles) {
+                if (item.isEmpty) {
+                  // head = item;
+                  // logt(TAG," ${target?.name}");
+                  target = optional.createIfNotExit(
+                      item.name.contains("|") ? item.name.split('|') : [item.name]);
+                } else {
+                  // logt(TAG," ${target?.name} ${item.name}");
+                  target?.addOption(item.name, getOptionalWithName(item.name));
+                }
+              }
+            }
+          });
+        }
+        logt(TAG, optional.toString());
+      }
+    }
+  }
+
+  void networkInitTranlates(){
+    get("$sdHttpService$TAG_COMPUTE_CN").then((value) async {
+      if (null != value) {
+        List<List<dynamic>> csvTable = CsvToListConverter().convert(value.data);
+        int year = 0;
+        for (List<dynamic> item in csvTable) {
+          if (item[0] is int && item[0] == item[2]) {
+            year = item[0];
+          }else{
+            // todo 第二次全量插入 第一条就直接报错了 所以不能根据远端配置动态升级
+            int result = await DBController.instance.insertTranslate(item,year);
+          }
+        }
+        logt(TAG,"insert translate finish");
+      }
+    });
+  }
+  void networkInitApiOptions(){
+
+  }
   printDir(Directory? dir) {
     if (null != dir) {
       logt(TAG, "download path" + dir.path.toString());

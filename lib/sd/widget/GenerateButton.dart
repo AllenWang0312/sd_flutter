@@ -16,6 +16,7 @@ import '../bean4json/GenerateProgress.dart';
 import '../const/config.dart';
 import '../http_service.dart';
 import '../mocker.dart';
+import '../roll/NetWorkStateProvider.dart';
 import '../roll/RollModel.dart';
 
 const String TAG = "GenerateButton";
@@ -136,7 +137,7 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
       // model.isBusy(REQUESTING);
       logt(TAG,'completed');
     }else{
-      model.isBusy(INIT);
+      // model.updateNetworkState(INIT);
     }
   }
 }

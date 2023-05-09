@@ -28,6 +28,7 @@ import '../widget/prompt_style_picker.dart';
 import '../widget/prompt_widget.dart';
 import '../widget/sd_model_widget.dart';
 import '../widget/upsacler_widget.dart';
+import 'NetWorkStateProvider.dart';
 
 class RollWidget extends StatefulWidget {
   RollWidget();
@@ -123,8 +124,7 @@ class _RollWidgetState extends State<RollWidget> {
   @override
   void dispose() {}
 
-  txt2img(
-      BuildContext context, RollModel model, AIPainterModel provider) async {
+  txt2img(BuildContext context, RollModel model, AIPainterModel provider) async {
     if (model.isGenerating == REQUESTING) {
       Fluttertoast.showToast(
           msg: AppLocalizations.of(context).wattingMsg,
@@ -132,7 +132,6 @@ class _RollWidgetState extends State<RollWidget> {
     } else {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
-        model.isBusy(REQUESTING);
         var from = {
           "steps": provider.promptType==3?provider.config.steps*2:provider.config.steps,
           "denoising_strength": 0.3,
@@ -171,12 +170,11 @@ class _RollWidgetState extends State<RollWidget> {
             provider.batchCount == 1) {
           post("$sdHttpService$TXT_2_IMG", formData: from,
               exceptionCallback: (e) {
-            model.isBusy(ERROR);
             Fluttertoast.showToast(
                 msg: e.toString(),
                 toastLength: Toast.LENGTH_LONG,
                 gravity: ToastGravity.CENTER);
-          }).then((value) async {
+          },provider: model).then((value) async {
             if (value != null) {
               logt(TAG, value.data.toString());
               // saveBytes(context,value?.data["images"],provider.batchSize);
@@ -211,7 +209,6 @@ class _RollWidgetState extends State<RollWidget> {
                     "scanAvailable": provider.sdServiceAvailable
                   });
               }
-              model.isBusy(INIT);
               provider.save();
             }
           });
@@ -223,12 +220,11 @@ class _RollWidgetState extends State<RollWidget> {
                   from, provider.batchCount, provider.batchSize),
               exceptionCallback: (e) {
             logt(TAG, e.toString());
-            model.isBusy(ERROR);
             Fluttertoast.showToast(
                 msg: e.toString(),
                 toastLength: Toast.LENGTH_LONG,
                 gravity: ToastGravity.CENTER);
-          }).then((value) async {
+          },provider: model).then((value) async {
             logt(TAG, value?.data?.toString() ?? "null");
             List? fileProt = value?.data['data'][0];
             if (null != fileProt) {
@@ -265,8 +261,6 @@ class _RollWidgetState extends State<RollWidget> {
             } else {
               Fluttertoast.showToast(msg: '接口错误');
             }
-
-            model.isBusy(INIT);
           });
 
           // prefs.then((sp) => {});

@@ -61,7 +61,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
               widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
         },
         onLoad: () async {
-          if (history.length % widget.pageSize == 0) {
+          if (history.length>0&&history.length % widget.pageSize == 0) {
             widget.pageNum += 1;
             loadData(
                 widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
@@ -99,20 +99,23 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
             asc: asc)
         ?.then((value) {
       // setState(() {
-      var list = value.map((e) => History.fromJson(e)).toList();
+      List<History> list = value.map((e) => History.fromJson(e)).toList();
       // logt(TAG,list.toString());
       if (filterNotExist) {
         list.removeWhere((element) =>
             element.localPath == null ||
             !File(element.localPath!).existsSync());
       }
-
+      if(list.isNotEmpty) {
         setState(() {
           history.addAll(list);
         });
-        controller.finishLoad(list.length == 36
-            ? IndicatorResult.success
-            : IndicatorResult.noMore);
+        controller.finishRefresh(pageNum == 0 ? IndicatorResult.success: IndicatorResult.noMore);
+      }
+
+      controller.finishLoad(list.length == 36
+          ? IndicatorResult.success
+          : IndicatorResult.noMore);
 
     });
   }

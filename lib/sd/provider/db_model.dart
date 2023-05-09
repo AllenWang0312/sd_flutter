@@ -70,40 +70,6 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
       });
       // logt(TAG, "limit size${limit.keys}");
     });
-    if (null != selectWorkspace?.id) {
-      if (promptType == 2) {
-        await loadStylesFromDB(selectWorkspace!.id!);
-      } else if (promptType == 3) {
-        String csv;
-        for (int i = 0;; i++) {
-          try {
-            csv = await rootBundle.loadString("assets/csv/$i.csv");
-          } catch (e) {
-            logt(TAG, e.toString());
-            break;
-          }
-
-          List<PromptStyle> styles = loadPromptStyleFromString(csv, flag: i);
-          publicStyles?.putIfAbsent(i.toString(), () => styles);
-          // PromptStyle? head;
-          logt(TAG, styles.toString());
-
-          Optional? target;
-          for (PromptStyle item in styles) {
-            if (item.isEmpty) {
-              // head = item;
-              // logt(TAG," ${target?.name}");
-              target = optional.createIfNotExit(
-                  item.name.contains("|") ? item.name.split('|') : [item.name]);
-            } else {
-              // logt(TAG," ${target?.name} ${item.name}");
-              target?.addOption(item.name, getOptionalWithName(item.name));
-            }
-          }
-        }
-        logt(TAG, optional.toString());
-      }
-    }
     // logt(TAG, "load config${selectWorkspace?.absPath}");
   }
 

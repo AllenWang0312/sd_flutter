@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sd/sd/roll/NetWorkStateProvider.dart';
 
 bool PROXY = false;
 
@@ -81,20 +82,23 @@ Future<Response?> post(url,
     {formData,
     int timeOut = HTTP_TIME_OUT,
     dynamic headers,
-    Function? exceptionCallback}) async {
+    Function? exceptionCallback,NetWorkStateProvider? provider}) async {
   logt(TAG, "post:$url");
   try {
     Response response;
     Dio dio = Dio(baseOptions(timeOut, headers: headers));
     if (PROXY) addProxy(dio);
+    provider?.updateNetworkState(REQUESTING);
+
     if (formData == null) {
       response = await dio.post(url);
     } else {
       response = await dio.post(url, data: formData);
       logt(TAG, "post:${formData}");
     }
-    return catchError(response, exceptionCallback);
+    return catchError(response, exceptionCallback,provider: provider);
   } catch (e) {
+    provider?.updateNetworkState(ERROR);
     if (null != exceptionCallback) {
       exceptionCallback(e);
     }
@@ -102,10 +106,13 @@ Future<Response?> post(url,
   }
 }
 
-Future<Response?> catchError(Response response, Function? callback) async {
+Future<Response?> catchError(Response response, Function? callback,
+    {NetWorkStateProvider? provider}) async {
   if (response.statusCode == 200) {
+    provider?.updateNetworkState(INIT);
     return response;
   } else {
+    provider?.updateNetworkState(ERROR);
     dynamic err = {
       'code': response.statusCode,
       'errMsg': response.statusMessage

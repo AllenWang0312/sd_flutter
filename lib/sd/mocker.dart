@@ -1,3 +1,13 @@
+const TAG_MY_TAGS = '/file=extensions/sd_flutter/tags';
+
+const TAG_COMPUTE = '/file=extensions/tagcomplete/tags';
+
+const TAG_COMPUTE_CN = '$TAG_COMPUTE/zh_cn.csv';
+
+const FILE_TEMP_PATH = "/file=extensions/tagcomplete/tags/temp";
+
+
+
 const CMD_REFRESH_MODEL = 0;
 
 const CMD_REFRESH_STYLE = CMD_REFRESH_MODEL + 6;
@@ -7,31 +17,31 @@ const CMD_GET_LAST_PROMPT = CMD_REFRESH_MODEL + 9; //9
 const CMD_CLEAN_SEED = 126;
 
 const CMD_MULTI_GENERAGE = 244;
-const options = [
-  'Nothing',
-  'Seed',
-  'Var. seed',
-  'Var. strength',
-  'Steps',
-  'Hires steps',
-  'CFG Scale',
-  'Prompt S/R',
-  'Prompt order',
-  'Sampler',
-  'Sampler',
-  'Checkpoint name',
-  'Sigma Churn',
-  'Sigma min',
-  'Sigma max',
-  'Sigma noise',
-  'Eta',
-  'Clip skip',
-  'Denoising',
-  'Hires upscaler',
-  'Cond. Image Mask Weight',
-  'VAE',
-  'Styles'
-];
+// const options = [
+//   'Nothing',
+//   'Seed',
+//   'Var. seed',
+//   'Var. strength',
+//   'Steps',
+//   'Hires steps',
+//   'CFG Scale',
+//   'Prompt S/R',
+//   'Prompt order',
+//   'Sampler',
+//   'Sampler',
+//   'Checkpoint name',
+//   'Sigma Churn',
+//   'Sigma min',
+//   'Sigma max',
+//   'Sigma noise',
+//   'Eta',
+//   'Clip skip',
+//   'Denoising',
+//   'Hires upscaler',
+//   'Cond. Image Mask Weight',
+//   'VAE',
+//   'Styles'
+// ];
 const CMD_SET_X = 262;
 
 const CMD_SET_Y = CMD_SET_X + 1;
