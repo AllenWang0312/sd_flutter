@@ -1,28 +1,20 @@
 import 'dart:io';
 
-import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:sd/common/util/file_util.dart';
+import 'package:sd/platform/platform.dart';
+import 'package:sd/sd/bean/PromptStyle.dart';
+import 'package:sd/sd/bean/db/PromptStyleFileConfig.dart';
+import 'package:sd/sd/bean/db/Workspace.dart';
+import 'package:sd/sd/const/default.dart';
+import 'package:sd/sd/db_controler.dart';
+import 'package:sd/sd/provider/network_model.dart';
 
-import '../../common/util/file_util.dart';
-import '../../platform/platform.dart';
-import '../bean/PromptStyle.dart';
-import '../bean/db/PromptStyleFileConfig.dart';
-import '../bean/db/Workspace.dart';
-import '../bean/options.dart';
-import '../const/config.dart';
-import '../db_controler.dart';
-import '../http_service.dart';
 
 const TAG = 'DBModel';
 
-class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
+class DBModel extends NetWorkProvider {
   List<PromptStyleFileConfig>? styleConfigs;
 
-  Map<String, List<PromptStyle>>? publicStyles =
-      Map(); // '','privateFilePath'.''
-
-  Optional optional = Optional('');
 
   get styles {
     List<PromptStyle> _styles = [];
@@ -62,6 +54,10 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
     } else {
       selectWorkspace = ws;
     }
+    // logt(TAG, "load config${selectWorkspace?.absPath}");
+  }
+
+  initLocalLimitFromDB() async {
     await DBController.instance.queryAgeLevelRecord()?.then((value) {
       // logt(TAG, "limit size${value.length}");
       value.forEach((element) {
@@ -70,10 +66,9 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
       });
       // logt(TAG, "limit size${limit.keys}");
     });
-    // logt(TAG, "load config${selectWorkspace?.absPath}");
   }
 
-  loadStylesFromDB(int wsId) async {
+  loadStylesFromDB(int wsId,int userAge) async {
     List? rows = await DBController.instance.queryStyles(wsId);
     if (null != rows && rows.isNotEmpty) {
       styleConfigs = rows.map((e) {
@@ -82,50 +77,18 @@ class DBModel with ChangeNotifier, DiagnosticableTreeMixin {
         config.state = 1;
         return config;
       }).toList();
-      initPublicStyle(styleConfigs);
     }
   }
 
   Future<void> initPublicStyle(
-      List<PromptStyleFileConfig>? styleConfigs) async {
+      List<PromptStyleFileConfig>? styleConfigs,int userAge) async {
     for (PromptStyleFileConfig item in styleConfigs!) {
       if (!File(item.configPath).existsSync() ||
           null == item.configPath ||
-          item.configPath!.isEmpty) {
-        get("$sdHttpService$GET_STYLES").then((value) async {
-          List re = value?.data;
-          List<PromptStyle> remote =
-              re.map((e) => PromptStyle.fromJson(e)).toList();
-          // logt(TAG, re.toString());
-          if (remote[0].isEmpty) {
-            PromptStyle? head;
-            List<PromptStyle> group = [];
-            for (PromptStyle item in remote) {
-              if (item.isEmpty) {
-                if (item != head) {
-                  if (group.length > 0) {
-                    publicStyles?.putIfAbsent(head!.name, () => group);
-                    await File("${getStylesPath()}/${head!.name}.csv")
-                        .writeAsString(const ListToCsvConverter()
-                            .convert(PromptStyle.convertPromptStyle(group)));
-                  }
-                  group = [];
-                  head = item;
-                }
-              } else {
-                group.add(item);
-              }
-            }
-          } else {
-            publicStyles?.putIfAbsent('remote', () => remote);
-          }
-          await File("${getStylesPath()}/remote.csv").writeAsString(
-              const ListToCsvConverter()
-                  .convert(PromptStyle.convertPromptStyle(remote)));
-        });
+          item.configPath.isEmpty) {
+       await initStyleWithNetwork();
       } else {
-        List<PromptStyle> styles =
-            await loadPromptStyleFromCSVFile(item.configPath);
+        List<PromptStyle> styles = await loadPromptStyleFromCSVFile(item.configPath,userAge);
         publicStyles?.putIfAbsent(item.name, () => styles);
       }
     }

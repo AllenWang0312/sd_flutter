@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
+import 'package:sd/common/empty_view.dart';
 import 'package:sd/sd/bean/db/History.dart';
+import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/history/PageListState.dart';
 import 'package:sd/sd/widget/AgeLevelCover.dart';
@@ -35,14 +37,12 @@ class HistoryWidget extends PageListViewer {
 }
 
 class _HistoryWidgetState extends PageListState<HistoryWidget>
-    with AutomaticKeepAliveClientMixin{
+    with AutomaticKeepAliveClientMixin {
   List<History> history = [];
 
   int viewType = 0;
 
   //list grid flot scale
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +61,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
               widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
         },
         onLoad: () async {
-          if (history.length>0&&history.length % widget.pageSize == 0) {
+          if (history.length > 0 && history.length % widget.pageSize == 0) {
             widget.pageNum += 1;
             loadData(
                 widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
@@ -99,24 +99,24 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
             asc: asc)
         ?.then((value) {
       // setState(() {
-      List<History> list = value.map((e) => History.fromJson(e)).toList();
-      // logt(TAG,list.toString());
-      if (filterNotExist) {
-        list.removeWhere((element) =>
-            element.localPath == null ||
-            !File(element.localPath!).existsSync());
-      }
-      if(list.isNotEmpty) {
+      if (value.isNotEmpty) {
+        List<History> list = value.map((e) => History.fromJson(e)).toList();
+        // logt(TAG,list.toString());
+        if (filterNotExist) {
+          list.removeWhere((element) =>
+              element.localPath == null ||
+              !File(element.localPath!).existsSync());
+        }
         setState(() {
           history.addAll(list);
         });
-        controller.finishRefresh(pageNum == 0 ? IndicatorResult.success: IndicatorResult.noMore);
-      }
 
-      controller.finishLoad(list.length == 36
+      }
+      controller.finishRefresh(
+          pageNum == 0 ? IndicatorResult.success : IndicatorResult.noMore);
+      controller.finishLoad(value.length==36
           ? IndicatorResult.success
           : IndicatorResult.noMore);
-
     });
   }
 
@@ -131,18 +131,20 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
 
     // File file = File(item.localPath!);
     // AIPainterModel provider = Provider.of<AIPainterModel>(context);
-    return AgeLevelCover(item);
+    return InkWell(
+        onTap: () async {
+          Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
+              arguments: {
+                "urls": history,
+                "index": index,
+                // "savePath": WORKSPACES,
+                "isFavourite":true,
+              });
+        },
+
+        child: AgeLevelCover(item));
     // return file.existsSync()?InkWell(
-    //   onTap: () async {
-    //     Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-    //         arguments: {
-    //           "urls": history,
-    //           "index": index,
-    //           // "savePath": WORKSPACES,
-    //           "scanAvailable":provider.sdServiceAvailable,
-    //           "isFavourite":true,
-    //         });
-    //   },
+
     //   // child: AgeLevelCover(item),
     //   child: Image.file(file),
     //

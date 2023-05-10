@@ -1,4 +1,4 @@
-import 'package:sd/sd/tavern/bean/Showable.dart';
+import '../bean/file/Showable.dart';
 import '../const/config.dart';
 
 class GenerateResultItem extends Showable{

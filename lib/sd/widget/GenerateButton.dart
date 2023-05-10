@@ -1,96 +1,100 @@
-
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sd/sd/widget/LifecycleState.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-
-import '../provider/AIPainterModel.dart';
-import '../bean4json/GenerateProgress.dart';
-import '../const/config.dart';
-import '../http_service.dart';
-import '../mocker.dart';
-import '../roll/NetWorkStateProvider.dart';
-import '../roll/RollModel.dart';
+import 'package:provider/provider.dart';
+import 'package:sd/common/util/string_util.dart';
+import 'package:sd/sd/bean4json/GenerateProgress.dart';
+import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/http_service.dart';
+import 'package:sd/sd/mocker.dart';
+import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
+import 'package:sd/sd/pages/home/txt2img/TXT2IMGModel.dart';
+import 'package:sd/sd/provider/AIPainterModel.dart';
+import 'package:sd/sd/widget/LifecycleState.dart';
 
 const String TAG = "GenerateButton";
-class GenerateButton extends StatefulWidget{
+
+class GenerateButton extends StatefulWidget {
   Function()? onPressed;
 
   GenerateButton(this.onPressed);
 
   @override
-  State<StatefulWidget> createState()=>_GenerateButtonState();
-
+  State<StatefulWidget> createState() => _GenerateButtonState();
 }
 
-class _GenerateButtonState extends LifecycleState<GenerateButton>{
-
+class _GenerateButtonState extends LifecycleState<GenerateButton> {
   int countDown = 0;
-  int id_live_preview = -1;
+  int id_live_preview = 0;
+  String taskId = '';
   bool isActive = true;
+
   Timer? _countdownTimer;
 
-  int nextCheckTime = 10;
+  // int nextCheckTime = 10;
+
+  late AIPainterModel provider;
+
+  bool backgroundProgress =
+      true; //todo 接口错误 暂时关闭 状态同步 后台10s 检查progress 或者请求时 主动1s检查 progress
+
   @override
   Widget build(BuildContext context) {
-    RollModel model= Provider.of<RollModel>(context, listen: false);
-    AIPainterModel provider = Provider.of<AIPainterModel>(context, listen: false);
-    if(_countdownTimer!=null){
+    TXT2IMGModel model = Provider.of<TXT2IMGModel>(context, listen: false);
+    provider = Provider.of<AIPainterModel>(context, listen: false);
+    if (_countdownTimer != null) {
       _countdownTimer!.cancel();
     }
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if(isActive&&provider.sdServiceAvailable){
-        if(!model.backgroundProgress){
+    _countdownTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (isActive && provider.netWorkState > 0) {
+        if (!backgroundProgress) {
+          //前台
+          // nextCheckTime = 10;
+          if (id_live_preview == 0) {
+            taskId = randomStr(15);
+          }
+          countDown = 0;
           post("$sdHttpService$GET_PROGRESS",
-              formData: getPreview(id_live_preview), exceptionCallback: (e) {
-                nextCheckTime = 10;
-                countDown = 0;
-              }).then((value) {
+                  formData: getPreview(id_live_preview, taskId),
+                  exceptionCallback: (e) {})
+              .then((value) {
             if (null != value) {
               GenerateProgress progress = GenerateProgress.fromJson(value.data);
-              forgroundProgressCheck(progress,model);
+              logt(TAG, "forground progress $progress");
+              forgroundProgressCheck(progress, model);
             }
           });
-        }else{
-          countDown ++;
-          if(countDown==nextCheckTime){
-            nextCheckTime == nextCheckTime*2;
-            post("$sdHttpService$GET_PROGRESS",formData: getPreview(-1), exceptionCallback: (e) {
-              nextCheckTime = 10;
-              countDown = 0;
-            }).then((value) {
-              if (null != value) {
-                GenerateProgress progress = GenerateProgress.fromJson(value.data);
-                backgroundProgressCheck(progress,model);
-              }
-            });
-          }
+        } else {
+          // countDown ++;
+          // if(countDown%2==0){
+          //   post("$sdHttpService$GET_PROGRESS",formData: getPreview(id_live_preview,taskId), exceptionCallback: (e) {
+          //     countDown = 0;
+          //   }).then((value) {
+          //     if (null != value) {
+          //       GenerateProgress progress = GenerateProgress.fromJson(value.data);
+          //       logt(TAG,"background progress $progress");
+          //       backgroundProgressCheck(progress,model);
+          //     }
+          //   });
+          // }
         }
       }
-
     });
 
-
-    return Selector<RollModel, int>(
-      selector: (_, model) => model.isGenerating,
+    return Selector<AIPainterModel, int>(
+      selector: (_, model) => model.netWorkState,
       shouldRebuild: (pre, next) => pre != next,
       builder: (context, newValue, child) {
         return Stack(children: [
           child!,
-          Selector<RollModel, Uint8List?>(
-            builder: (_, newValue, child) => newValue == null
-                ? Container()
-                : Image.memory(newValue),
+          Selector<TXT2IMGModel, Uint8List?>(
+            builder: (_, newValue, child) =>
+                newValue == null ? Container() : Image.memory(newValue),
             selector: (_, model) => model.previewData,
-            shouldRebuild: (pre, next) =>
-            !(next == null && pre == null),
+            shouldRebuild: (pre, next) => !(next == null && pre == null),
           ),
           Positioned(
               left: 0,
@@ -98,7 +102,7 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
               top: 0,
               bottom: 0,
               child: Offstage(
-                offstage: newValue != 1,
+                offstage: newValue != REQUESTING,
                 child: const CircularProgressIndicator(
                   color: Colors.white,
                 ),
@@ -106,7 +110,11 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
         ]);
       },
       child: FloatingActionButton(
-        onPressed: widget.onPressed,
+        onPressed: () {
+          backgroundProgress = false;
+          id_live_preview = 0;
+          widget.onPressed!();
+        },
         child: Text(AppLocalizations.of(context).generate),
       ),
     );
@@ -118,26 +126,33 @@ class _GenerateButtonState extends LifecycleState<GenerateButton>{
     isActive = state == AppLifecycleState.resumed;
   }
 
-  void forgroundProgressCheck(GenerateProgress progress, RollModel model) {
+  void forgroundProgressCheck(GenerateProgress progress, TXT2IMGModel model) {
     id_live_preview = progress.idLivePreview!;
     model.updateProgress(progress.progress);
     if (progress.livePreview != null) {
-      model.updatePreviewData(base64Decode(
-          progress.livePreview!.substring(BASE64_PREFIX.length)));
+      model.updatePreviewData(
+          base64Decode(progress.livePreview!.substring(BASE64_PREFIX.length)));
     }
-    if (progress.completed == true) {
+    if (
+        // progress.progress==null
+        progress.completed == true) {
+      // provider.updateNetworkState(ONLINE);
       logd("timer cancel");
       // _countdownTimer?.cancel();
-      model.backgroundProgress = true;
+      backgroundProgress = true;
+    } else {
+      // provider.updateNetworkState(BUSY);
     }
   }
 
-  void backgroundProgressCheck(GenerateProgress progress, RollModel model) {
-    if(null!=progress.completed&&!progress.completed!){
-      // model.isBusy(REQUESTING);
-      logt(TAG,'completed');
-    }else{
-      // model.updateNetworkState(INIT);
+  void backgroundProgressCheck(GenerateProgress progress, TXT2IMGModel model) {
+    if (progress.progress != null
+        // null!=progress.completed&&!progress.completed!
+        ) {
+      provider.updateNetworkState(BUSY);
+      logt(TAG, 'completed');
+    } else {
+      // provider.updateNetworkState(ONLINE);
     }
   }
 }

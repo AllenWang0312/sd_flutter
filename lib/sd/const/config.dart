@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import '../bean/db/History.dart';
+import '../http_service.dart';
 import '../mocker.dart';
 
 const String APP_NAME = 'SD Flutter';
@@ -16,69 +17,10 @@ const String PACKAGE_NAME = "edu.tjrac.swant.sd";
 const COLOR_BACKGROUND = Color(0xFF0b0b19);
 const COLOR_CONTENT_BG = Color(0xFF1f1f37);
 const COLOR_ACCENT = Color(0xFFef7400);
-
-const String DEFAULT_SAMPLER = "Euler a";
-const String DEFAULT_UPSCALE = "None";
-
-const int DEFAULT_WIDTH = 512;
-const int DEFAULT_HEIGHT = 768;
-
-const String DEFAULT_WORKSPACE_NAME = "default";
-const int DEFAULT_SAMPLER_STEPS = 30;
-const bool DEFAULT_FACE_FIX = false;
-const bool DEFAULT_HIRES_FIX = false;
-const bool DEFAULT_AUTO_SAVE = false;
-const bool DEFAULT_HIDE_NSFW = true;
-const bool DEFAULT_CHECK_IDENTITY = false;
-
 const int WS_COUNT = 3;
 
-// sharedperference
-const String SP_ALT_ADDRESS = "alt_address";
-const String SP_SHARE_HOST = 'share_host';
-const String SP_HOST = 'host';
-const String SP_SHARE = 'share';
-const String SP_GENERATE_TYPE = 'generate_type';
-const String SP_PROMPT_TYPE = 'prompt_type';
-
-const String SP_CURRENT_WS = 'current_ws';
-const String SP_WIDTH = "width";
-const String SP_HEIGHT = "height";
-const String SP_SAMPLER = "sampler";
-const String SP_SAMPLER_STEPS = "sampler_steps";
-const String SP_CHECKED_STYLES = "checked_styles";
-const String SP_AUTO_SAVE = "auto_save";
-const String SP_HIDE_NSFW = "hide_nsfw";
-const String SP_CHECK_IDENTITY = "check_identity";
-
-const String SP_FACE_FIX = "face_fix";
-const String SP_HIRES_FIX = "hires_fix";
-const String SP_BATCH_COUNT = "batch_count";
-const String SP_BATCH_SIZE = "batch_size";
-
-// routes
-const String ROUTE_HOME = "/home";
-const String ROUTE_PLUGINS = "/home/plugins";
-const String ROUTE_SETTING = "/home/setting";
-const String ROUTE_WEBVIEW = "/home/webview";
-const String ROUTE_TAVERN = "/home/tavern";
-const String ROUTE_AUTO_COMPLETE = "/home/roll/auto";
-
-const String ROUTE_STYLE_EDITTING = "/home/setting/styles/edit";
-// const String ROUTE_IMAGE_VIEWER = "/viewer";
-const String ROUTE_IMAGES_VIEWER = "/home/viewers";
-
-const String ROUTE_CREATE_WORKSPACE = "/home/setting/workspace/create";
-const String ROUTE_CREATE_STYLE = "/home/setting/style/create";
-const String ROUTE_EDIT_STYLE = "/home/setting/style/edit";
-// file system
-
 const String APP_DIR_NAME = 'sdf';
-
-// api
-
 const KEY_HOST = "host";
-
 const SD_WIN_HOST = "127.0.0.1";
 const SD_CLINET_HOST = "192.168.0.1";
 
@@ -87,24 +29,6 @@ const SD_PORT = 7860;
 placeHolderUrl({int width = 512, int height = 720}) {
   return 'https://via.placeholder.com/$width x$height';
 }
-
-String remoteTXT2IMGDir = '';
-String remoteIMG2IMGDir = '';
-String remoteMoreDir = '';
-
-// String? sdPublicDomain = null;
-// String? sdHttpService = null;
-
-String? sdPublicDomain = "be12e76f-dfbd-435b";
-String? sdHttpService = "https://$sdPublicDomain.gradio.live";
-
-// String sdShareHost = 'https://huggingface.co/spaces';
-
-String remoteFavouriteDir = '';
-String sdHost = UniversalPlatform.isWeb|| Platform.isWindows
-        ? SD_WIN_HOST
-        : SD_CLINET_HOST;
-
 
 const TXT_2_IMG = "/sdapi/v1/txt2img";
 
@@ -121,6 +45,14 @@ const GET_OPTIONS = "/sdapi/v1/options";
 const RUN_PREDICT = '/run/predict';
 const GET_PROGRESS = '/internal/progress';
 
+const FILE_DELEGETE = '/file=extensions';
+
+const TAG_MY_TAGS = '$FILE_DELEGETE/sd_flutter/tags';
+const TAG_SERVICE_CONFIG = '$FILE_DELEGETE/sd_flutter/config.json';
+const TAG_COMPUTE = '$FILE_DELEGETE/tagcomplete/tags';
+const TAG_COMPUTE_CN = '$TAG_COMPUTE/zh_cn.csv';
+
+const FILE_TEMP_PATH = "$FILE_DELEGETE/tagcomplete/tags/temp";
 const GET_LORA_NAMES = '$FILE_TEMP_PATH/lora.txt';
 const GET_EMB_NAMES = '$FILE_TEMP_PATH/emb.txt';
 const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
@@ -136,24 +68,6 @@ const TAG_MODELTYPE_HPE = 'hypernetworks';
 
 const TAG_PREFIX_EMB = 'emb';
 const TAG_MODELTYPE_EMB = 'embding';
-
-// //platform
-// bool isGallerySaverSupportPlatform =
-//     UniversalPlatform.isWeb && UniversalPlatform.isAndroid;
-//
-// getDefaultAutoSavePath() {
-//   if (UniversalPlatform.isWeb) {
-//     return "/sd";
-//   } else if (UniversalPlatform.isAndroid) {
-//     return "/storage/emulated/0/Pictures/sd";
-//   }
-//   return "";
-// }
-
-// String urlEncode(String path) {
-//   return Uri.encodeFull(path);
-//   // return path.replaceAll('\\', '\/').replaceAll(' ', '%20');
-// }
 
 //todo imgPath 是否有效 为何无法删除
 final String TAG = "config";

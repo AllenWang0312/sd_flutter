@@ -5,34 +5,36 @@ import 'package:provider/provider.dart';
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/common/webview/webview_page.dart';
 import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/http_service.dart';
-import 'package:sd/sd/pages/HideWhenInactive.dart';
-import 'package:sd/sd/pages/ImagesModel.dart';
-import 'package:sd/sd/pages/home_page.dart';
-import 'package:sd/sd/pages/images_viewer.dart';
-import 'package:sd/sd/pages/web_home_model.dart';
-import 'package:sd/sd/pages/web_home_page.dart';
+import 'package:sd/sd/pages/home/txt2img/AutoComplatePage.dart';
+import 'package:sd/sd/pages/home/txt2img/TranslateDragPromptWidget.dart';
+import 'package:sd/sd/pages/home/txt2img/plgins/plugins_widget.dart';
+import 'package:sd/sd/pages/imageviewer/ImagesModel.dart';
+import 'package:sd/sd/pages/imageviewer/images_viewer.dart';
+import 'package:sd/sd/pages/setting/CreateStyleModel.dart';
+import 'package:sd/sd/pages/setting/CreateWrokspaceModel.dart';
+import 'package:sd/sd/pages/setting/create_style_page.dart';
+import 'package:sd/sd/pages/setting/create_workspace_widget.dart';
+import 'package:sd/sd/pages/setting/edit_style_page.dart';
+import 'package:sd/sd/pages/setting/setting_page.dart';
+import 'package:sd/sd/pages/setting/style_edit_page.dart';
+import 'package:sd/sd/pages/web/web_home_model.dart';
+import 'package:sd/sd/pages/web/web_home_page.dart';
+import 'package:sd/sd/widget/HideWhenInactive.dart';
+import 'package:sd/sd/pages/home/home_page.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
-import 'package:sd/sd/roll/AutoComplatePage.dart';
-import 'package:sd/sd/roll/plgins/plugins_widget.dart';
-import 'package:sd/sd/setting/CreateStyleModel.dart';
-import 'package:sd/sd/setting/CreateWrokspaceModel.dart';
-import 'package:sd/sd/setting/create_style_page.dart';
-import 'package:sd/sd/setting/create_workspace_widget.dart';
-import 'package:sd/sd/setting/edit_style_page.dart';
-import 'package:sd/sd/setting/setting_page.dart';
-import 'package:sd/sd/setting/style_edit_page.dart';
-import 'package:sd/sd/tavern/tavern_widget.dart';
+import 'package:sd/platform/android_download_dir_widget.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
-
-// import 'package:file_drag_and_drop/file_drag_and_drop_channel.dart';
-
 import 'common/third_util.dart';
 
 Map<String, Function> PUBLIC_ROUTES = {
   ROUTE_AUTO_COMPLETE: (_, {arguments}) =>
       AutoCompletePage(arguments['title'], arguments['prompt']),
+  ROUTE_DRAG_PROMPT: (_, {arguments}) =>
+      TranslateDragPromptWidget(arguments['title'], arguments['prompt']),
+
 
   ROUTE_SETTING: (_) => SettingPage(),
 
@@ -56,12 +58,13 @@ Map<String, Function> PUBLIC_ROUTES = {
       child: CreateStyleWidget(arguments['style'], arguments['autoSaveAbsPath'],
           arguments['files'])),
   ROUTE_STYLE_EDITTING: (_, {arguments}) => StyleEditPage(
+    arguments['cmd'],
         title: arguments['title'],
         styleName: arguments['styleName'],
         prompt: arguments['prompt'],
         negPrompt: arguments['negPrompt'],
       ),
-  ROUTE_EDIT_STYLE: (_, {arguments}) => StyleConfigPage(arguments),
+  ROUTE_EDIT_STYLE: (_, {arguments}) => StyleConfigPage(arguments['filePath'],arguments['userAge']),
 // ROUTE_IMAGE_VIEWER: (_, {arguments}) => ImageViewer(
 //       url: arguments['url'],
 //       filePath: arguments['filePath'],
@@ -75,7 +78,7 @@ Map<String, Function> PUBLIC_ROUTES = {
             index: arguments['index'],
             datas: arguments['datas'],
             relativeSaveDirPath: arguments['savePath'],
-            scanServiceAvailable: arguments['scanAvailable'] ?? false,
+            scanServiceAvailable: arguments['scanAvailable'] ?? false,//todo 是否可以扫描 也应该实时判断
             fnIndex: arguments['fnIndex'] ?? 0,
             isFavourite: arguments['isFavourite'] ?? false,
             type: arguments['type']),
@@ -93,7 +96,7 @@ Map<String, Function> getMobileRoutes() {
             child: HomePage(index: arguments?['index'])),
 // ),
 
-    ROUTE_TAVERN: (_) => TavernWidget(),
+    ROUTE_FILE_MANAGER: (_) => AndroidDownloadWidget(),
   });
 }
 

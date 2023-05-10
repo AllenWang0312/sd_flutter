@@ -1,28 +1,46 @@
-import '../http_service.dart';
+import 'package:sd/common/util/string_util.dart';
 
 class PromptStyle {
+  static var GROUP = 'group';
+  static var STEP = 'step';
+  static var NAME = 'name';
+  static var LIMIT_AGE = 'limit_age';
+
+  static var PROMPT = 'prompt';
+  static var NEG_PROMPT = 'negative_prompt';
+
+  static List STYLE_HEAD = [
+    'group',
+    'step',
+    'name',
+    'limit_age',
+    'prompt',
+    'negative_prompt'
+  ];
+
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
-      "id INTEGER PRIMARY KEY, name TEXT,prompt TEXT,negativePrompt TEXT";
+      "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT";
 
-  // static var NAME = 'name';
-  // static var TYPE = 'type';
-  // static var PROMPT = 'prompt';
-  // static var NEG_PROMPT = 'negative_prompt';
+  String? group = '';
+  int? step = 0;
+  int? limitAge = 0;
 
-  int flag = 0;
+  String name = "";
+  String? prompt = "";
+  String? negativePrompt = "";
 
   int promptLen = 0;
   int negativeLen = 0;
 
   PromptStyle(
-      this.name,
-      {
-    // this.type,
+    this.name, {
+    this.group = "",
+    this.step = 0,
+    this.limitAge = 0,
     this.prompt,
     this.negativePrompt,
-        this.flag = 0
-  }){
+  }) {
     promptLen = wordsCount(prompt);
     negativeLen = wordsCount(negativePrompt);
     // logt(TAG,"prompt $promptLen negative $negativeLen");
@@ -31,51 +49,53 @@ class PromptStyle {
   bool checked = false;
 
   PromptStyle.fromJson(dynamic json) {
+    group = json['group'];
     name = json['name'];
-    // type = json['type'];
+    limitAge = toInt(json['limit_age'],0);
+    step = toInt(json['step'], 0);
     prompt = json['prompt'];
     negativePrompt = json['negative_prompt'];
   }
 
-  String name = "";
-  // String? type;
-  String? prompt = "";
-  String? negativePrompt = "";
-
-  bool get isEmpty{
-    return (prompt==null||prompt!.isEmpty)&&(negativePrompt==null||negativePrompt!.isEmpty);
+  bool get isEmpty {
+    return (prompt == null || prompt!.isEmpty) &&
+        (negativePrompt == null || negativePrompt!.isEmpty);
   }
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    map['group'] = group;
+
     map['name'] = name;
-    // map['type'] = type;
+    map['limit_age'] = limitAge;
+    map['step'] = step;
     map['prompt'] = prompt;
     map['negative_prompt'] = negativePrompt;
     return map;
   }
 
-  static List csvHead = ['name', 'type', 'prompt', 'negative_prompt'];
-
   static List<List<dynamic>>? convertDynamic(List re) {
     List<List<dynamic>>? result = re.map((e) {
       return convertItem(e);
     }).toList();
-    result.insert(0, csvHead);
+    result.insert(0, STYLE_HEAD);
     return result;
   }
+
   static List<List<dynamic>>? convertPromptStyle(List<PromptStyle> re) {
     List<List<dynamic>>? result = re.map((e) {
       return convertBean(e);
     }).toList();
-    result.insert(0, csvHead);
+    result.insert(0, STYLE_HEAD);
     return result;
   }
 
   static List<dynamic> convertItem(dynamic item) {
     return [
+      item['group'],
       item['name'],
-      // item['type'],
+      item['step'],
+      item['limit_age'],
       item['prompt'],
       item['negative_prompt'],
     ];
@@ -83,8 +103,10 @@ class PromptStyle {
 
   static List<dynamic> convertBean(PromptStyle item) {
     return [
+      item.group,
       item.name,
-      // item.type,
+      item.limitAge,
+      item.step,
       item.prompt,
       item.negativePrompt,
     ];
@@ -92,7 +114,7 @@ class PromptStyle {
 
   @override
   String toString() {
-    return 'PromptStyle{checked: $checked, name: $name, prompt: $prompt, negativePrompt: $negativePrompt}';
+    return 'PromptStyle{group: $group, step: $step, limitAge: $limitAge, promptLen: $promptLen, negativeLen: $negativeLen, checked: $checked, name: $name, prompt: $prompt, negativePrompt: $negativePrompt}';
   }
 
   @override
@@ -101,15 +123,16 @@ class PromptStyle {
       other is PromptStyle &&
           runtimeType == other.runtimeType &&
           name == other.name &&
-          // type == other.type &&
+          limitAge == other.limitAge &&
           prompt == other.prompt &&
           negativePrompt == other.negativePrompt;
 
   @override
-  int get hashCode =>
-      name.hashCode ^ prompt.hashCode ^ negativePrompt.hashCode;
+  int get hashCode => name.hashCode ^ prompt.hashCode ^ negativePrompt.hashCode;
 
   int wordsCount(String? prompt) {
-   return null==prompt||prompt.isEmpty?0:(prompt.contains('.')?prompt.split('.').length:1);
+    return null == prompt || prompt.isEmpty
+        ? 0
+        : (prompt.contains('.') ? prompt.split('.').length : 1);
   }
 }

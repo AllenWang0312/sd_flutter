@@ -1,42 +1,25 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sd/common/util/file_util.dart';
-import 'package:sd/platform/platform.dart';
-import 'package:sd/sd/bean/UserInfo.dart';
+import 'package:sd/common/splash_page.dart';
+import 'package:sd/sd/bean4json/UpScaler.dart';
+import 'package:sd/sd/http_service.dart';
+import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
+import 'package:sd/sd/pages/home/txt2img/tagger_widget.dart';
 import 'package:sd/sd/provider/config_model.dart';
-import 'package:sd/sd/roll/tagger_widget.dart';
-import 'package:sd/sd/tavern/bean/ImageSize.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:universal_platform/universal_platform.dart';
+import 'package:sd/sd/provider/index_recorder.dart';
 
-import '../../../common/splash_page.dart';
-import '../bean/Configs.dart';
-import '../bean/PromptStyle.dart';
-import '../bean/db/PromptStyleFileConfig.dart';
-import '../bean/db/Workspace.dart';
-import '../bean4json/UpScaler.dart';
-import '../const/config.dart';
-import '../db_controler.dart';
-import '../http_service.dart';
-import 'index_recorder.dart';
+
 
 //存放需要在闪屏页初始化的配置
 //todo 类瘦身 没必要常态化持有的 拆分出去
 
-class AIPainterModel extends ConfigModel with IndexRecorder{
-  static const String TAG = 'AIPainterModel';
+const String TAG = 'AIPainterModel';
+
+
+class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider{
   int countdownNum = SPLASH_WATTING_TIME; // todo 连同timer 封装到组件  闪屏页倒计时
 
-  // UserInfo? userInfo = null;
-  bool sdServiceAvailable = false;
   String? selectedSDModel;
   String selectedInterrogator = DEFAULT_INTERROGATOR;
   List<UpScaler> upScalers = [];
-
   String lastGenerate = '';
 
 
@@ -53,6 +36,11 @@ class AIPainterModel extends ConfigModel with IndexRecorder{
   @override
   void updateIndex(int index) {
     this.index = index;
+    notifyListeners();
+  }
+  @override
+  void updateNetworkState(int i) {
+    netWorkState = i;
     notifyListeners();
   }
 

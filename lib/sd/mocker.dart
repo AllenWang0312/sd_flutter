@@ -1,91 +1,11 @@
-const TAG_MY_TAGS = '/file=extensions/sd_flutter/tags';
-
-const TAG_COMPUTE = '/file=extensions/tagcomplete/tags';
-
-const TAG_COMPUTE_CN = '$TAG_COMPUTE/zh_cn.csv';
-
-const FILE_TEMP_PATH = "/file=extensions/tagcomplete/tags/temp";
-
-
-
-const CMD_REFRESH_MODEL = 0;
-
-const CMD_REFRESH_STYLE = CMD_REFRESH_MODEL + 6;
-
-const CMD_GET_LAST_PROMPT = CMD_REFRESH_MODEL + 9; //9
-
-const CMD_CLEAN_SEED = 126;
-
-const CMD_MULTI_GENERAGE = 244;
-// const options = [
-//   'Nothing',
-//   'Seed',
-//   'Var. seed',
-//   'Var. strength',
-//   'Steps',
-//   'Hires steps',
-//   'CFG Scale',
-//   'Prompt S/R',
-//   'Prompt order',
-//   'Sampler',
-//   'Sampler',
-//   'Checkpoint name',
-//   'Sigma Churn',
-//   'Sigma min',
-//   'Sigma max',
-//   'Sigma noise',
-//   'Eta',
-//   'Clip skip',
-//   'Denoising',
-//   'Hires upscaler',
-//   'Cond. Image Mask Weight',
-//   'VAE',
-//   'Styles'
-// ];
-const CMD_SET_X = 262;
-
-const CMD_SET_Y = CMD_SET_X + 1;
-
-const CMD_SET_Z = CMD_SET_X + 2;
-
-const CMD_SINGLE_GENERAGE = 291;
-
-const CMD_GET_LAST_SEED = 288;
-
-const CMD_SAVE_STYLE = 499;
-
-const CMD_GET_INTERROGATORS = 704;
-
-const CMD_IMG_TAGGER = 708;
-
-
-// const CMD_GET_IMG2IMG_HISTORY = CMD_GET_TXT2IMG_HISTORY+22;
-//
-// const CMD_GET_TXT2IMG_GRID_HISTORY = CMD_GET_TXT2IMG_HISTORY+34;
-//
-// const CMD_GET_IMG2IMG_GRID_HISTORY = CMD_GET_TXT2IMG_HISTORY+66;
-
-const CMD_DELETE_FILE = 741;
-
-const CMD_ADD_TO_FAVOURITE = CMD_DELETE_FILE + 2;
-
-const CMD_GET_TXT2IMG_HISTORY = 686;
-
-const CMD_GET_MORE_HISTORY = CMD_GET_TXT2IMG_HISTORY + 88;
-
-const CMD_FAVOURITE_HISTORY = CMD_GET_TXT2IMG_HISTORY + 109;
-
-const CMD_SWITCH_SD_MODEL = 853;
-
-// const CMD_GET_ALL_SETTING = 1008;
-// const CMD_GET_CONFIGS = CMD_GET_ALL_SETTING + 12;
+import 'bean/Configs.dart';
 
 const BASE64_PREFIX = 'data:image/png;base64,';
 
 
-dynamic multiGenerateBody(dynamic data, int pi, int times) {
+dynamic multiGenerateBody(int cmd,dynamic data, int pi, int times) {
   return {
-    "fn_index": CMD_SINGLE_GENERAGE,
+    "fn_index": cmd,
     "data": [
       "", //task(74b1tly1v240aog)
       data['prompt'],
@@ -341,17 +261,19 @@ dynamic multiGenerateBody(dynamic data, int pi, int times) {
   };
 }
 
-dynamic getPreview(int id) {
+dynamic getPreview(int id,String taskId) {
   return {
-    // "id_task": "task(9drtdfvly2g47gc)",
+    "id_task": "task($taskId)",
     "id_live_preview": id
   };
 }
 
+
+
 //data:image/png;base64,
-dynamic tagger(String encodeData, String interrogator, double threshold) {
+dynamic tagger(int cmd,String encodeData, String interrogator, double threshold) {
   return {
-    "fn_index": CMD_IMG_TAGGER,
+    "fn_index": cmd,
     "data": [
       "$BASE64_PREFIX$encodeData",
       "",
@@ -375,9 +297,9 @@ dynamic tagger(String encodeData, String interrogator, double threshold) {
   };
 }
 
-dynamic setPluginCover(String remotePath, String pluginPathNoExt) {
+dynamic setPluginCover(cmd,String remotePath, String pluginPathNoExt) {
   return {
-    "fn_index": 297,
+    "fn_index": cmd,
     "data": [
       -1,
       [
@@ -414,17 +336,10 @@ dynamic delateFile(
   };
 }
 
-dynamic getInterrogators() {
-  return {
-    "fn_index": CMD_GET_INTERROGATORS,
-    "data": [],
-    // "session_hash": "lcm8sq8kso"
-  };
-}
 
-dynamic getLastPrompt() {
+dynamic getLastPrompt(int cmd) {
   return {
-    "fn_index": CMD_GET_LAST_PROMPT,
+    "fn_index": cmd,
     "data": [
       "",
       "",
@@ -508,22 +423,335 @@ dynamic getLastPrompt() {
   };
 }
 
-dynamic cleanSeed() {
-  return {
-    "fn_index": CMD_CLEAN_SEED,
-    "data": [],
-    // "session_hash": "xo1qqnyjm6"
-  };
-}
+// dynamic cleanSeed() {
+//   return {
+//     "fn_index": ,
+//     "data": [],
+//     // "session_hash": "xo1qqnyjm6"
+//   };
+// }
 
 dynamic refreshModel() {
-  return {
-    "fn_index": CMD_REFRESH_MODEL,
-    "data": [],
-    // "session_hash": "xo1qqnyjm6"
-  };
+  return ;
 }
 
+
+dynamic sketchUp(Configs config){
+  return {
+    "fn_index": 500,
+    "data": [
+      "",//task
+      1,
+      config.prompt,//prompt
+      config.negativePrompt,//neg
+      // config.,//"默认关键词","negative ext","真实的"styles
+      "",//image
+      "",//image
+      {
+        "image": "",//image
+        "mask": ""
+      },
+      null,
+      null,
+      null,
+      null,
+      30,
+      "DPM++ SDE Karras",//sampler
+      4,
+      0,
+      "original",
+      true,//face fix
+      false,//tiling
+      1,//batch
+      1,//count
+      12,//cfg
+      1.5,
+      0.25,//denoising strength
+      -1,
+      -1,
+      0,
+      0,
+      0,
+      false,
+      960,//width
+      960,//height
+      "Just resize (latent upscale)",//
+      "Whole picture",//
+      32,
+      "Inpaint masked",
+      "",
+      "",
+      "",
+      [],
+      "None",
+      false,
+      "MultiDiffusion",
+      false,
+      10,
+      1,
+      1,
+      64,
+      false,
+      true,
+      1024,
+      1024,
+      96,
+      96,
+      48,
+      1,
+      "None",
+      2,
+      false,
+      false,
+      false,
+      false,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      0.4,
+      0.4,
+      0.2,
+      0.2,
+      "",
+      "",
+      "Background",
+      0.2,
+      -1,
+      false,
+      false,
+      true,
+      true,
+      false,
+      1536,
+      96,
+      false,
+      "",
+      0,
+      false,
+      false,
+      "LoRA",
+      "None",
+      1,
+      1,
+      "LoRA",
+      "None",
+      1,
+      1,
+      "LoRA",
+      "None",
+      1,
+      1,
+      "LoRA",
+      "None",
+      1,
+      1,
+      "LoRA",
+      "None",
+      1,
+      1,
+      "Refresh models",
+      null,
+      false,
+      "none",
+      "None",
+      1,
+      null,
+      false,
+      "Scale to Fit (Inner Fit)",
+      false,
+      false,
+      64,
+      64,
+      64,
+      1,
+      false,
+      false,
+      "",
+      0.5,
+      true,
+      false,
+      "",
+      "Lerp",
+      false,
+      0.9,
+      5,
+      "0.0001",
+      false,
+      "None",
+      "",
+      0.1,
+      false,
+      "",
+      true,
+      true,
+      "",
+      "",
+      true,
+      50,
+      true,
+      1,
+      0,
+      false,
+      4,
+      1,
+      "",
+      128,
+      8,
+      [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      1,
+      0.05,
+      128,
+      4,
+      "fill",
+      [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      false,
+      false,
+      "positive",
+      "comma",
+      0,
+      false,
+      false,
+      "",
+      "",
+      64,
+      "None",
+      2,
+      "Seed",
+      "",
+      "Nothing",
+      "",
+      "Nothing",
+      "",
+      true,
+      false,
+      false,
+      false,
+      0,
+      "Not set",
+      true,
+      true,
+      "",
+      "",
+      "",
+      "",
+      "",
+      1.3,
+      "Not set",
+      "Not set",
+      1.3,
+      "Not set",
+      1.3,
+      "Not set",
+      1.3,
+      1.3,
+      "Not set",
+      1.3,
+      "Not set",
+      1.3,
+      "Not set",
+      1.3,
+      "Not set",
+      1.3,
+      "Not set",
+      1.3,
+      "Not set",
+      false,
+      "None",
+      null,
+      false,
+      50,
+      [
+        {
+          "name": "",//F:\\SD\\outputs\\img2img-images\\2023-05-09\\00017-3161341122.png
+          "data": "",//file=F:\\SD\\outputs\\img2img-images\\2023-05-09\\00017-3161341122.png
+          "is_file": true
+        }
+      ],
+      "",
+      "",
+      ""
+    ],
+    // "session_hash": "5i5jztn95hq"
+  };
+}
 // dynamic getConfigs() {
 //   return {
 //     "fn_index": CMD_GET_CONFIGS,

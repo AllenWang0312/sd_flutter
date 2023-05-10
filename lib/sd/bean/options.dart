@@ -39,12 +39,12 @@ class Optional extends PromptStyle {
     options!.putIfAbsent(item.name, () => item);
   }
 
-  Optional createIfNotExit(List<String> name) {
+  Optional createIfNotExit(List<String> names) {
     // logt(TAG,this.name + name.toString(),);
     options ??= {};
     Optional option;
 
-    String n = name[0];
+    String n = names[0];
     if (options!.keys.contains(n)) {
       option = options![n]!;
     } else {
@@ -52,8 +52,8 @@ class Optional extends PromptStyle {
       addOption(n, option);
     }
 
-    if (name.length > 1) {
-      return option.createIfNotExit(name.sublist(1));
+    if (names.length > 1) {
+      return option.createIfNotExit(names.sublist(1));
     } else {
       return option;
     }
@@ -87,7 +87,7 @@ class Optional extends PromptStyle {
 
     List<Widget> noChild = splits[0].map<Widget>((e) {
       return RawChip(
-          selected: provider.checkedStyles.contains(e.name),
+          selected: provider.txt2img.checkedStyles.contains(e.name),
           onSelected: (bool selected) {
             provider.switchChecked(e.name);
             // e.checked = selected;

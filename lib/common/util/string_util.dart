@@ -1,3 +1,5 @@
+import 'dart:math';
+
 const List<String> SUPPORT_IMAGE_TYPES = [
   '.jpg',
   ".jpeg",
@@ -8,8 +10,23 @@ const List<String> SUPPORT_IMAGE_TYPES = [
 
 const FILE_PREFIX = 'file://';
 
+RegExp getPluginMarch(String prefix, String name) {
+return RegExp(r'<" + prefix + ":" + name + ":+([0-1]\.\d)>+');
+}
+
+
+bool allChinease(String str) {
+  String cnMatches = r'[\\u4e00-\\u9fa5]+';
+  return str.contains(RegExp(cnMatches));
+}
+String randomStr(int length){
+  final random = Random();
+  const chars = 'abcdefghijklmnopqrstuvwxyz1234567890';
+ return List.generate(length, (index) => chars[random.nextInt(chars.length)]).join();
+}
+
 String removeFilePreIfExist(String s) {
-  if(s.startsWith(FILE_PREFIX)){
+  if (s.startsWith(FILE_PREFIX)) {
     return s.substring(FILE_PREFIX.length);
   }
   return s;
@@ -37,11 +54,14 @@ String appendImageExtIfNotExist(String? domain, String str) {
 }
 
 String withDefault(String str, String value) {
- if(str.isEmpty) return value;
- return str;
+  if (str.isEmpty) return value;
+  return str;
 }
 
-int toInt(String str, int value) {
+int toInt(dynamic str, int value) {
+  if (str is int) {
+    return str;
+  }
   try {
     int result = int.parse(str);
     return result;

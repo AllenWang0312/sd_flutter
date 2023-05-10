@@ -4,10 +4,34 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sd/sd/roll/NetWorkStateProvider.dart';
+import 'package:sd/sd/bean/Cmd.dart';
+import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
+import 'package:universal_platform/universal_platform.dart';
 
+import 'const/config.dart';
+
+//todo 热更新后不会清空值
+bool? sdShare = false;
+String? sdPublicDomain = null;
+String? sdHttpService = null;
+// bool? sdShare = true;
+// String? sdPublicDomain = "b741d5cd-c6cf-4e0f";
+// String? sdHttpService = "https://$sdPublicDomain.gradio.live";
+
+String sdHost = UniversalPlatform.isWeb || Platform.isWindows
+    ? SD_WIN_HOST
+    : SD_CLINET_HOST;
 bool PROXY = false;
 
+String remoteTXT2IMGDir = '';
+String remoteIMG2IMGDir = '';
+String remoteMoreDir = '';
+String remoteFavouriteDir = '';
+
+Cmd cmd = Cmd();
+int serviceVersion = 0;
+
+// String sdShareHost = 'https://huggingface.co/spaces';
 logd(String msg) {
   log(msg, level: 0); // 待验证release是否不打印
   // if (kDebugMode) {
@@ -71,10 +95,11 @@ Future<Response?> get(url,
     }
     return catchError(response, exceptionCallback);
   } catch (e) {
+    logt(TAG, "get err: $e");
     if (null != exceptionCallback) {
       exceptionCallback(e);
     }
-    return Future.error({'code': -1, 'errMsg': e.toString()});
+    return Future(() => null);
   }
 }
 
@@ -82,7 +107,8 @@ Future<Response?> post(url,
     {formData,
     int timeOut = HTTP_TIME_OUT,
     dynamic headers,
-    Function? exceptionCallback,NetWorkStateProvider? provider}) async {
+    Function? exceptionCallback,
+    NetWorkStateProvider? provider}) async {
   logt(TAG, "post:$url");
   try {
     Response response;
@@ -96,23 +122,24 @@ Future<Response?> post(url,
       response = await dio.post(url, data: formData);
       logt(TAG, "post:${formData}");
     }
-    return catchError(response, exceptionCallback,provider: provider);
+    return catchError(response, exceptionCallback, provider: provider);
   } catch (e) {
-    provider?.updateNetworkState(ERROR);
+    logt(TAG, "post err:$e");
+    provider?.updateNetworkState(OFFLINE);
     if (null != exceptionCallback) {
       exceptionCallback(e);
     }
-    return Future.error({'code': -1, 'errMsg': e.toString()});
+    return Future(() => null);
   }
 }
 
 Future<Response?> catchError(Response response, Function? callback,
     {NetWorkStateProvider? provider}) async {
   if (response.statusCode == 200) {
-    provider?.updateNetworkState(INIT);
+    provider?.updateNetworkState(ONLINE);
     return response;
   } else {
-    provider?.updateNetworkState(ERROR);
+    provider?.updateNetworkState(OFFLINE);
     dynamic err = {
       'code': response.statusCode,
       'errMsg': response.statusMessage
@@ -120,7 +147,6 @@ Future<Response?> catchError(Response response, Function? callback,
     if (null != callback) {
       callback(err);
     }
-    return Future.error(err);
   }
 }
 

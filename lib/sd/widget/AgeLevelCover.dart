@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/const/routes.dart';
 
 import '../../common/third_util.dart';
 import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
+import '../bean/file/UniqueSign.dart';
 import '../http_service.dart';
 import '../provider/AIPainterModel.dart';
-import '../tavern/bean/UniqueSign.dart';
 
 const TAG = 'AgeLevelCover';
 class AgeLevelCover extends StatelessWidget {

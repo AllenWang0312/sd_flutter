@@ -25,7 +25,7 @@ class PromptStyleFileConfig {
 
   PromptStyleFileConfig({
     this.id,
-    this.name = "default",
+    this.name = "default.dart",
     this.state = 0,
     this.type = 0,
     this.belongTo,

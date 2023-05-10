@@ -6,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/util/file_util.dart';
+import 'package:sd/sd/const/default.dart';
+import 'package:sd/sd/const/routes.dart';
+import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/db_controler.dart';
+import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../sd/bean/PromptStyle.dart';
@@ -14,7 +18,7 @@ import '../sd/const/config.dart';
 import '../sd/http_service.dart';
 import '../sd/provider/AIPainterModel.dart';
 
-const int SPLASH_WATTING_TIME = 3;
+const int SPLASH_WATTING_TIME = 5;
 
 const String TAG = "SplashPage";
 
@@ -33,15 +37,15 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
-
     provider.loadConfig();
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (provider.countdownNum <= 0) {
         jumpAndCancelTimerIfSettingIsReady(context, null);
       }
+
       if (provider.countdownNum == SPLASH_WATTING_TIME - 2) {
-        getSettings();
+        await getSettings();
       }
       provider.countDown();
     });
@@ -114,28 +118,37 @@ class _SplashPageState extends State<SplashPage> {
   }
 
 
-  void getSettings() async {
+  Future<void> getSettings() async {
 
-    provider.networkInitPromptStyle();
 
-    provider.networkInitTranlates();
+
 
     // provider.networkInitApiOptions();
-    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 8, exceptionCallback: (e) {
+    return await get("$sdHttpService$GET_OPTIONS", timeOutSecond: 10, exceptionCallback: (e) {
       getSettingSuccess = -1;
-    }).then((value) {
-      logt(TAG, "get options${value?.data.toString() ?? ""}");
-      // Options op = Options.fromJson(value.data);
-      String modelName = value?.data['sd_model_checkpoint'];
+    }).then((value) async {
+      if(null!=value&&null!=value.data){
+        // logt(TAG, "get options${value?.data.toString() ?? ""}");
+        // Options op = Options.fromJson(value.data);
+        String? modelName = value.data['sd_model_checkpoint'];
 
-      remoteTXT2IMGDir = value?.data['outdir_txt2img_samples'];
-      remoteIMG2IMGDir = value?.data['outdir_img2img_samples'];
-      remoteMoreDir = value?.data['outdir_extras_samples'];
-      remoteFavouriteDir = value?.data['outdir_save'];
+        remoteTXT2IMGDir = value.data['outdir_txt2img_samples'];
+        remoteIMG2IMGDir = value.data['outdir_img2img_samples'];
+        remoteMoreDir = value.data['outdir_extras_samples'];
+        remoteFavouriteDir = value.data['outdir_save'];
 
-      provider.sdServiceAvailable = true;
-      provider.updateSDModel(modelName);
-      getSettingSuccess = 1; //todo 最后发起的不一定最后完成
+
+
+        await provider.initServiceConfigIfServiceActive();
+        await provider.initPromptStyleIfServiceActive();
+        await provider.initTranlatesIfServiceActive();
+
+        provider.netWorkState = ONLINE;
+        provider.updateSDModel(modelName);
+        getSettingSuccess = 1; //todo 最后发起的不一定最后完成
+      }
+
+
     });
   }
 

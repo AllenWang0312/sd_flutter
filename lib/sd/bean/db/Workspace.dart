@@ -41,7 +41,7 @@ class Workspace {
 
   String getName() {
     if (name.isEmpty) {
-      return 'default';
+      return 'default.dart';
     }
     return name;
   }

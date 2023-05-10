@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
+import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/db_controler.dart';
 
 import '../../sd/bean/PromptStyle.dart';
@@ -28,22 +30,51 @@ const EXIF_IMAGE_KEYWORDS_KEY = 'Image XPKeywords';
 const EXIF_IMAGE_PADDING_KEY = 'Image Padding';
 const EXIF_EXIF_PADDING_KEY = 'EXIF Padding';
 
-Future<List<PromptStyle>> loadPromptStyleFromCSVFile(String csvFilePath) async {
-  String myData = await File(csvFilePath).readAsString();
-  return loadPromptStyleFromString(myData);
+Future<List<PromptStyle>> loadPromptStyleFromCSVFile(
+    String csvFilePath, int userAge,
+    {Encoding? encoding}) async {
+  String myData =
+      await File(csvFilePath).readAsString(encoding: encoding ?? utf8);
+  return loadPromptStyleFromString(myData, userAge);
 }
 
-List<PromptStyle> loadPromptStyleFromString(String myData, {int flag = 0}) {
+List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
+    {Map<String, List<PromptStyle>>? groupRecord}) {
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
   List colums = csvTable.removeAt(0);
-  // int nameIndex = colums.indexOf(PromptStyle.NAME);
-  // int promptIndex = colums.indexOf(PromptStyle.PROMPT);
-  // int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
-  return csvTable.map((e) {
-    return PromptStyle(e.isNotEmpty?e[0]:'',
-        prompt: e.length>1?e[1]:null,
-        negativePrompt: e.length>2?e[2]:null,
-    flag: flag);
+  int groupIndex = colums.indexOf(PromptStyle.GROUP);
+  int nameIndex = colums.indexOf(PromptStyle.NAME);
+  int stepIndex = colums.indexOf(PromptStyle.STEP);
+  int limitIndex = colums.indexOf(PromptStyle.LIMIT_AGE);
+  int promptIndex = colums.indexOf(PromptStyle.PROMPT);
+  int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
+
+  return csvTable.where((element) {
+    return element.length >= 3 && //过滤空行
+        userAge >
+            ((limitIndex == -1 ||
+                    null == element[limitIndex] ||
+                    (element[limitIndex] == ''))
+                ? 0
+                : element[limitIndex]);
+  }).map((e) {
+    String group = groupIndex >= 0 ? e[groupIndex] : '';
+
+    PromptStyle item = PromptStyle(nameIndex >= 0 ? e[nameIndex] : '',
+        limitAge: limitIndex >= 0 ? toInt(e[limitIndex], 0) : 0,
+        prompt: promptIndex >= 0 ? e[promptIndex] : null,
+        negativePrompt: negPromptIndex >= 0 ? e[negPromptIndex] : null,
+        group: group,
+        step: stepIndex >= 0 ? toInt(e[stepIndex], 0) : 0);
+
+    if (null != groupRecord) {
+      if (groupRecord.keys.contains(group)) {
+        groupRecord[group]?.add(item);
+      } else {
+        groupRecord.putIfAbsent(group, () => [item]);
+      }
+    }
+    return item;
   }).toList();
 }
 

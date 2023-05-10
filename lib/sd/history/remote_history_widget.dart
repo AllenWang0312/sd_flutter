@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
+import 'package:sd/sd/const/routes.dart';
+import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/widget/PageListViewer.dart';
@@ -94,7 +96,7 @@ class _RemoteHistoryWidgetState extends State<RemoteHistoryWidget>
                                 "index": index,
                                 "savePath": getWorkspacesPath(),
                                 "isFavourite": widget.isFavourite,
-                                "scanAvailable": provider.sdServiceAvailable,
+                                "scanAvailable": provider.netWorkState>=ONLINE,
                                 "type": widget.type,
                               });
                           if (result is int) {

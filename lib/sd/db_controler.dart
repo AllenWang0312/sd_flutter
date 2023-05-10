@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
+
 import 'package:sd/sd/bean/db/LocalFileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
+import 'package:sd/sd/bean/file/UniqueSign.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../common/util/file_util.dart';
@@ -10,7 +12,6 @@ import 'bean/db/History.dart';
 import 'bean/db/PromptStyleFileConfig.dart';
 import 'bean/db/Translate.dart';
 import 'http_service.dart';
-import 'tavern/bean/UniqueSign.dart';
 
 String dbString(String string) {
   return string.replaceAll(":", "_");
@@ -164,7 +165,7 @@ class DBController {
   }
   Future<List<dynamic>>? queryTranslate(String columnName,String like,int pageNum,int pageSize) {
     return database?.rawQuery(
-        "SELECT * FROM ${Translate.TABLE_NAME} WHERE $columnName LIKE '%$like%' limit $pageNum ,$pageSize");
+        "SELECT * FROM ${Translate.TABLE_NAME} WHERE $columnName LIKE '$like' limit $pageNum ,$pageSize");
   }
 
 

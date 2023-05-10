@@ -1,7 +1,7 @@
 import 'dart:io';
 import '../../../common/util/file_util.dart';
 import '../../../common/util/string_util.dart';
-import '../../tavern/bean/UniqueSign.dart';
+import '../file/UniqueSign.dart';
 
 const TAG = "FileInfo";
 

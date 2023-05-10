@@ -41,4 +41,8 @@ class GenerateProgress {
     return map;
   }
 
+  @override
+  String toString() {
+    return 'GenerateProgress{active: $active, queued: $queued, completed: $completed, progress: $progress, eta: $eta, idLivePreview: $idLivePreview}';
+  }
 }

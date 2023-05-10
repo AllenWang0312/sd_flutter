@@ -3,6 +3,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -41,6 +42,9 @@ void showRestartDialog(BuildContext context){
                 actions: [
                     TextButton(
                         onPressed: () async {
+                          sdShare = null;
+                          sdPublicDomain = null;
+                          sdHttpService = null;
                             RestartableWidget.restartApp(context);
                         },
                         child: Text(AppLocalizations.of(context).ok))

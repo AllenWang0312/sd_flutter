@@ -1,15 +1,16 @@
 // const PROMPT_KEY = 'Prompt:';
-import '../../common/bean/StringIndicator.dart';
-import '../../common/util/string_util.dart';
-import '../const/config.dart';
-import '../const/SDConst.dart';
-import '../http_service.dart';
+import 'package:sd/common/bean/StringIndicator.dart';
+import 'package:sd/common/util/string_util.dart';
+import 'package:sd/sd/const/SDConst.dart';
+import 'package:sd/sd/const/default.dart';
+import 'package:sd/sd/http_service.dart';
 
 class Configs {
   static const String TAG = "Prompt";
 
   String prompt = '';
   String negativePrompt = '';
+  List<String> checkedStyles = [];
 
   int steps = DEFAULT_SAMPLER_STEPS;
   String sampler = DEFAULT_SAMPLER;
