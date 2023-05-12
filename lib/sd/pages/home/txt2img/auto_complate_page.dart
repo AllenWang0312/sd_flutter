@@ -7,14 +7,11 @@ import '../../../http_service.dart';
 
 const TAG = "AutoCompletePage";
 
-class AutoCompletePage extends StatelessWidget {
+class AutoCompleteStatelessPage extends StatelessWidget {
   String? title = '';
   String? prompt = '';
 
-
-
-  AutoCompletePage(this.title, this.prompt, {super.key}) {
-
+  AutoCompleteStatelessPage(this.title, this.prompt, {super.key}) {
     promptController = TextEditingController(text: prompt ?? "");
   }
 
@@ -68,7 +65,7 @@ class AutoCompletePage extends StatelessWidget {
               ]),
               TableRow(children: [
                 _enAutoComplate(),
-                _cnAutoComplate(),
+                // _cnAutoComplate(),
               ])
             ],
           )
@@ -85,7 +82,6 @@ class AutoCompletePage extends StatelessWidget {
   InlineSpan formSpan(String all, String text) {
     List<TextSpan> spans = [];
     List<String> parts = all.split(text);
-    logt(TAG, "parts" + parts.toString());
     if (parts.length > 1) {
       for (int i = 0; i < parts.length; i++) {
         if (i == parts.length - 1) {
@@ -162,9 +158,9 @@ class AutoCompletePage extends StatelessWidget {
               return InkWell(
                 onTap: () => onSelected(item),
                 child: ListTile(
-                  title: Text(item.keyWords),
-                  subtitle:
-                      Text.rich(formSpan(item.translate??"", cnController.text)),
+                  title: Text(item.keyWords??"暂无搜索结果"),
+                  subtitle: Text.rich(
+                      formSpan(item.translate ?? "", cnController.text)),
                 ),
               );
             }),
@@ -210,14 +206,14 @@ class AutoCompletePage extends StatelessWidget {
                 onTap: () => onSelected(item),
                 child: ListTile(
                   title: Text.rich(formSpan(item.keyWords, enController.text)),
-                  subtitle: Text(item.translate??""),
+                  subtitle: Text(item.translate ?? ""),
                 ),
               );
             }),
       );
     }, optionsBuilder: (editting) async {
       List? query = await DBController.instance
-          .queryTranslate(Translate.Columns[0], editting.text, 0, 20);
+          .queryTranslate(Translate.Columns[0], "%${editting.text}%", 0, 20);
       return _options(query);
     });
   }

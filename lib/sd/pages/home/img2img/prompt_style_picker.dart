@@ -6,23 +6,43 @@ import 'package:sd/sd/provider/AIPainterModel.dart';
 import '../../../../common/util/string_util.dart';
 
 class PromptStylePicker extends StatelessWidget {
+
+
   PromptStylePicker();
 
-  String getStylePrompt() {
+  String getStylePrompt(int promptType) {
     String prompt = "";
     String mainPrompt = "";
     String detailPrompt = "";
     for (PromptStyle style in provider.styles) {
-      if (provider.txt2img.checkedStyles.contains(style.name)) {
-        if (style.step == 0) {
+      if (provider.checkedStyles.contains(style.name)) {
+        if(promptType<=2){
           prompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 1) {
-          mainPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else {
-          detailPrompt += appendCommaIfNotExist(style.prompt ?? "");
+        }else{
+          if (style.step == 0) {
+            prompt += appendCommaIfNotExist(style.prompt ?? "");
+          } else if (style.step == 1) {
+            mainPrompt += appendCommaIfNotExist(style.prompt ?? "");
+          } else {
+            detailPrompt += appendCommaIfNotExist(style.prompt ?? "");
+          }
+        }
+      }
+      if (provider.checkedRadio.contains(style.name)) {
+        if(promptType<=2){
+          prompt += appendCommaIfNotExist(style.prompt ?? "");
+        }else{
+          if (style.step == 0) {
+            prompt += appendCommaIfNotExist(style.prompt ?? "");
+          } else if (style.step == 1) {
+            mainPrompt += appendCommaIfNotExist(style.prompt ?? "");
+          } else {
+            detailPrompt += appendCommaIfNotExist(style.prompt ?? "");
+          }
         }
       }
     }
+
     return mainPrompt.isEmpty
         ? prompt
         : "$prompt(($mainPrompt)|($detailPrompt))";
@@ -31,7 +51,7 @@ class PromptStylePicker extends StatelessWidget {
   String getStyleNegPrompt() {
     String prompt = "";
     for (PromptStyle style in provider.styles) {
-      if (provider.txt2img.checkedStyles.contains(style.name)) {
+      if (provider.checkedStyles.contains(style.name)) {
         prompt += appendCommaIfNotExist(style.negativePrompt ?? "");
       }
     }
@@ -43,14 +63,13 @@ class PromptStylePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context);
-
     return Row(children: [
       Expanded(
         child: Wrap(
           spacing: 8,
           direction: Axis.horizontal,
           alignment: WrapAlignment.center,
-          children: provider.txt2img.checkedStyles
+          children: provider.checkedStyles
               .map((e) => RawChip(
                     label: Text(e),
                     onDeleted: () {
@@ -64,9 +83,9 @@ class PromptStylePicker extends StatelessWidget {
         children: [
           IconButton(
               onPressed: () => showStyleDialog(context),
-              icon: Icon(Icons.add_box_outlined)),
+              icon: const Icon(Icons.add_box_outlined)),
           Selector<AIPainterModel, bool>(
-            selector: (_, model) => model.txt2img.checkedStyles.isEmpty,
+            selector: (_, model) => model.checkedStyles.isEmpty,
             builder: (_, newValue, child) {
               return Offstage(
                 offstage: newValue,
@@ -105,28 +124,35 @@ class PromptStylePicker extends StatelessWidget {
           builder: (context) {
             AIPainterModel provider = Provider.of<AIPainterModel>(context);
             return SingleChildScrollView(
-              child: provider.promptType == 3
-                  ? provider.optional.generate(provider)
-                  : generateStyles(provider.publicStyles!),
+                child: provider.promptType == 3
+                ? provider.optional.generate(provider)
+                : generateStyles(provider.publicStyles)
             );
-            // return AlertDialog(
-            //   title: Text(AppLocalizations.of(context).choseStyles),
-            //   content:,
-            //   actions: [
-            //     TextButton(
-            //         onPressed: () {
-            //           Navigator.pop(context, "cancel");
-            //         },
-            //         child: Text(AppLocalizations.of(context).cancel)),
-            //     TextButton(
-            //         onPressed: () {
-            //           Navigator.pop(context, "");
-            //         },
-            //         child: Text(AppLocalizations.of(context).ok)),
-            //   ],
-            // );
           });
     }
+  }
+  Widget generateStyles(Map<String, List<PromptStyle>?> map) {
+    List<Widget> result = [];
+    for (String key in map.keys) {
+      List<PromptStyle>? value = map[key];
+      if (value != null && value.isNotEmpty) {
+        result.add(Text(key));
+        result.add(Wrap(
+          children: value
+              .map((e) => RawChip(
+            label: Text(e.name+(e.readableType??"")),
+            selected: provider.checkedStyles.contains(e.name),
+            onSelected: (bool selected) {
+              provider.switchChecked(selected,e.name);
+            },
+          ))
+              .toList(),
+        ));
+      }
+    }
+    return Column(
+      children: result,
+    );
   }
 
   // refreshStyles(BuildContext context) {
@@ -145,31 +171,4 @@ class PromptStylePicker extends StatelessWidget {
   //   });
   // }
 
-  Widget generateStyles(Map<String, List<PromptStyle>?> map) {
-    List<Widget> result = [];
-    for (String key in map.keys) {
-      List<PromptStyle>? value = map[key];
-      if (value != null && value.isNotEmpty) {
-        result.add(Text(key));
-        result.add(Wrap(
-          children: value
-              .map((e) => RawChip(
-                    label: Text(e.name),
-                    selected: provider.txt2img.checkedStyles.contains(e.name),
-                    onSelected: (bool selected) {
-                      provider.switchChecked(e.name);
-                      // e.checked = selected;
-                    },
-                    // deleteIcon: Icon(Icons.delete),
-                    // onDeleted: () {},
-                    // showCheckmark: true,
-                  ))
-              .toList(),
-        ));
-      }
-    }
-    return Column(
-      children: result,
-    );
-  }
 }

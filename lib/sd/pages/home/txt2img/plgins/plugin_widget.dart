@@ -50,8 +50,8 @@ class PluginWidget extends StatelessWidget {
                                 //         preview: true),
                                 //   );
                                 // },
-                                imageUrl: getModelImageUrl(
-                                    modelType, names[index]),
+                                imageUrl:
+                                    getModelImageUrl(modelType, names[index]),
                                 errorWidget: (_, url, data) =>
                                     CachedNetworkImage(
                                       imageUrl: placeHolderUrl(),
@@ -86,7 +86,7 @@ class PluginWidget extends StatelessWidget {
                                 left: 0,
                                 right: 0,
                                 child: Container(
-                                  padding: EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(4),
                                   color: Colors.black38,
                                   child: Text(
                                     names[index],
@@ -100,12 +100,12 @@ class PluginWidget extends StatelessWidget {
                         ),
                       );
                     });
-              } else {
-                return EmptyView(error: true);
               }
             }
+            return EmptyView(error: true);
+          } else {
+            return EmptyView();
           }
-          return EmptyView();
         });
   }
 }

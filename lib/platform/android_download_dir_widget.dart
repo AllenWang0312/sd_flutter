@@ -248,7 +248,7 @@ class _AndroidDownloadWidgetState extends State<AndroidDownloadWidget> {
         if (info.isExist) {
           if (count != null && count > 0) {
             setState(() {
-              dir = Directory(info.getLocalPath());
+              dir = Directory(info.localPath);
               currentDir = info.images!;
               offsets.add(controller.offset);
               controller.jumpTo(0);
@@ -261,15 +261,15 @@ class _AndroidDownloadWidgetState extends State<AndroidDownloadWidget> {
             Navigator.pushNamed(context, ROUTE_WEBVIEW, arguments: {
               "title": info.name,
               "url": info.dirDes,
-              "savePath": info.getLocalPath()
+              "savePath": info.localPath
             });
           }
         } else {
           setState(() {
-            Directory(info.getLocalPath()).createSync(recursive: true);
+            Directory(info.localPath).createSync(recursive: true);
             if (null != info.dirDes && !File(info.iconFilePath).existsSync()) {
               saveUrlToLocal(
-                  "${info.dirDes!}/favicon.ico", 'favicon.ico',info.getLocalPath());
+                  "${info.dirDes!}/favicon.ico", 'favicon.ico',info.localPath);
             }
           });
 
@@ -314,7 +314,7 @@ class _AndroidDownloadWidgetState extends State<AndroidDownloadWidget> {
                 Navigator.pushNamed(context, ROUTE_WEBVIEW, arguments: {
                   "title": info.name,
                   "url": info.dirDes,
-                  "savePath": info.getLocalPath()
+                  "savePath": info.localPath
                 });
               },
               child:

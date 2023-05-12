@@ -150,7 +150,7 @@ class _WebHomePageState extends State<WebHomePage> // with macOSFileDragger
       if (_globalKey.currentState!.isDrawerOpen) {
         _globalKey.currentState?.closeDrawer();
       } else {
-        _globalKey.currentState?.openDrawer();
+        _globalKey.currentState?.openDrawer();// todo Scaffold.of(context).openDraw()
       }
     },
         notify: false);

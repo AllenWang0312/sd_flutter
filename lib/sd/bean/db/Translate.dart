@@ -1,3 +1,4 @@
+import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/db_controler.dart';
 
 class Translate {
@@ -12,8 +13,8 @@ class Translate {
   Translate.fromJson(dynamic json) {
     keyWords = json['keyWords'];
     translate = json['translate'];
-    type = json['type'];
-    year = json['year'];
+    type = toInt(json['type'], 0);
+    year = toInt(json['year'], 0);
   }
 
   String keyWords = '';
@@ -64,7 +65,7 @@ class Translate {
 
   Future<String> findItem(String keyWords) async {
     List? result =
-        await DBController.instance.queryTranslate(Columns[0], keyWords, 0, 1);
+        await DBController.instance.queryTranslate(Columns[0], "%$keyWords%", 0, 1);
     if (null != result && result.length == 1) {
       String trans = result[0]['translate'];
       transCache.putIfAbsent(keyWords, () => trans);

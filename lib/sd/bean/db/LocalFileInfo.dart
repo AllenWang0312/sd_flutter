@@ -1,15 +1,30 @@
 import 'dart:io';
+import 'package:sd/platform/platform.dart';
+import 'package:sd/sd/bean/db/ImageRawData.dart';
+
 import '../../../common/util/file_util.dart';
 import '../../../common/util/string_util.dart';
 import '../file/UniqueSign.dart';
 
 const TAG = "FileInfo";
 
-class LocalFileInfo extends UniqueSign {
-  static const TABLE_NAME = "age_level_record";
-  static var TABLE_CREATE = 'id INTEGER PRIMARY KEY,sign TEXT UNIQUE,ageLevel INTEGER';
+class LocalFileInfo  extends UniqueSign with ImageRawData{
+
 
   LocalFileInfo? parent;
+  String? name;
+
+  File get file => File(localPath);
+  String? _localPath;
+  String get localPath{
+    _localPath ??= "${getCollectionsPath()}/$name";
+    return _localPath!;
+  }
+
+  setLocalPath(String value) {
+    _localPath = value;
+  }
+
 
   int? id;
   String? dirDes;
@@ -19,7 +34,7 @@ class LocalFileInfo extends UniqueSign {
 
   int? get fileCount {
     if (_fileCount == null || _fileCount! < 0) {
-      Directory dir = Directory(getLocalPath());
+      Directory dir = Directory(localPath);
       if (dir.existsSync()) {
         List<FileSystemEntity> files = dir.listSync().where((element) {
           return SUPPORT_IMAGE_TYPES.contains(getFileExt(element.path));
@@ -37,7 +52,7 @@ class LocalFileInfo extends UniqueSign {
     return _fileCount!;
   }
 
-  String get iconFilePath => "$localPath/favicon.ico";
+  String get iconFilePath => "$_localPath/favicon.ico";
   bool? _isDir;
 
 
@@ -51,7 +66,7 @@ class LocalFileInfo extends UniqueSign {
   // }
 
   bool get isDir {
-    _isDir ??= FileSystemEntity.isDirectorySync(getLocalPath());
+    _isDir ??= FileSystemEntity.isDirectorySync(localPath);
     return _isDir!;
   }
 
@@ -61,8 +76,8 @@ class LocalFileInfo extends UniqueSign {
   bool get isExist {
     if (!_isExist) {
       _isExist = isDir
-          ? Directory(getLocalPath()).existsSync()
-          : File(getLocalPath()).existsSync();
+          ? Directory(localPath).existsSync()
+          : File(localPath).existsSync();
     }
     return _isExist;
   }
@@ -73,12 +88,10 @@ class LocalFileInfo extends UniqueSign {
     this.name = name;
     _isDir = isDir;
 
-    localPath = absPath;
+    _localPath = absPath;
 
     if(null!=_isDir&&_isDir!){
       dirDes = url;
-    }else{
-      this.url = url;
     }
   }
 
@@ -87,12 +100,19 @@ class LocalFileInfo extends UniqueSign {
       identical(this, other) ||
           other is LocalFileInfo &&
               runtimeType == other.runtimeType &&
-              localPath == other.localPath;
+              _localPath == other._localPath;
 
 
   static LocalFileInfo fromFile(File newFile) {
     String absPath = newFile.path;
     return LocalFileInfo(name: getFileName(absPath), isDir: false, absPath: absPath);
   }
+
+  @override
+  String getFileLocation() {
+   return localPath;
+  }
+
+
 
 }

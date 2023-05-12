@@ -2,9 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../const/config.dart';
 import '../http_service.dart';
-import '../mocker.dart';
 import '../widget/PageListViewer.dart';
 import 'history_widget.dart';
 import 'remote_history_widget.dart';
@@ -73,7 +71,7 @@ class RecordsWidgetState extends State<RecordsWidget>
     //     Provider.of<RecordsModel>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
-        title: TabBar(
+        bottom: TabBar(
           isScrollable: true,
           indicatorColor: Colors.transparent,
           // unselectedLabelColor: ,

@@ -33,6 +33,20 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
   // Map<String, double> checkedPlugins = Map(); // lora
 
 
+  void setAgeLevel(String sign,int value) {
+    if (value > 0) {
+      limit.putIfAbsent(sign, () => value);
+    } else {
+     limit.remove(sign);
+    }
+    notifyListeners();
+  }
+
+  int getAgeLevel(String sign) {
+    return limit[sign] ?? 0;
+  }
+
+
   @override
   void updateIndex(int index) {
     this.index = index;
@@ -95,6 +109,24 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
 
   int limitedUrl(String imgUrl) {
     return limit[imgUrl] ?? 0;
+  }
+
+  void updateCheckRadio(String group, String? name) {
+
+    if(null!=name){
+      bool exit = checkedRadioGroup.contains(group);
+      if(exit){
+        checkedRadio[checkedRadioGroup.indexOf(group)]=name;
+      }else{
+        checkedRadioGroup.add(group);
+        checkedRadio.add(name);
+      }
+    }else{
+      int index = checkedRadioGroup.indexOf(group);
+      checkedRadio.removeAt(index);
+      checkedRadioGroup.removeAt(index);
+    }
+    notifyListeners();
   }
 
 

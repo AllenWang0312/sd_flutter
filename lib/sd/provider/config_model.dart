@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/sp_key.dart';
@@ -16,6 +18,28 @@ import '../db_controler.dart';
 import '../http_service.dart';
 
 const TAG = 'ConfigModel';
+
+void asyncDecodeTranslateAndSaveToDB(String data)  {
+  List<List<dynamic>> csvTable =
+  const CsvToListConverter().convert(data);
+  logt(TAG,"asyncDecodeTranslateAndSaveToDB ${csvTable.length}");
+  int year = 0;
+  logt(TAG, "insert translate.start ${DateTime.now().toString()}");
+
+
+  for (List<dynamic> item in csvTable) {
+    if (item[0] is int && item[0] == item[2]) {
+      year = item[0];
+    } else {
+      // todo 第二次全量插入 第一条就直接报错了 所以不能根据远端配置动态升级
+      try{
+        DBController.instance.insertTranslate(item, year);
+      }catch(e){
+        // logt(TAG,"insert translate error $e");
+      }
+    }
+  }
+}
 
 class ConfigModel extends SPModel {
   late SharedPreferences sp;
@@ -63,7 +87,7 @@ class ConfigModel extends SPModel {
     // sp初始化前不该有太多耗时操作
     sp = await SharedPreferences.getInstance();
     String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
-    await initConfigFromDB(name);
+    selectWorkspace = await initConfigFromDB(name);
     initLocalLimitFromDB();
 
     // if (null == sdHttpService) {
@@ -90,45 +114,31 @@ class ConfigModel extends SPModel {
   Future<void> initPromptStyleIfServiceActive({int userAge = 12}) async {
     if (null != selectWorkspace?.id) {
       if (promptType == 2) {
-        await loadStylesFromDB(selectWorkspace!.id!, userAge);
-        await initPublicStyle(styleConfigs, userAge);
+        styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
+        initPublicStyle(styleConfigs, userAge);
       } else if (promptType == 3) {
-        await loadOptionalMapFromService(userAge,
+        loadOptionalMapFromService(userAge,
             "$sdHttpService$TAG_MY_TAGS/0001.csv"); //todo 更具用户id 读取不同配置
       }
     }
   }
 
-  initTranlatesIfServiceActive() async {
+  void initTranlatesIfServiceActive() {
     int? localVersion = sp.getInt(SP_SERVICE_VERSION);
+    logt(TAG,"initTranlatesIfServiceActive $localVersion $serviceVersion");
 
-    if (null != localVersion && localVersion < serviceVersion) {
+    if (localVersion==null||localVersion < serviceVersion) {
       get("$sdHttpService$TAG_COMPUTE_CN", timeOutSecond: 10)
           .then((value) async {
         if (null != value) {
-          List<List<dynamic>> csvTable =
-              const CsvToListConverter().convert(value.data);
-          int year = 0;
-          for (List<dynamic> item in csvTable) {
-            if (item[0] is int && item[0] == item[2]) {
-              year = item[0];
-            } else {
-              // todo 第二次全量插入 第一条就直接报错了 所以不能根据远端配置动态升级
-              try {
-                int result =
-                    await DBController.instance.insertTranslate(item, year);
-                if (result >= 0) {
-                  logt(TAG, "insert or update item ${item[0]}.");
-                }
-              } catch (e) {
-                // logt(TAG,e.toString());
-              }
-            }
-          }
-          logt(TAG, "insert translate finish");
+          asyncDecodeTranslateAndSaveToDB(value.data.toString());
+          // compute(asyncDecodeTranslateAndSaveToDB,value.data.toString());
+          // asyncDecodeTranslateAndSaveToDB(value.data);
+          // logt(TAG, "insert translate finish");
+          sp.setInt(SP_SERVICE_VERSION, serviceVersion);
         }
       });
-      sp.setInt(SP_SERVICE_VERSION, serviceVersion);
+
     }
   }
 

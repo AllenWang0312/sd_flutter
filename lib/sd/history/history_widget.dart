@@ -97,9 +97,9 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
         .queryHistorys(pageNum, pageSize,
             order: dateOrder ? History.ORDER_BY_TIME : History.ORDER_BY_PATH,
             asc: asc)
-        ?.then((value) {
+        .then((value) {
       // setState(() {
-      if (value.isNotEmpty) {
+      if (null!=value) {
         List<History> list = value.map((e) => History.fromJson(e)).toList();
         // logt(TAG,list.toString());
         if (filterNotExist) {
@@ -114,7 +114,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
       }
       controller.finishRefresh(
           pageNum == 0 ? IndicatorResult.success : IndicatorResult.noMore);
-      controller.finishLoad(value.length==36
+      controller.finishLoad(value?.length==36
           ? IndicatorResult.success
           : IndicatorResult.noMore);
     });

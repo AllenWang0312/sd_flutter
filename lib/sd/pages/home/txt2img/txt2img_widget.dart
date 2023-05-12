@@ -15,6 +15,7 @@ import 'package:sd/sd/bean/enum/set_type.dart';
 import 'package:sd/sd/bean4json/GenerateResultItem.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/const/routes.dart';
+import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/mocker.dart';
@@ -26,6 +27,7 @@ import 'package:sd/sd/pages/home/img2img/upsacler_widget.dart';
 import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
 import 'package:sd/sd/pages/home/txt2img/TXT2IMGModel.dart';
 import 'package:sd/sd/pages/home/txt2img/plgins/plugins_widget.dart';
+import 'package:sd/sd/pages/home/txt2img/tagger_widget.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/widget/GenerateButton.dart';
@@ -33,24 +35,18 @@ import 'package:universal_platform/universal_platform.dart';
 
 const TAG = "TXT2IMGWidget";
 
-class TXT2IMGWidget extends StatefulWidget {
+class TXT2IMGWidget extends StatelessWidget {
+  final PromptStylePicker promptStylePicker = PromptStylePicker();
+
+  final Map<IconData, Function()> actions = {};
+
+  late AppBarProvider? appBar;
+
   TXT2IMGWidget({super.key});
 
   @override
-  State<TXT2IMGWidget> createState() => _TXT2IMGWidgetState();
-}
-
-class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
-
-  final PromptStylePicker promptStylePicker = PromptStylePicker();
-
-  Map<IconData, Function()> actions = {};
-
-  AppBarProvider? appBar;
-
-  @override
   Widget build(BuildContext context) {
-    logt(TAG,"build");
+    logt(TAG, "build");
     TXT2IMGModel model = Provider.of<TXT2IMGModel>(context, listen: false);
     AIPainterModel provider =
         Provider.of<AIPainterModel>(context, listen: false);
@@ -65,6 +61,22 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
                 Navigator.pushNamed(context, ROUTE_FILE_MANAGER);
               });
     }
+    actions.putIfAbsent(
+        Icons.image_search,
+        () => () async {
+              showDialog(
+                  context: context,
+                  builder: (_) {
+                    return AlertDialog(
+                      title: Text(AppLocalizations.of(context).tagger),
+                      content: ChangeNotifierProvider(
+                        create: (_) => TaggerModel(),
+                        child: TaggerWidget(),
+                      ),
+                    );
+                  });
+            });
+
     actions.putIfAbsent(
         Icons.settings,
         () => () async {
@@ -86,7 +98,7 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
             leading: Center(
               child: Stack(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     backgroundImage:
                         AssetImage('assets/images/default_portrait.png'),
                     radius: 16,
@@ -97,20 +109,20 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
                     // ),
                   ),
                   Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child:SizedBox(
-                      width: 8,height: 8,
-                      child: Selector<AIPainterModel, int>(
-                          selector: (_, model) => model.netWorkState,
-                          builder: (_, value, child) {
-                            return CircleAvatar(
-                              radius: 4,
-                              backgroundColor: getStateColor(value),
-                            );
-                          }),
-                    )
-                  ),
+                      right: 0,
+                      bottom: 0,
+                      child: SizedBox(
+                        width: 8,
+                        height: 8,
+                        child: Selector<AIPainterModel, int>(
+                            selector: (_, model) => model.netWorkState,
+                            builder: (_, value, child) {
+                              return CircleAvatar(
+                                radius: 4,
+                                backgroundColor: getStateColor(value),
+                              );
+                            }),
+                      )),
                 ],
               ),
             ),
@@ -159,9 +171,11 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
         var from = {
-          "steps": provider.promptType == 3
-              ? provider.txt2img.steps * 2
-              : provider.txt2img.steps,
+          "steps":
+          // provider.promptType == 3
+          //     ? provider.txt2img.steps * 2
+          //     :
+          provider.txt2img.steps,
           "denoising_strength": 0.3,
           "firstphase_width": provider.txt2img.width,
           "firstphase_height": provider.txt2img.height,
@@ -186,15 +200,14 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
         // if (true) {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            promptStylePicker.getStylePrompt();
+            promptStylePicker.getStylePrompt(provider.promptType);
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +
                 promptStylePicker.getStyleNegPrompt();
         from['prompt'] = prompt + provider.getCheckedPluginsString();
         from['negative_prompt'] = negativePrompt;
-        if (
-            provider.generateType == 0) {
+        if (provider.generateType == 0) {
           post("$sdHttpService$TXT_2_IMG", formData: from,
                   exceptionCallback: (e) {
             Fluttertoast.showToast(
@@ -236,7 +249,7 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
                   "savePath": provider.autoSave
                       ? null
                       : provider.selectWorkspace!.dirPath,
-                  "scanAvailable": provider.netWorkState>=ONLINE
+                  "scanAvailable": provider.netWorkState >= ONLINE
                 });
               }
               provider.save();
@@ -247,7 +260,7 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
 
           post("$sdHttpService$RUN_PREDICT",
                   formData: multiGenerateBody(
-                     cmd.generate,
+                      cmd.generate,
                       from,
                       provider.batchCount,
                       provider.batchSize), exceptionCallback: (e) {
@@ -282,15 +295,15 @@ class _TXT2IMGWidgetState extends State<TXT2IMGWidget> {
                   //     workspace: provider.selectWorkspace?.name));
                   // print('insert:$insert');
                 }
-              } else {
+              }
                 Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
                   "urls": fileProt
                       .map((e) => GenerateResultItem.fromJson(e))
                       .toList(),
                   "savePath": provider.selectWorkspace!.dirPath,
-                  "scanAvailable": provider.netWorkState>=ONLINE
+                  "scanAvailable": provider.netWorkState >= ONLINE
                 });
-              }
+
             } else {
               Fluttertoast.showToast(msg: '接口错误');
             }

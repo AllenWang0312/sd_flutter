@@ -1,19 +1,13 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/common/util/file_util.dart';
-import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/routes.dart';
-import 'package:sd/sd/const/sp_key.dart';
-import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../sd/bean/PromptStyle.dart';
 import '../sd/const/config.dart';
 import '../sd/http_service.dart';
 import '../sd/provider/AIPainterModel.dart';
@@ -45,7 +39,7 @@ class _SplashPageState extends State<SplashPage> {
       }
 
       if (provider.countdownNum == SPLASH_WATTING_TIME - 2) {
-        await getSettings();
+        getSettings();
       }
       provider.countDown();
     });
@@ -117,17 +111,13 @@ class _SplashPageState extends State<SplashPage> {
     );
   }
 
-
-  Future<void> getSettings() async {
-
-
-
-
+   getSettings() {
     // provider.networkInitApiOptions();
-    return await get("$sdHttpService$GET_OPTIONS", timeOutSecond: 10, exceptionCallback: (e) {
+    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 10,
+        exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) async {
-      if(null!=value&&null!=value.data){
+      if (null != value && null != value.data) {
         // logt(TAG, "get options${value?.data.toString() ?? ""}");
         // Options op = Options.fromJson(value.data);
         String? modelName = value.data['sd_model_checkpoint'];
@@ -137,18 +127,14 @@ class _SplashPageState extends State<SplashPage> {
         remoteMoreDir = value.data['outdir_extras_samples'];
         remoteFavouriteDir = value.data['outdir_save'];
 
-
-
-        await provider.initServiceConfigIfServiceActive();
-        await provider.initPromptStyleIfServiceActive();
-        await provider.initTranlatesIfServiceActive();
+        serviceVersion = await provider.initServiceConfigIfServiceActive();
+        provider.initPromptStyleIfServiceActive();
+        provider.initTranlatesIfServiceActive();
 
         provider.netWorkState = ONLINE;
         provider.updateSDModel(modelName);
         getSettingSuccess = 1; //todo 最后发起的不一定最后完成
       }
-
-
     });
   }
 
@@ -172,7 +158,7 @@ class _SplashPageState extends State<SplashPage> {
       _countdownTimer?.cancel();
       _countdownTimer = null;
     }
-    logt(TAG,"dispose");
+    logt(TAG, "dispose");
     super.dispose();
   }
 }

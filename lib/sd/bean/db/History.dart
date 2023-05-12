@@ -22,6 +22,8 @@ class History extends UniqueSign{
   String? time = '';
   String? errMsg;
   String? workspace = '';
+  String? url;
+  String? localPath = '';
 
   History({
     this.prompt,
@@ -92,5 +94,10 @@ class History extends UniqueSign{
   @override
   String toString() {
     return 'History{localPath: $localPath, url:$url, page: $page, offset: $offset, prompt: $prompt, negativePrompt: $negativePrompt, ageLevel: $ageLevel, seed: $seed, width: $width, height: $height, date: $date, time: $time, errMsg: $errMsg, workspace: $workspace}';
+  }
+
+  @override
+  String uniqueTag() {
+    return localPath??url??"";
   }
 }

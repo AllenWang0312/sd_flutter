@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
-
 import 'package:sd/sd/bean/db/LocalFileInfo.dart';
 import 'package:sd/sd/bean/db/Workspace.dart';
 import 'package:sd/sd/bean/file/UniqueSign.dart';
@@ -30,7 +29,8 @@ class DBController {
   String workspace = '';
   Database? database;
 
-  Future initDepends(String dynamicPath, {String? workspace}) async {
+  Future<Workspace?> initDepends(String dynamicPath,
+      {String? workspace}) async {
     if (null != workspace) {
       this.workspace = workspace;
       if (null == database || !database!.isOpen) {
@@ -47,7 +47,7 @@ class DBController {
           await db.execute(
               'CREATE TABLE ${History.TABLE_NAME} (${History.TABLE_CREATE})');
           await db.execute(
-              'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
+              'CREATE TABLE ${UniqueSign.TABLE_NAME} (${UniqueSign.TABLE_CREATE})');
 
           await db.execute(
               'CREATE TABLE ${Translate.TABLE_NAME} (${Translate.TABLE_CREATE})');
@@ -55,7 +55,7 @@ class DBController {
           //     'CREATE TABLE ${PromptStyle.TABLE_NAME} (${PromptStyle.TABLE_CREATE})');
         }, onUpgrade: (Database db, int oldVersion, int newVersion) async {
           await db.execute(
-              'CREATE TABLE ${LocalFileInfo.TABLE_NAME} (${LocalFileInfo.TABLE_CREATE})');
+              'CREATE TABLE ${UniqueSign.TABLE_NAME} (${UniqueSign.TABLE_CREATE})');
         }, onDowngrade: (Database db, int oldVersion, int newVersion) async {
           // logt(TAG,"db downgrade $oldVersion to $newVersion");
           //
@@ -95,7 +95,7 @@ class DBController {
 
     if (null != database && database!.isOpen) {
       return Future.value(
-          database?.insert(History.TABLE_NAME, history.toJson()));
+          database!.insert(History.TABLE_NAME, history.toJson()));
     }
     return Future.error('insert error');
   }
@@ -105,8 +105,8 @@ class DBController {
     // String ext = null != workspace && workspace.isNotEmpty ? '_$workspace' : '';
 
     if (null != database && database!.isOpen) {
-      return Future.value(database?.insert(
-          LocalFileInfo.TABLE_NAME, toDynamic(info.getSign(data), ageLevel)));
+      return Future.value(database!.insert(
+          UniqueSign.TABLE_NAME, toDynamic(info.uniqueTag(), ageLevel)));
     }
     return Future.error('insert error');
   }
@@ -117,16 +117,16 @@ class DBController {
 
     if (null != database && database!.isOpen) {
       return Future.value(database?.update(
-          LocalFileInfo.TABLE_NAME, toDynamic(info.getSign(data), ageLevel),
-          where: "sign = ? ", whereArgs: [info.getSign(data)]));
+          UniqueSign.TABLE_NAME, toDynamic(info.uniqueTag(), ageLevel),
+          where: "sign = ? ", whereArgs: [info.uniqueTag()]));
     }
     return Future.error('insert error');
   }
 
   Future<int> removetAgeLevelRecord(UniqueSign info, Uint8List? data) async {
     if (null != database && database!.isOpen) {
-      return database!.delete(LocalFileInfo.TABLE_NAME,
-          where: "sign = ?", whereArgs: [info.getSign(data)]);
+      return database!.delete(UniqueSign.TABLE_NAME,
+          where: "sign = ?", whereArgs: [info.uniqueTag()]);
     }
     return Future.value(-1);
   }
@@ -141,7 +141,7 @@ class DBController {
 
   Future<List<dynamic>>? queryAgeLevelRecord() {
     return database?.rawQuery(
-        'SELECT * FROM ${LocalFileInfo.TABLE_NAME} ORDER BY ageLevel DESC');
+        'SELECT * FROM ${UniqueSign.TABLE_NAME} ORDER BY ageLevel DESC');
   }
 
   Future<int> insertWorkSpace(Workspace workspace) {
@@ -152,22 +152,31 @@ class DBController {
     return Future.value(-1);
   }
 
-  Future<int> insertTranslate(List<dynamic> prompts,int year) {
+  Future<int> insertTranslate(List<dynamic> prompts, int year) {
     if (null != database && database!.isOpen) {
       return database!.insert(Translate.TABLE_NAME, {
         Translate.Columns[0]: prompts[0],
         Translate.Columns[1]: prompts[1],
-        Translate.Columns[2]:year,
+        Translate.Columns[2]: year,
         Translate.Columns[3]: prompts[2]
       });
     }
     return Future.value(-1);
   }
-  Future<List<dynamic>>? queryTranslate(String columnName,String like,int pageNum,int pageSize) {
-    return database?.rawQuery(
-        "SELECT * FROM ${Translate.TABLE_NAME} WHERE $columnName LIKE '$like' limit $pageNum ,$pageSize");
-  }
 
+  Future<List<dynamic>?> queryTranslate(
+      String columnName, String like, int pageNum, int pageSize) {
+    if (null != database && database!.isOpen) {
+      // String sql = 'SELECT * FROM ${Translate.TABLE_NAME} WHERE $columnName LIKE \"$like\" limit $pageNum ,$pageSize';
+      String sql = "SELECT * FROM ${Translate.TABLE_NAME}"
+          " WHERE $columnName LIKE '$like'"
+          " limit $pageNum ,$pageSize";
+
+      logt(TAG, "queryTranslate $sql");
+      return database!.rawQuery(sql);
+    }
+    return Future.value(null);
+  }
 
   Future<int> insertStyleFileConfig(PromptStyleFileConfig config) {
     if (null != database && database!.isOpen) {
@@ -194,29 +203,44 @@ class DBController {
     return Future.value(-1);
   }
 
-  Future<List<dynamic>>? queryHistorys(int pageNum, int pageSize,
+  Future<List<dynamic>?> queryHistorys(int pageNum, int pageSize,
       {String? order, bool asc = true}) {
-    return database?.rawQuery(
-        'SELECT * FROM ${History.TABLE_NAME} order by $order ${asc ? "asc" : "desc"} limit $pageNum ,$pageSize');
+    if (null != database && database!.isOpen) {
+      return database!.rawQuery(
+          'SELECT * FROM ${History.TABLE_NAME} order by $order ${asc ? "asc" : "desc"} limit $pageNum ,$pageSize');
+    }
+    return Future.value(null);
   }
 
-  Future<List<dynamic>>? queryWorkspaces() {
-    return database?.rawQuery('SELECT * FROM ${Workspace.TABLE_NAME}');
+  Future<List<dynamic>?> queryWorkspaces() {
+    if (null != database && database!.isOpen) {
+      return database!.rawQuery('SELECT * FROM ${Workspace.TABLE_NAME}');
+    }
+    return Future.value(null);
   }
 
-  Future<List<dynamic>>? queryWorkspace(String name) {
-    return database?.rawQuery(
-        "SELECT * FROM ${Workspace.TABLE_NAME} WHERE name = ? ", [name]);
+  Future<List<dynamic>?> queryWorkspace(String name) {
+    if (null != database && database!.isOpen) {
+      return database!.rawQuery(
+          "SELECT * FROM ${Workspace.TABLE_NAME} WHERE name = ? ", [name]);
+    }
+    return Future.value(null);
   }
 
-  Future<List<dynamic>>? getStyleFileConfigs() {
-    return database
-        ?.rawQuery("SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME}");
+  Future<List<dynamic>?> getStyleFileConfigs() {
+    if (null != database && database!.isOpen) {
+      return database!
+          .rawQuery("SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME}");
+    }
+    return Future.value(null);
   }
 
-  Future<List<dynamic>>? queryStyles(int wsId) {
-    return database?.rawQuery(
-        "SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME} WHERE belongTo = ? ",
-        [wsId]);
+  Future<List<dynamic>?> queryStyles(int wsId) {
+    if (null != database && database!.isOpen) {
+      return database!.rawQuery(
+          "SELECT * FROM ${PromptStyleFileConfig.TABLE_NAME} WHERE belongTo = ? ",
+          [wsId]);
+    }
+    return Future.value(null);
   }
 }

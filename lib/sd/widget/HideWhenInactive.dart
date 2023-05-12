@@ -80,7 +80,7 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
             // useRootNavigator:false;
             context: context,
             builder: (context) {
-              return WillPopScope(
+              return WillPopScope(// 禁止滑动取消dialog
                 onWillPop: ()async{
                   return false;
                 },

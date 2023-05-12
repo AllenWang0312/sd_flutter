@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
@@ -22,20 +23,22 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
   UserInfo userInfo = UserInfo();
   Optional optional = Optional('');
 
-  Map<String, List<PromptStyle>>? publicStyles = Map(); // '','privateFilePath'.''
+  Map<String, List<PromptStyle>> publicStyles = Map(); // '','privateFilePath'.''
 
-  Future<void> initServiceConfigIfServiceActive() async {
-    await get("$sdHttpService$TAG_SERVICE_CONFIG",timeOutSecond: 15).then((value) {
+  FutureOr<int> initServiceConfigIfServiceActive()async{
+    int result = 0;
+   await get("$sdHttpService$TAG_SERVICE_CONFIG",timeOutSecond: 15,).then((value) {
       if (null != value && value.data != null) {
         cmd = Cmd.fromJson(value.data["cmd"]);
-        serviceVersion = toInt(value.data['serviceVersion'], 0);
+        result= toInt(value.data['serviceVersion'], 0);
         // config = ServiceConfig.fromJson(value.data);
       }
     });
+    return result;
   }
 
-  Future<void> loadServiceAddressFromGithub(SharedPreferences sp, String configPath) async {
-    await get(configPath, exceptionCallback: (e) {
+  void loadServiceAddressFromGithub(SharedPreferences sp, String configPath) {
+    get(configPath, exceptionCallback: (e) {
       //todo 公网配置获取 可能回退 暂时保留
       initNetworkConfig(sp);
     }).then((value) {
@@ -48,15 +51,15 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
     });
   }
 
-  Future<void> loadOptionalMapFromService(int userAge,String path) async {
+  void loadOptionalMapFromService(int userAge,String path){
     String? csv;
-    await get(path, exceptionCallback: (e) {
+    get(path, exceptionCallback: (e) {
       logt(TAG,"loadOptionalMapFromService $e");
       return;
     },timeOutSecond: 20).then((value) {
       if (null != value && null != value.data) {
         csv = value.data.toString();
-        List<PromptStyle> styles = loadPromptStyleFromString(csv!, userAge,groupRecord: publicStyles);
+        List styles = loadPromptStyleFromString(csv!, userAge,groupRecord: publicStyles,extend: true);
         String group='';
 
         Optional? target;
@@ -64,7 +67,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
           if(item.group!=group){
             group = item.group??"";
             target = optional.createIfNotExit(
-                group.contains("|") ? group.split('|'): [group]);
+                group.contains("|") ? group.split('|'): [group],0);
           }
           // if (item.isEmpty) {
             // head = item;
@@ -72,12 +75,15 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
 
           // } else {
             // logt(TAG," ${target?.name} ${item.name}");
-            target?.addOption(item.name, getOptionalWithName(item.name));
+          logt(TAG,item.toString());
+          if(item is Optional) {
+            logt(TAG,"addOption $item");
+            target?.addOption(item.name, item);
+          }
           // }
         }
       }
       logt(TAG,"loadOptionalMapFromService $optional");
-
       return;
     });
   }
@@ -107,7 +113,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
     logt(TAG,"initNetworkConfig $sdShare $sdHost $sdPublicDomain $sdHttpService");
   }
 
-  Future<void> initStyleWithNetwork() async {
+  void initPublicStyleWithNetwork() {
     get("$sdHttpService$GET_STYLES").then((value) async {
       List re = value?.data;
       List<PromptStyle> remote =

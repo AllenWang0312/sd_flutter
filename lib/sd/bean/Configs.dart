@@ -10,7 +10,7 @@ class Configs {
 
   String prompt = '';
   String negativePrompt = '';
-  List<String> checkedStyles = [];
+
 
   int steps = DEFAULT_SAMPLER_STEPS;
   String sampler = DEFAULT_SAMPLER;

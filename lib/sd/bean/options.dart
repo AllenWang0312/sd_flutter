@@ -1,78 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sd/common/Expandable.dart';
+import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 
 import 'PromptStyle.dart';
 
-Optional getOptionalWithName(String n) {
-  if (n.endsWith('^')) {
-    return One(n, isDetail: n.startsWith('-'));
-  } else if (n.endsWith('*')) {
-    return OneOrNone(n, isDetail: n.startsWith('-'));
-  } else {
-    return Optional(n, isDetail: n.startsWith('-'));
-  }
-}
-
 const TAG = "Optional";
 
 class Optional extends PromptStyle {
+  bool? _isRaido;
+
+  bool get isRadio {
+    _isRaido ??= name.endsWith("*");
+    return _isRaido!;
+  }
+
   Optional? parent;
 
-  bool? isDetail;
-
   Optional(super.name,
-      {super.prompt, super.negativePrompt, this.isDetail = false});
-
-  String? target;
+      {super.group,
+      super.step,
+      super.limitAge,
+      super.type,
+      super.prompt,
+      super.negativePrompt});
 
   Map<String, Optional>? options;
 
   void addOption(String name, Optional item) {
-    if (null == options) {
-      options = {};
-      if (item is One) {
-        target = item.name;
-      }
-    }
+    options ??= {};
     item.parent = this;
     options!.putIfAbsent(item.name, () => item);
   }
 
-  Optional createIfNotExit(List<String> names) {
-    // logt(TAG,this.name + name.toString(),);
+  Optional createIfNotExit(List<String> names, int i) {
+    logt(
+      TAG,
+      "createIfNotExit $names   $i",
+    );
     options ??= {};
     Optional option;
 
-    String n = names[0];
-    if (options!.keys.contains(n)) {
-      option = options![n]!;
+    String name = names[i];
+    if (options!.keys.contains(name)) {
+      option = options![name]!;
     } else {
-      option = getOptionalWithName(n);
-      addOption(n, option);
+      option = Optional(name);
+      addOption(name, option);
     }
 
-    if (names.length > 1) {
-      return option.createIfNotExit(names.sublist(1));
+    if (i != names.length - 1) {
+      return option.createIfNotExit(names, i + 1);
     } else {
       return option;
     }
   }
 
   Widget generate(AIPainterModel provider) {
-    Text item = Text(name
-        // + (negativeLen > 0 ? "($promptLen/$negativeLen)" : '($promptLen)')
-    );
     if (null != options && options!.keys.isNotEmpty) {
-      return Expandable(true, item, content(provider, options));
+      return Expandable(
+          true,
+          Row(
+            children: [
+              if(name.endsWith("*"))Checkbox(value: provider.checkedRadio.contains(name), onChanged: (newValue) {
+                if (newValue != null && newValue&&null!=group) {
+                  //勾选
+                  provider.updateCheckRadio(group!,name);
+                } else {
+                  //取消
+                  provider.updateCheckRadio(group!, null);
+                }
+              }),
+              Text(name),
+              IconButton(onPressed: () {}, icon: Icon(Icons.refresh))
+            ],
+          ),
+          content(provider, options));
     } else {
-      return item;
+      return Text(name);
     }
   }
 
   @override
   String toString() {
-    return 'Optional{isDetail: $isDetail, options: $options}';
+    return 'Optional{$name $group $isRadio $options}';
   }
 
   Widget content(AIPainterModel provider, Map<String, Optional>? options) {
@@ -86,38 +98,67 @@ class Optional extends PromptStyle {
     List<List<Optional>> splits = splitOptional(ops);
 
     List<Widget> noChild = splits[0].map<Widget>((e) {
-      return RawChip(
-          selected: provider.txt2img.checkedStyles.contains(e.name),
-          onSelected: (bool selected) {
-            provider.switchChecked(e.name);
-            // e.checked = selected;
-          },
-          label: Text(e.name));
+      if (e.isRadio) {
+        return Selector<AIPainterModel, List<String>>(
+            selector: (_, model) => model.checkedRadio,
+            builder: (_, newValue, child) {
+              return Container(
+               child: Row(
+                 children: [
+                   Checkbox(
+                       value: newValue.contains(e.name),
+                       onChanged: (newValue) {
+                         if (newValue != null && newValue&&null!=e.group) {
+                           //勾选
+                           provider.updateCheckRadio(e.group!,e.name);
+                         } else {
+                           //取消
+                           provider.updateCheckRadio(e.group!, null);
+                         }
+                         // provider.switchChecked(newValue ?? false, e.name);
+                       }),
+                   Text(e.name)
+                 ],
+               )               ,
+              );
+            });
+      } else {
+        if (e.checked == null) {
+          e.checked = provider.checkedStyles.contains(e.name);
+        }
+        return RawChip(
+            selected: e.checked!,
+            onSelected: (bool selected) {
+              e.checked = !e.checked!;
+              provider.switchChecked(selected, e.name);
+            },
+            label: Text(e.name));
+      }
     }).toList();
 
     List<Widget> hasChild = [];
     if (noChild.isNotEmpty) {
       hasChild.add(Wrap(
+        //
         children: noChild,
       ));
     }
-   hasChild.addAll( splits[1].map<Widget>((value) {
-     return
-       value.generate(provider);
-     //   Row(
-     //   children: [
-     //     Radio<String>(
-     //         value: value.name,
-     //         groupValue: value.parent?.target,
-     //         onChanged: (newValue) {
-     //           value.parent!.target = newValue;
-     //           provider.replaceChecked(value.parent?.target, newValue);
-     //         }),
-     //     value.generate(provider),
-     //   ],
-     // );
-   }).toList());
-    
+    hasChild.addAll(splits[1].map<Widget>((value) {
+      return value.generate( provider);
+      //   Row(
+      //   children: [
+      //     Radio<String>(
+      //         value: value.name,
+      //         groupValue: value.parent?.target,
+      //         onChanged: (newValue) {
+      //           value.parent!.target = newValue;
+      //           provider.replaceChecked(value.parent?.target, newValue);
+      //         }),
+      //     value.generate(provider),
+      //   ],
+      // );
+    }).toList());
+
     return Container(
       padding: const EdgeInsets.only(left: 12),
       child: hasChild.length == 1
@@ -142,23 +183,5 @@ class Optional extends PromptStyle {
       }
     }
     return [noChild, withChild];
-  }
-}
-
-class OneOrNone extends Optional {
-  OneOrNone(super.name, {super.prompt, super.negativePrompt, super.isDetail});
-
-  @override
-  String toString() {
-    return 'OneOrNone{isDetail: $isDetail, options: $options}';
-  }
-}
-
-class One extends Optional {
-  One(super.name, {super.prompt, super.negativePrompt, super.isDetail});
-
-  @override
-  String toString() {
-    return 'One{isDetail: $isDetail, options: $options}';
   }
 }

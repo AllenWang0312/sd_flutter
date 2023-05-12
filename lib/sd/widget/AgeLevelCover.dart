@@ -33,7 +33,7 @@ class AgeLevelCover extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         shape: SHAPE_IMAGE_CARD,
         child: FutureBuilder(
-          future: getBytesWithDio(info.url!),
+          future: getBytesWithDio(info.getFileLocation()!),
           builder: (context, snapshot) {
             return Stack(
               children: [
@@ -52,7 +52,7 @@ class AgeLevelCover extends StatelessWidget {
         ),
       );
     } else {
-      File image= File(info.getLocalPath());
+      File image= File(info.getFileLocation());
       Uint8List bytes= image.readAsBytesSync();
       return Card(
         clipBehavior: Clip.antiAlias,
@@ -89,7 +89,7 @@ class AgeLevelCover extends StatelessWidget {
 filterCover(AIPainterModel provider, UniqueSign info, Uint8List bytes) {
   return Selector<AIPainterModel, int>(
       selector: (_, model) =>
-          provider.hideNSFW ? info.getAgeLevel(provider, bytes) : 0,
+          provider.hideNSFW ? provider.getAgeLevel(info.uniqueTag()) : 0,
       builder: (context, value, child) {
         return value >= 18
             ? ImageFiltered(imageFilter: AGE_LEVEL_BLUR, child: child)

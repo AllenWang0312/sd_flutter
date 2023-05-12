@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/platform/platform.dart';
+import 'package:sd/sd/bean/db/LocalFileInfo.dart';
+import 'package:sd/sd/bean/file/Showable.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import '../../../common/third_util.dart';
@@ -94,27 +96,22 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
       onPageChange(index ?? 0);
     }
 
-    return SafeArea(
-      child: WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
-        child: Stack(
-          children: [
-            _pageView(controller),
-            _appBar(context, controller),
-            // Positioned(
-            //   left: 0,
-            //   right: 0,
-            //   bottom: 0,
-            //   child: Selector<ImagesModel, int>(
-            //     selector: (_, model) => model.index,
-            //     builder: (context, value, child) {
-            //       return Text('${(value + 1).toString()}/${datas.length}');
-            //     },
-            //   )
+    return Stack(
+      children: [
+        _pageView(controller),
+        _appBar(context, controller),
+        // Positioned(
+        //   left: 0,
+        //   right: 0,
+        //   bottom: 0,
+        //   child: Selector<ImagesModel, int>(
+        //     selector: (_, model) => model.index,
+        //     builder: (context, value, child) {
+        //       return Text('${(value + 1).toString()}/${datas.length}');
+        //     },
+        //   )
 
-            //               TextButton(
+        //               TextButton(
 //                   onPressed: () async {
 //                     var width = MediaQuery.of(context).size.width;
 //                     var height = MediaQuery.of(context).size.height;
@@ -126,15 +123,13 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
 //                   },
 //                   child: Text('设为壁纸'))
 
-            // ),
-          ],
-        ),
-      ),
+        // ),
+      ],
     );
   }
 
   onPageChange(int page) async {
-    UniqueSign item = urls![page];
+    Showable item = urls![page];
     if (null != type && item.getFileLocation().startsWith("http")) {
       images.updateIndex(page);
       String? currentRemotePath = images.exts[page]?.remoteFilePath;
@@ -150,7 +145,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
         });
       }
     } else if (null != urls) {
-      images.updateCurrentDes(page, urls![page].getPrompts());
+      images.updateCurrentDes(page, urls![page].exif);
     }
   }
 
@@ -187,7 +182,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
 
   Widget urlBuilder(BuildContext context, int index, T data) {
     File? file;
-    if (dataType == ImagesType.files) {
+    if (data is LocalFileInfo) {
       file = File(data.getFileLocation());
       datas[index] = file.readAsBytesSync();
     }
@@ -199,7 +194,8 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
         //   FileStat stat = await file.stat();
         //   fileInfo.fileSize = stat.size;
         // }
-        int currentLevel = await data.getAgeLevel(provider, datas[index]);
+        String sign = data.uniqueTag();
+        int currentLevel = await provider.getAgeLevel(sign);
 
         RelativeRect position = RelativeRect.fromLTRB(detail.globalPosition.dx,
             detail.globalPosition.dy, double.infinity, double.infinity);
@@ -223,13 +219,13 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                 if (await DBController.instance
                         .updateAgeLevelRecord(data, datas[index], value) >
                     0) {
-                  data.setAgeLevel(provider, value);
+                  provider.setAgeLevel(data.uniqueTag(), value);
                 }
               } else {
                 if (await DBController.instance
                         .insertAgeLevelRecord(data, datas[index], value) >
                     0) {
-                  data.setAgeLevel(provider, value);
+                  provider.setAgeLevel(sign,value);
                 }
               }
             } else if (value == -100) {
@@ -251,7 +247,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                   onPageChange(index);
                 });
               } else {
-                String? localPath = urls?[index].getLocalPath();
+                String? localPath = urls?[index].getFileLocation();
                 if(null!=localPath){
                   int result = await DBController.instance.deleteLocalRecord(localPath);
                   if(result>0){
@@ -265,7 +261,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
               if (await DBController.instance
                       .removetAgeLevelRecord(data, datas[index]) >
                   0) {
-                data.setAgeLevel(provider, 0);
+                provider.setAgeLevel(sign, 0);
               }
             }
           });

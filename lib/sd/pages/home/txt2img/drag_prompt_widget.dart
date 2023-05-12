@@ -37,6 +37,7 @@ Widget build(BuildContext context) {
       children: _dragableList());
 }
 
+
 List<Widget> _dragableList() {
   List<Widget> result = [];
   for (int i = 0; i < widget.split.length; i++) {
@@ -89,6 +90,18 @@ List<Widget> _dragableList() {
   }
   return result;
 }
+
+@override
+  void initState() {
+    super.initState();
+
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+  }
 
 Widget _childWrapper(Color color, Widget child) {
   return Container(

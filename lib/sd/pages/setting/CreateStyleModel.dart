@@ -18,8 +18,8 @@ class CreateStyleModel with ChangeNotifier, DiagnosticableTreeMixin {
   String getCheckStyles() {
     String result = "";
     for (PromptStyle item in current) {
-      if (item.checked) {
-        result += item.name + "\r\n";
+      if (null!=item.checked&&item.checked!) {
+        result += "${item.name}\r\n";
       }
     }
     return result;

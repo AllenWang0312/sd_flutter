@@ -76,7 +76,6 @@ class CreateStyleWidget extends StatelessWidget {
       model.updateFileName(controller.text);
       pathController.text = "$autoSaveAbsPath/${controller.text}.csv";
     });
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -99,13 +98,13 @@ class CreateStyleWidget extends StatelessWidget {
                     await File(model.splitFile).writeAsString(
                         const ListToCsvConverter().convert(
                             PromptStyle.convertPromptStyle(model.current
-                                .where((element) => !element.checked)
+                                .where((element) => !(element.checked??false))
                                 .toList())));
 
                     File file = File(pathController.text);
                     createFileIfNotExit(file);
                     List<PromptStyle> styles = model.current
-                        .where((element) => element.checked)
+                        .where((element) => element.checked??false)
                         .toList();
                     String csv = const ListToCsvConverter()
                         .convert(PromptStyle.convertPromptStyle(styles));
@@ -232,7 +231,7 @@ class CreateStyleWidget extends StatelessWidget {
                                     children: [
                                       Selector<CreateStyleModel, bool>(
                                         selector: (_, model) =>
-                                            model.current[index].checked,
+                                            model.current[index].checked??false,
                                         builder: (context, value, child) {
                                           return Checkbox(
                                               value: value,

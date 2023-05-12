@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -83,33 +82,14 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
         }
       }
     });
-
-    return Selector<AIPainterModel, int>(
-      selector: (_, model) => model.netWorkState,
-      shouldRebuild: (pre, next) => pre != next,
-      builder: (context, newValue, child) {
-        return Stack(children: [
-          child!,
-          Selector<TXT2IMGModel, Uint8List?>(
-            builder: (_, newValue, child) =>
-                newValue == null ? Container() : Image.memory(newValue),
-            selector: (_, model) => model.previewData,
-            shouldRebuild: (pre, next) => !(next == null && pre == null),
-          ),
-          Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              bottom: 0,
-              child: Offstage(
-                offstage: newValue != REQUESTING,
-                child: const CircularProgressIndicator(
-                  color: Colors.white,
-                ),
-              ))
-        ]);
-      },
-      child: FloatingActionButton(
+    // Selector<TXT2IMGModel, Uint8List?>(
+    //   builder: (_, newValue, child) =>
+    //   newValue == null ? Container() : Image.memory(newValue),
+    //   selector: (_, model) => model.previewData,
+    //   shouldRebuild: (pre, next) => !(next == null && pre == null),
+    // )
+    return Stack(children: [
+      FloatingActionButton(
         onPressed: () {
           backgroundProgress = false;
           id_live_preview = 0;
@@ -117,7 +97,19 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
         },
         child: Text(AppLocalizations.of(context).generate),
       ),
-    );
+      Selector<AIPainterModel, int>(
+          selector: (_, model) => model.netWorkState,
+          shouldRebuild: (pre, next) => pre != next,
+          builder: (context, newValue, child) {
+            if (newValue == REQUESTING) {
+              return const CircularProgressIndicator(
+                color: Colors.white,
+              );
+            } else {
+              return Container();
+            }
+          })
+    ]);
   }
 
   @override

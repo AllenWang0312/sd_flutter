@@ -27,7 +27,7 @@ const SD_CLINET_HOST = "192.168.0.1";
 const SD_PORT = 7860;
 
 placeHolderUrl({int width = 512, int height = 720}) {
-  return 'https://via.placeholder.com/$width x$height';
+  return 'https://via.placeholder.com/${width}x$height';
 }
 
 const TXT_2_IMG = "/sdapi/v1/txt2img";

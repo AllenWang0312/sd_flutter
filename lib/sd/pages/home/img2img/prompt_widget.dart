@@ -59,21 +59,29 @@ class PromptWidget extends StatelessWidget {
             ),
             Column(
               children: [
-                IconButton(
+
+                TextButton(
                     onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (_) {
-                            return AlertDialog(
-                              title: Text(AppLocalizations.of(context).tagger),
-                              content: ChangeNotifierProvider(
-                                create: (_) => TaggerModel(),
-                                child: TaggerWidget(),
-                              ),
-                            );
-                          });
+                      post("$sdHttpService$RUN_PREDICT",
+                          formData: getLastPrompt(cmd.CMD_GET_LAST_PROMPT),
+                          provider: provider, exceptionCallback: (e) {
+                            logt(TAG, e.toString());
+                          }).then((value) {
+                        // promptController.text = value?.data['data'][0]['value'];
+                        // provider.cleanCheckedStyles();
+                        if (value != null) {
+                          provider.updatePrompts(
+                            value.data['data'][0]['value'],
+                            value.data['data'][1]['value'],
+                            steps: value.data['data'][2]['value'],
+                            sampler: value.data['data'][3]['value'],
+                            cfgScale: value.data['data'][5]['value'],
+                            seed: value.data['data'][6]['value'],
+                          );
+                        } else {}
+                      });
                     },
-                    icon: Icon(Icons.image_search)),
+                    child: Text(AppLocalizations.of(context).load)),
                 IconButton(
                     onPressed: () {
                       var prompt = promptController.text;
@@ -87,7 +95,8 @@ class PromptWidget extends StatelessWidget {
                     )),
                 IconButton(
                     onPressed: () {
-                      Navigator.pushNamed(context,
+                      Navigator.pushNamed(
+                          context,
                           // ROUTE_DRAG_PROMPT,
                           ROUTE_AUTO_COMPLETE,
                           arguments: {"prompt": promptController.text});
@@ -122,25 +131,6 @@ class PromptWidget extends StatelessWidget {
                       provider.cleanPrompts();
                     },
                     child: Text(AppLocalizations.of(context).clean)),
-                TextButton(
-                    onPressed: () {
-                      post("$sdHttpService$RUN_PREDICT",
-                              formData: getLastPrompt(
-                                  cmd.CMD_GET_LAST_PROMPT),provider: provider)
-                          .then((value) {
-                        // promptController.text = value?.data['data'][0]['value'];
-                        // provider.cleanCheckedStyles();
-                        provider.updatePrompts(
-                          value?.data['data'][0]['value'],
-                          value?.data['data'][1]['value'],
-                          steps: value?.data['data'][2]['value'],
-                          sampler: value?.data['data'][3]['value'],
-                          cfgScale: value?.data['data'][5]['value'],
-                          seed: value?.data['data'][6]['value'],
-                        );
-                      });
-                    },
-                    child: Text(AppLocalizations.of(context).load)),
                 TextButton(
                     onPressed: () => Navigator.pushNamed(
                             context, ROUTE_STYLE_EDITTING,

@@ -1,31 +1,45 @@
 import 'package:sd/common/util/string_util.dart';
+import 'package:sd/sd/http_service.dart';
+
+const TAG = "PromptStyle";
 
 class PromptStyle {
+
   static var GROUP = 'group';
   static var STEP = 'step';
+
+  static var TYPES = ['词组', 'n', 'adj.', 'v', '副词.'];
+
+  static var TYPE = 'type'; //1 名词 2 形容词(包括颜色) 3动词 4 副词 21 形容词+名词
   static var NAME = 'name';
   static var LIMIT_AGE = 'limit_age';
-
   static var PROMPT = 'prompt';
   static var NEG_PROMPT = 'negative_prompt';
-
-  static List STYLE_HEAD = [
-    'group',
-    'step',
-    'name',
-    'limit_age',
-    'prompt',
-    'negative_prompt'
-  ];
 
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
       "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT";
 
-  String? group = '';
-  int? step = 0;
+  String? _readableType;
+
+  String? get readableType {
+    if (_readableType == null) {
+      _readableType = '';
+      if (type != null && type!.isNotEmpty) {
+        List types = type!.split('');
+        for (String i in types) {
+          _readableType = '${_readableType!}${TYPES[toInt(i, 0)]} ';
+        }
+      }
+    }
+    return _readableType;
+  }
+
   int? limitAge = 0;
 
+  String? group = '';
+  int? step = 0;
+  String? type = '';
   String name = "";
   String? prompt = "";
   String? negativePrompt = "";
@@ -35,24 +49,27 @@ class PromptStyle {
 
   PromptStyle(
     this.name, {
-    this.group = "",
-    this.step = 0,
-    this.limitAge = 0,
+    this.group,
+    this.step,
+    this.type,
+    this.limitAge,
     this.prompt,
     this.negativePrompt,
   }) {
+    logt(TAG, "$group $name");
     promptLen = wordsCount(prompt);
     negativeLen = wordsCount(negativePrompt);
     // logt(TAG,"prompt $promptLen negative $negativeLen");
   }
 
-  bool checked = false;
+  bool? checked;
 
   PromptStyle.fromJson(dynamic json) {
     group = json['group'];
     name = json['name'];
-    limitAge = toInt(json['limit_age'],0);
+    limitAge = toInt(json['limit_age'], 0);
     step = toInt(json['step'], 0);
+    type = json['type'];
     prompt = json['prompt'];
     negativePrompt = json['negative_prompt'];
   }
@@ -65,10 +82,10 @@ class PromptStyle {
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['group'] = group;
-
     map['name'] = name;
     map['limit_age'] = limitAge;
     map['step'] = step;
+    map['type'] = type;
     map['prompt'] = prompt;
     map['negative_prompt'] = negativePrompt;
     return map;
@@ -90,11 +107,22 @@ class PromptStyle {
     return result;
   }
 
+  static List STYLE_HEAD = [
+    GROUP,
+    NAME,
+    STEP,
+    TYPE,
+    LIMIT_AGE,
+    PROMPT,
+    NEG_PROMPT
+  ];
+
   static List<dynamic> convertItem(dynamic item) {
     return [
       item['group'],
       item['name'],
       item['step'],
+      item['type'],
       item['limit_age'],
       item['prompt'],
       item['negative_prompt'],
@@ -106,6 +134,7 @@ class PromptStyle {
       item.group,
       item.name,
       item.limitAge,
+      item.type,
       item.step,
       item.prompt,
       item.negativePrompt,
@@ -114,7 +143,7 @@ class PromptStyle {
 
   @override
   String toString() {
-    return 'PromptStyle{group: $group, step: $step, limitAge: $limitAge, promptLen: $promptLen, negativeLen: $negativeLen, checked: $checked, name: $name, prompt: $prompt, negativePrompt: $negativePrompt}';
+    return 'group: $group, step: $step, limitAge: $limitAge, promptLen: $promptLen, negativeLen: $negativeLen, checked: $checked, name: $name, prompt: $prompt, negativePrompt: $negativePrompt';
   }
 
   @override

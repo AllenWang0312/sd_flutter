@@ -36,7 +36,6 @@ class PluginsWidget extends StatelessWidget {
           ),
         ),
         body: const TabBarView(
-
             children: children),
       ),
     );

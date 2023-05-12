@@ -4,8 +4,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
+import 'package:exif/exif.dart';
 import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
 import 'package:sd/common/util/string_util.dart';
+import 'package:sd/sd/bean/options.dart';
 import 'package:sd/sd/db_controler.dart';
 
 import '../../sd/bean/PromptStyle.dart';
@@ -31,20 +33,21 @@ const EXIF_IMAGE_PADDING_KEY = 'Image Padding';
 const EXIF_EXIF_PADDING_KEY = 'EXIF Padding';
 
 Future<List<PromptStyle>> loadPromptStyleFromCSVFile(
-    String csvFilePath, int userAge,
-    {Encoding? encoding}) async {
-  String myData =
-      await File(csvFilePath).readAsString(encoding: encoding ?? utf8);
+    String csvFilePath, int userAge) async {
+  String myData = await File(csvFilePath).readAsString();
+  logt("loadPromptStyleFromCSVFile", myData);
   return loadPromptStyleFromString(myData, userAge);
 }
 
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
-    {Map<String, List<PromptStyle>>? groupRecord}) {
+    {Map<String, List<PromptStyle>>? groupRecord,bool extend = false}) {
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
   List colums = csvTable.removeAt(0);
+
   int groupIndex = colums.indexOf(PromptStyle.GROUP);
   int nameIndex = colums.indexOf(PromptStyle.NAME);
   int stepIndex = colums.indexOf(PromptStyle.STEP);
+  int typeIndex = colums.indexOf(PromptStyle.TYPE);
   int limitIndex = colums.indexOf(PromptStyle.LIMIT_AGE);
   int promptIndex = colums.indexOf(PromptStyle.PROMPT);
   int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
@@ -59,14 +62,32 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
                 : element[limitIndex]);
   }).map((e) {
     String group = groupIndex >= 0 ? e[groupIndex] : '';
+    late PromptStyle item;
+    try {
+      String name = nameIndex >= 0 ? e[nameIndex] : '';
+      int limitAge = limitIndex >= 0 ? toInt(e[limitIndex], 0) : 0;
+      String? prompt = promptIndex >= 0 ? e[promptIndex] : null;
+      String? negPrompt = negPromptIndex >= 0 ? e[negPromptIndex] : null;
+      int step = stepIndex >= 0 ? toInt(e[stepIndex], 0) : 0;
+      String? type = typeIndex >= 0 ? e[typeIndex].toString() : '';
+      logt(TAG, "$group $name");
 
-    PromptStyle item = PromptStyle(nameIndex >= 0 ? e[nameIndex] : '',
-        limitAge: limitIndex >= 0 ? toInt(e[limitIndex], 0) : 0,
-        prompt: promptIndex >= 0 ? e[promptIndex] : null,
-        negativePrompt: negPromptIndex >= 0 ? e[negPromptIndex] : null,
-        group: group,
-        step: stepIndex >= 0 ? toInt(e[stepIndex], 0) : 0);
-
+      item = extend?Optional(name,
+          limitAge: limitAge,
+          prompt: prompt,
+          negativePrompt: negPrompt,
+          group: group,
+          step: step,
+          type: type):PromptStyle(name,
+          limitAge: limitAge,
+          prompt: prompt,
+          negativePrompt: negPrompt,
+          group: group,
+          step: step,
+          type: type);
+    } catch (err) {
+      logt("loadPromptStyleFromString", e.toString());
+    }
     if (null != groupRecord) {
       if (groupRecord.keys.contains(group)) {
         groupRecord[group]?.add(item);
@@ -76,6 +97,47 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
     }
     return item;
   }).toList();
+}
+
+Future<String?> getOtherExt(File image, File prompt) async {
+  if (prompt.existsSync()) {
+    return await prompt.readAsString();
+  } else {
+    // var bytes = await image.readAsBytes();
+    var exif = await readExifFromFile(image);
+    // printExifOfBytes(bytes);
+    logt(TAG, "jpeg exif:$exif");
+    // logt(TAG, "jpeg exif:${}");
+    // String tag = utf8.decode(exif[EXIF_IMAGE_KEYWORDS_KEY]!
+    //     .values
+    //     .toList()
+    //     .map((e) => e as int)
+    //     .toList());
+    // info?.ageLevel = getAgeLevel(tag);
+    // prompt.createSync(recursive: true, exclusive: true);
+    // prompt.writeAsString(exif.toString()!, encoding: utf8);
+    return exif.keys.isEmpty ? null : '';
+  }
+}
+
+Future<String?> getPngExt(File image, File prompt) async {
+  if (prompt.existsSync()) {
+    return await prompt.readAsString();
+  } else {
+    var bytes = await image.readAsBytes();
+    try {
+      String? ext = getPNGExtData(bytes);
+      if (null != ext && ext.isNotEmpty) {
+        prompt.createSync(recursive: true, exclusive: true);
+        prompt.writeAsString(ext, encoding: utf8);
+        return Future.value(ext);
+      } else {
+        return Future.error('');
+      }
+    } catch (e) {
+      return Future.error(e.toString());
+    }
+  }
 }
 
 String? getPNGExtData(Uint8List bytes) {

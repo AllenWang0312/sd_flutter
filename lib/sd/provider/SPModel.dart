@@ -56,7 +56,8 @@ class SPModel extends DBModel {
     txt2img.steps = sp.getInt(SP_SAMPLER_STEPS) ?? DEFAULT_SAMPLER_STEPS;
     txt2img.width = sp.getInt(SP_WIDTH) ?? DEFAULT_WIDTH;
     txt2img.height = sp.getInt(SP_HEIGHT) ?? DEFAULT_HEIGHT;
-    txt2img.checkedStyles = sp.getStringList(SP_CHECKED_STYLES) ?? [];
+
+    checkedStyles = sp.getStringList(SP_CHECKED_STYLES) ?? [];
 
     faceFix = sp.getBool(SP_FACE_FIX) ?? DEFAULT_FACE_FIX;
     hiresFix = sp.getBool(SP_HIRES_FIX) ?? DEFAULT_HIRES_FIX;
@@ -74,7 +75,7 @@ class SPModel extends DBModel {
     await sp.setInt(SP_SAMPLER_STEPS, txt2img.steps);
     await sp.setInt(SP_WIDTH, txt2img.width);
     await sp.setInt(SP_HEIGHT, txt2img.height);
-    await sp.setStringList(SP_CHECKED_STYLES, txt2img.checkedStyles);
+    await sp.setStringList(SP_CHECKED_STYLES, checkedStyles);
 
     await sp.setBool(SP_FACE_FIX, faceFix);
     await sp.setBool(SP_HIRES_FIX, hiresFix);
@@ -102,10 +103,10 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  void updatePrompts(String prompt, String negPrompt,
+  void updatePrompts(String? prompt, String? negPrompt,
       {int? steps, String? sampler, double? cfgScale, double? seed}) {
-    this.txt2img.prompt = prompt;
-    this.txt2img.negativePrompt = negPrompt;
+    this.txt2img.prompt = prompt??"";
+    this.txt2img.negativePrompt = negPrompt??"";
     if (null != steps) this.txt2img.steps = min(100, steps);
     if (null != sampler) this.txt2img.sampler = sampler;
     if (null != cfgScale) this.txt2img.cfgScale = cfgScale;
@@ -159,28 +160,52 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  void switchChecked(String name) {
-    if (txt2img.checkedStyles.contains(name)) {
-      txt2img.checkedStyles.remove(name);
+  List<String> checkedRadioGroup = [];
+  List<String> checkedRadio = [];
+  List<String> checkedStyles = [];
+
+  String? getCheckedRadio(String group){
+    if(checkedRadioGroup.contains(group)){
+      return checkedRadio[checkedRadioGroup.indexOf(group)];
+    }
+    return null;
+  }
+
+
+
+
+  // bool itemChecked(String? group, String name) {
+  //   if(name.endsWith("*")&&null!=group){
+  //     return checkedRadio[group] == name;
+  //   }else{
+  //     return checkedStyles.contains(name);
+  //   }
+  // }
+
+  void switchChecked(bool checked,String name) {
+    if (checked
+    //txt2img.checkedStyles.contains(name)
+    ) {
+      checkedStyles.remove(name);
     } else {
-      txt2img.checkedStyles.add(name);
+      checkedStyles.add(name);
     }
     notifyListeners();
   }
 
   void cleanCheckedStyles() {
-    txt2img.checkedStyles.clear();
+    checkedStyles.clear();
     notifyListeners();
   }
 
-  void replaceChecked(String? old, String? newValue) {
-    if (txt2img.checkedStyles.contains(old)) {
-      txt2img.checkedStyles.remove(old);
-    }
-    if (null != newValue) {
-      switchChecked(newValue);
-    }
-  }
+  // void replaceChecked(String? old, String? newValue) {
+  //   if (txt2img.checkedStyles.contains(old)) {
+  //     txt2img.checkedStyles.remove(old);
+  //   }
+  //   if (null != newValue) {
+  //     switchChecked(newValue);
+  //   }
+  // }
 
   void updateWidth(double value) {
     txt2img.width = value.toInt();
@@ -211,7 +236,7 @@ class SPModel extends DBModel {
   }
 
   unCheckStyles(String style) {
-    txt2img.checkedStyles.remove(style);
+    checkedStyles.remove(style);
     notifyListeners();
   }
 

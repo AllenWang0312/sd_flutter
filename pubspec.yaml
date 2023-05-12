@@ -68,6 +68,7 @@ dependencies:
 
   webview_flutter: ^4.0.7
   url_launcher: ^6.1.10
+  dcache: ^0.4.0
 
 dev_dependencies:
   flutter_test:
