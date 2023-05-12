@@ -102,25 +102,19 @@ class Optional extends PromptStyle {
         return Selector<AIPainterModel, List<String>>(
             selector: (_, model) => model.checkedRadio,
             builder: (_, newValue, child) {
-              return Container(
-               child: Row(
-                 children: [
-                   Checkbox(
-                       value: newValue.contains(e.name),
-                       onChanged: (newValue) {
-                         if (newValue != null && newValue&&null!=e.group) {
-                           //勾选
-                           provider.updateCheckRadio(e.group!,e.name);
-                         } else {
-                           //取消
-                           provider.updateCheckRadio(e.group!, null);
-                         }
-                         // provider.switchChecked(newValue ?? false, e.name);
-                       }),
-                   Text(e.name)
-                 ],
-               )               ,
-              );
+              return ChoiceChip(
+                label: Text(e.name),
+                  selected: newValue.contains(e.name),
+                  onSelected: (newValue) {
+                    if (newValue != null && newValue&&null!=e.group) {
+                      //勾选
+                      provider.updateCheckRadio(e.group!,e.name);
+                    } else {
+                      //取消
+                      provider.updateCheckRadio(e.group!, null);
+                    }
+                    // provider.switchChecked(newValue ?? false, e.name);
+                  });
             });
       } else {
         if (e.checked == null) {
