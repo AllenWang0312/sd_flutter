@@ -37,8 +37,8 @@ class PromptStyle {
 
   int? limitAge = 0;
 
-  String? group = '';
-  int? step = 0;
+  String group = '';
+  int? step;
   String? type = '';
   String name = "";
   String? prompt = "";
@@ -49,7 +49,7 @@ class PromptStyle {
 
   PromptStyle(
     this.name, {
-    this.group,
+    this.group = '',
     this.step,
     this.type,
     this.limitAge,

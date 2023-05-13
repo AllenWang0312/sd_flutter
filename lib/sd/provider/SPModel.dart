@@ -186,15 +186,17 @@ class SPModel extends DBModel {
     if (checked
     //txt2img.checkedStyles.contains(name)
     ) {
-      checkedStyles.remove(name);
-    } else {
       checkedStyles.add(name);
+    } else {
+      checkedStyles.remove(name);
     }
     notifyListeners();
   }
 
   void cleanCheckedStyles() {
     checkedStyles.clear();
+    checkedRadioGroup.clear();
+    checkedRadio.clear();
     notifyListeners();
   }
 
@@ -237,6 +239,7 @@ class SPModel extends DBModel {
 
   unCheckStyles(String style) {
     checkedStyles.remove(style);
+    checkedRadio.remove(styles);
     notifyListeners();
   }
 

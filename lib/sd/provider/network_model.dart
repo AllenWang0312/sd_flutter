@@ -52,11 +52,10 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   void loadOptionalMapFromService(int userAge,String path){
+    logt(TAG,"loadOptionalMapFromService $path");
+
     String? csv;
-    get(path, exceptionCallback: (e) {
-      logt(TAG,"loadOptionalMapFromService $e");
-      return;
-    },timeOutSecond: 20).then((value) {
+    get(path,timeOutSecond: 20).then((value) {
       if (null != value && null != value.data) {
         csv = value.data.toString();
         List styles = loadPromptStyleFromString(csv!, userAge,groupRecord: publicStyles,extend: true);

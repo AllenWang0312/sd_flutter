@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/Expandable.dart';
@@ -9,6 +11,7 @@ import 'PromptStyle.dart';
 const TAG = "Optional";
 
 class Optional extends PromptStyle {
+  int _radioCount = 0;
   bool? _isRaido;
 
   bool get isRadio {
@@ -31,14 +34,19 @@ class Optional extends PromptStyle {
   void addOption(String name, Optional item) {
     options ??= {};
     item.parent = this;
+    if (name.endsWith("*")) {
+      _radioCount += 1;
+    }
     options!.putIfAbsent(item.name, () => item);
+    if((name.isNotEmpty||group.isNotEmpty)&&item.group.isEmpty){
+      item.group=groupName(group,name);
+    }
+    if(this.step==null&&item.step!=null){
+      step = item.step;
+    }
   }
 
   Optional createIfNotExit(List<String> names, int i) {
-    logt(
-      TAG,
-      "createIfNotExit $names   $i",
-    );
     options ??= {};
     Optional option;
 
@@ -63,22 +71,96 @@ class Optional extends PromptStyle {
           true,
           Row(
             children: [
-              if(name.endsWith("*"))Checkbox(value: provider.checkedRadio.contains(name), onChanged: (newValue) {
-                if (newValue != null && newValue&&null!=group) {
-                  //勾选
-                  provider.updateCheckRadio(group!,name);
-                } else {
-                  //取消
-                  provider.updateCheckRadio(group!, null);
-                }
-              }),
-              Text(name),
-              IconButton(onPressed: () {}, icon: Icon(Icons.refresh))
+              (isRadio ||
+                      (null != prompt && prompt!.isNotEmpty) ||
+                      (null != negativePrompt && negativePrompt!.isNotEmpty))
+                  ? Selector<AIPainterModel, List<String>>(
+                      selector: (_, model) =>
+                          isRadio ? model.checkedRadio : model.checkedStyles,
+                      builder: (_, newValue, child) {
+                        return ChoiceChip(
+                            selectedColor: Colors.grey,
+                            label: Text(name),
+                            selected: newValue.contains(name),
+                            onSelected: (newValue) {
+                              if(isRadio){
+                                if (newValue) {
+                                  //勾选
+                                  provider.updateCheckRadio(group, name);
+                                } else {
+                                  //取消
+                                  provider.updateCheckRadio(group, null);
+                                }
+                              }else{
+                                provider.switchChecked(newValue,name);
+                              }
+                            });
+                      })
+                  : Text(name),
+              IconButton(
+                  onPressed: () {
+                    randomChild(provider);
+                  },
+                  icon: Icon(Icons.refresh))
             ],
           ),
           content(provider, options));
     } else {
       return Text(name);
+    }
+  }
+
+  void randomChild(AIPainterModel provider) {
+    if (step!=0&&null != options) {
+
+      Iterable<String> all = options!.keys;
+      List<String> others =
+          all.where((element) => !element.endsWith("*")).toList();
+
+      bool radioChecked = provider.checkedRadioGroup.contains(groupName(group, name));
+
+      final Random random = Random();
+
+
+      if (radioChecked) {
+        logt(TAG, "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
+
+
+        List<String> radios =
+            all.where((element) => element.endsWith("*")).toList();
+        logt(TAG, "random radios ${radios.toString()}");
+
+        if(radios.isNotEmpty){
+          int index = random.nextInt(radios.length);
+          logt(TAG, "random radio $index");
+
+          provider.updateCheckRadio(groupName(group,name), radios[index]);
+        }
+
+      }
+
+      int checkCount = 0;
+      for (String item in others) {
+        if (provider.checkedStyles.contains(item)) {
+          provider.checkedStyles.remove(item);
+          logt(TAG, "random remove items$item");
+
+          checkCount++;
+        }
+      }
+      if (checkCount > 0 && checkCount != others.length) {
+        for (int i = 0; i < checkCount; i++) {
+          int ran = random.nextInt(others.length);
+          logt(TAG, "random items$ran");
+          provider.checkedStyles.add(others[ran]);
+          others.removeAt(ran);
+        }
+      }
+    }
+    if (null != options) {
+      for (Optional item in options!.values) {
+        item.randomChild(provider);
+      }
     }
   }
 
@@ -103,30 +185,35 @@ class Optional extends PromptStyle {
             selector: (_, model) => model.checkedRadio,
             builder: (_, newValue, child) {
               return ChoiceChip(
-                label: Text(e.name),
+                  selectedColor: Colors.grey,
+                  label: Text(e.name),
                   selected: newValue.contains(e.name),
                   onSelected: (newValue) {
-                    if (newValue != null && newValue&&null!=e.group) {
+                    logt(TAG,"radio onSelected ${e.group} ${e.name} $newValue");
+                    if (newValue != null && newValue) {
                       //勾选
-                      provider.updateCheckRadio(e.group!,e.name);
+                      provider.updateCheckRadio(e.group, e.name);
                     } else {
                       //取消
-                      provider.updateCheckRadio(e.group!, null);
+                      provider.updateCheckRadio(e.group, null);
                     }
                     // provider.switchChecked(newValue ?? false, e.name);
                   });
             });
       } else {
-        if (e.checked == null) {
-          e.checked = provider.checkedStyles.contains(e.name);
-        }
-        return RawChip(
-            selected: e.checked!,
-            onSelected: (bool selected) {
-              e.checked = !e.checked!;
-              provider.switchChecked(selected, e.name);
-            },
-            label: Text(e.name));
+        return Selector<AIPainterModel, List<String>>(
+            selector: (_, model) => model.checkedStyles,
+            builder: (_, newValue, child) {
+              return ChoiceChip(
+                  disabledColor: Colors.red,
+                  selectedColor: Colors.grey,
+                  selected: newValue.contains(e.name),
+                  onSelected: (bool selected) {
+                    logt(TAG, "onSelected $selected ${e.name}",);
+                    provider.switchChecked(selected, e.name);
+                  },
+                  label: Text(e.name));
+            });
       }
     }).toList();
 
@@ -138,7 +225,7 @@ class Optional extends PromptStyle {
       ));
     }
     hasChild.addAll(splits[1].map<Widget>((value) {
-      return value.generate( provider);
+      return value.generate(provider);
       //   Row(
       //   children: [
       //     Radio<String>(
@@ -177,5 +264,9 @@ class Optional extends PromptStyle {
       }
     }
     return [noChild, withChild];
+  }
+
+  String groupName(String group, String name) {
+    return (group.isEmpty?"":"$group|")+this.name;
   }
 }

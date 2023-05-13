@@ -126,7 +126,23 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
       checkedRadio.removeAt(index);
       checkedRadioGroup.removeAt(index);
     }
+    logt(TAG,"${checkedRadioGroup.toString()} ${checkedRadio.toString()}");
     notifyListeners();
+  }
+
+  void randomCheckedStyle() {
+    optional.randomChild(this);
+    notifyListeners();
+  }
+
+  void unCheckRadio(String name) {
+    int index = checkedRadio.indexOf(name);
+    if(index>=0){
+      checkedRadio.remove(name);
+      checkedRadioGroup.removeAt(index);
+    notifyListeners();
+    }
+
   }
 
 

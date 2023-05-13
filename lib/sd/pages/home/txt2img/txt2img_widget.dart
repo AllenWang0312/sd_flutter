@@ -200,7 +200,7 @@ class TXT2IMGWidget extends StatelessWidget {
         // if (true) {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            promptStylePicker.getStylePrompt(provider.promptType);
+            promptStylePicker.getStylePromptV3((provider.txt2img.steps*0.66).toInt());
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +

@@ -128,7 +128,7 @@ class _SplashPageState extends State<SplashPage> {
         remoteFavouriteDir = value.data['outdir_save'];
 
         serviceVersion = await provider.initServiceConfigIfServiceActive();
-        provider.initPromptStyleIfServiceActive();
+        provider.initPromptStyleIfServiceActive(userAge:provider.userInfo.age);
         provider.initTranlatesIfServiceActive();
 
         provider.netWorkState = ONLINE;
