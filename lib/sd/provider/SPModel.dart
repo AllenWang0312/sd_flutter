@@ -76,6 +76,8 @@ class SPModel extends DBModel {
     await sp.setInt(SP_WIDTH, txt2img.width);
     await sp.setInt(SP_HEIGHT, txt2img.height);
     await sp.setStringList(SP_CHECKED_STYLES, checkedStyles);
+    await sp.setStringList(SP_CHECKED_RADIOS, checkedRadio);
+    await sp.setStringList(SP_CHECKED_RADIO_GROUPS, checkedRadioGroup);
 
     await sp.setBool(SP_FACE_FIX, faceFix);
     await sp.setBool(SP_HIRES_FIX, hiresFix);

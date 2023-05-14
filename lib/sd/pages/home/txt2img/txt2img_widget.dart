@@ -33,6 +33,8 @@ import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/widget/GenerateButton.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../../widget/restartable_widget.dart';
+
 const TAG = "TXT2IMGWidget";
 
 class TXT2IMGWidget extends StatelessWidget {
@@ -96,34 +98,58 @@ class TXT2IMGWidget extends StatelessWidget {
           AppBar(
             centerTitle: true,
             leading: Center(
-              child: Stack(
-                children: [
-                  const CircleAvatar(
-                    backgroundImage:
-                        AssetImage('assets/images/default_portrait.png'),
-                    radius: 16,
-                    // CachedNetworkImage(imageUrl: provider.userInfo.protrait,
-                    // placeholder: (context,url){
-                    //   return const Image(image: AssetImage('placeholder/portrait.png'),);
-                    // },
-                    // ),
-                  ),
-                  Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: SizedBox(
-                        width: 8,
-                        height: 8,
-                        child: Selector<AIPainterModel, int>(
-                            selector: (_, model) => model.netWorkState,
-                            builder: (_, value, child) {
-                              return CircleAvatar(
-                                radius: 4,
-                                backgroundColor: getStateColor(value),
-                              );
-                            }),
-                      )),
-                ],
+              child: GestureDetector(
+                onLongPressStart: (details){
+
+                  if(kDebugMode){//todo 发版去除
+                    showDialog(context: context, builder: (_){
+                      return AlertDialog(
+                        title: Text("调试选项"),
+                        content: Text(provider.userInfo.age>18?"重启为未成年人模式":"重启为成人模式"),
+                        actions: [
+                          TextButton(onPressed: (){
+                            if(userAge>=18){
+                              userAge = 17;
+                            }else{
+                              userAge = 19;
+                            }
+                            RestartableWidget.restartApp(context);
+                          }, child: Text("确定"))
+                        ],
+                      );
+                    });
+                  }
+
+                },
+                child: Stack(
+                  children: [
+                    const CircleAvatar(
+                      backgroundImage:
+                          AssetImage('assets/images/default_portrait.png'),
+                      radius: 16,
+                      // CachedNetworkImage(imageUrl: provider.userInfo.protrait,
+                      // placeholder: (context,url){
+                      //   return const Image(image: AssetImage('placeholder/portrait.png'),);
+                      // },
+                      // ),
+                    ),
+                    Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: SizedBox(
+                          width: 8,
+                          height: 8,
+                          child: Selector<AIPainterModel, int>(
+                              selector: (_, model) => model.netWorkState,
+                              builder: (_, value, child) {
+                                return CircleAvatar(
+                                  radius: 4,
+                                  backgroundColor: getStateColor(value),
+                                );
+                              }),
+                        )),
+                  ],
+                ),
               ),
             ),
             title: Text(title ?? ""),
@@ -200,7 +226,7 @@ class TXT2IMGWidget extends StatelessWidget {
         // if (true) {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            promptStylePicker.getStylePromptV3((provider.txt2img.steps*0.66).toInt());
+            promptStylePicker.getStylePromptV3(provider.txt2img.steps*2~/3);
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +

@@ -97,18 +97,22 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
         },
         child: Text(AppLocalizations.of(context).generate),
       ),
-      Selector<AIPainterModel, int>(
-          selector: (_, model) => model.netWorkState,
-          shouldRebuild: (pre, next) => pre != next,
-          builder: (context, newValue, child) {
-            if (newValue == REQUESTING) {
-              return const CircularProgressIndicator(
-                color: Colors.white,
-              );
-            } else {
-              return Container();
-            }
-          })
+      SizedBox(
+        width: 56,
+        height:56,
+        child: Selector<AIPainterModel, int>(
+            selector: (_, model) => model.netWorkState,
+            shouldRebuild: (pre, next) => pre != next,
+            builder: (context, newValue, child) {
+              if (newValue == REQUESTING) {
+                return const CircularProgressIndicator(
+                  color: Colors.white,
+                );
+              } else {
+                return Container();
+              }
+            }),
+      )
     ]);
   }
 

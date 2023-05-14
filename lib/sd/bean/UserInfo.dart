@@ -7,7 +7,7 @@ import '../mocker.dart';
 String TAG = "UserInfo";
 class UserInfo {
   String? name;
-  int age = 30;
+  int age = userAge;
 
   // Uint8List? _preview;
 

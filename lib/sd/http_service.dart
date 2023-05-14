@@ -10,12 +10,16 @@ import 'package:universal_platform/universal_platform.dart';
 
 import 'const/config.dart';
 
+int userAge = 17;
+
+
 //todo 热更新后不会清空值
 bool? sdShare = false;
 String? sdPublicDomain = null;
 String? sdHttpService = null;
+
 // bool? sdShare = true;
-// String? sdPublicDomain = "4114c5a6-d04f-4d4e";
+// String? sdPublicDomain = "88f89353-454a-4a33";
 // String? sdHttpService = "https://$sdPublicDomain.gradio.live";
 
 String sdHost = UniversalPlatform.isWeb || Platform.isWindows

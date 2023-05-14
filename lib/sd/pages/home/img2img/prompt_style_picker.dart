@@ -19,51 +19,29 @@ class PromptStylePicker extends StatelessWidget {
   }
 
   String getStylePromptV3(int poseStep) {
-    String prompt = "";
-    String envPrompt = "";
-    String mainCharacter = "";
-    String mainPosePrompt = "";
-    String mainDetailPrompt = "";
-    String envDetailPrompt = "";
+    List<String> prompt = List.generate(10, (index) => "");
+
 
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        if (style.step == 0) {
-          prompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 1) {
-          envPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 2) {
-          mainCharacter += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 3) {
-          mainPosePrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 4) {
-          mainDetailPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else {
-          envDetailPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        }
+      prompt[style.step]+=appendCommaIfNotExist(style.prompt ?? "");
       }
       if (provider.checkedRadio.contains(style.name)) {
-        if (style.step == 0) {
-          prompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 1) {
-          envPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 2) {
-          mainCharacter += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 3) {
-          mainPosePrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else if (style.step == 4) {
-          mainDetailPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        } else {
-          envDetailPrompt += appendCommaIfNotExist(style.prompt ?? "");
-        }
+        prompt[style.step]+=appendCommaIfNotExist(style.prompt ?? "");
       }
     }
 
-    return "$prompt"
-        "$envPrompt"
-        "$mainCharacter"
-        "[($mainPosePrompt):($mainDetailPrompt):$poseStep] "
-        "$envDetailPrompt";
+    return "${prompt[0]}"
+        "${prompt[1]}"
+        "${prompt[9]}"
+
+        "${prompt[2]}"
+        "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
+
+        "{${prompt[6]}"
+        "[(${prompt[7]}):(${prompt[8]}):$poseStep]}"
+
+        "${prompt[5]}";
   }
 
   String getStyleNegPrompt() {

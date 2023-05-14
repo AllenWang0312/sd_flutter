@@ -6,7 +6,7 @@ const TAG = "PromptStyle";
 class PromptStyle {
 
   static var GROUP = 'group';
-  static var STEP = 'step';
+  static var STEP = 'step'; //0镜头 1 场景环境 2女主体 特征  3女主体整体(动作关系等) 4女主体细节  5环境道具 6男主体特征 [7 8] 9多主体之间关系
 
   static var TYPES = ['词组', 'n', 'adj.', 'v', '副词.'];
 
@@ -38,7 +38,7 @@ class PromptStyle {
   int? limitAge = 0;
 
   String group = '';
-  int? step;
+  int step = 0;
   String? type = '';
   String name = "";
   String? prompt = "";
@@ -50,7 +50,7 @@ class PromptStyle {
   PromptStyle(
     this.name, {
     this.group = '',
-    this.step,
+    this.step = 0,
     this.type,
     this.limitAge,
     this.prompt,

@@ -111,7 +111,9 @@ class Optional extends PromptStyle {
   }
 
   void randomChild(AIPainterModel provider) {
-    if (step!=0&&null != options) {
+    if (
+    // step!=0&& todo 过滤还有缺陷
+        null != options) {
 
       Iterable<String> all = options!.keys;
       List<String> others =
