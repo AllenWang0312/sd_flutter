@@ -1,11 +1,11 @@
 # StableDiffusion Flutter 
 移动端技术方案
-
-高性能 jni + c++  c# c++
-纯原生语言  java c#
-新语言 kotlin swift
-新架构 compose swiftui
-跨平台架构 Flutter ReactNative;
+|---|---|
+|高性能| jni + c++  c# c++
+|纯原生语言|  java c#
+|新语言| kotlin swift
+|新架构| compose swiftui
+|跨平台架构| Flutter ReactNative;
 
 # 开发进度
 
