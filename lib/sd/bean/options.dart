@@ -111,22 +111,19 @@ class Optional extends PromptStyle {
   }
 
   void randomChild(AIPainterModel provider) {
+    logt(TAG,"random Child $group $name $step");
     if (
-    // step!=0&& todo 过滤还有缺陷
+    step!=0&& //todo 过滤还有缺陷
         null != options) {
 
       Iterable<String> all = options!.keys;
       List<String> others =
           all.where((element) => !element.endsWith("*")).toList();
-
       bool radioChecked = provider.checkedRadioGroup.contains(groupName(group, name));
-
       final Random random = Random();
-
 
       if (radioChecked) {
         logt(TAG, "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
-
 
         List<String> radios =
             all.where((element) => element.endsWith("*")).toList();
@@ -135,10 +132,8 @@ class Optional extends PromptStyle {
         if(radios.isNotEmpty){
           int index = random.nextInt(radios.length);
           logt(TAG, "random radio $index");
-
           provider.updateCheckRadio(groupName(group,name), radios[index]);
         }
-
       }
 
       int checkCount = 0;
@@ -146,7 +141,6 @@ class Optional extends PromptStyle {
         if (provider.checkedStyles.contains(item)) {
           provider.checkedStyles.remove(item);
           logt(TAG, "random remove items$item");
-
           checkCount++;
         }
       }

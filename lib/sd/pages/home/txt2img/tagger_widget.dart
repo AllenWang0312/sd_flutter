@@ -155,7 +155,7 @@ class TaggerWidget extends StatelessWidget {
           FutureBuilder(
             future: post("$sdHttpService$RUN_PREDICT",
                 formData: {
-                  "fn_index": cmd.getInterrogators,
+                  "fn_index": cmd.refreshInterrogators,
                   "data": [],
                   // "session_hash": "lcm8sq8kso"
                 }),

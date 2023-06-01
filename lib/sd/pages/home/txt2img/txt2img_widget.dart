@@ -15,7 +15,6 @@ import 'package:sd/sd/bean/enum/set_type.dart';
 import 'package:sd/sd/bean4json/GenerateResultItem.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/const/routes.dart';
-import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/mocker.dart';
@@ -99,27 +98,32 @@ class TXT2IMGWidget extends StatelessWidget {
             centerTitle: true,
             leading: Center(
               child: GestureDetector(
-                onLongPressStart: (details){
-
-                  if(kDebugMode){//todo 发版去除
-                    showDialog(context: context, builder: (_){
-                      return AlertDialog(
-                        title: Text("调试选项"),
-                        content: Text(provider.userInfo.age>18?"重启为未成年人模式":"重启为成人模式"),
-                        actions: [
-                          TextButton(onPressed: (){
-                            if(userAge>=18){
-                              userAge = 17;
-                            }else{
-                              userAge = 19;
-                            }
-                            RestartableWidget.restartApp(context);
-                          }, child: Text("确定"))
-                        ],
-                      );
-                    });
+                onLongPressStart: (details) {
+                  if (kDebugMode) {
+                    //todo 发版去除
+                    showDialog(
+                        context: context,
+                        builder: (_) {
+                          return AlertDialog(
+                            title: Text("调试选项"),
+                            content: Text(provider.userInfo.age > 18
+                                ? "重启为未成年人模式"
+                                : "重启为成人模式"),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    if (userAge >= 18) {
+                                      userAge = 17;
+                                    } else {
+                                      userAge = 19;
+                                    }
+                                    RestartableWidget.restartApp(context);
+                                  },
+                                  child: Text("确定"))
+                            ],
+                          );
+                        });
                   }
-
                 },
                 child: Stack(
                   children: [
@@ -198,10 +202,10 @@ class TXT2IMGWidget extends StatelessWidget {
         //todo autosave 在要求权限
         var from = {
           "steps":
-          // provider.promptType == 3
-          //     ? provider.txt2img.steps * 2
-          //     :
-          provider.txt2img.steps,
+              // provider.promptType == 3
+              //     ? provider.txt2img.steps * 2
+              //     :
+              provider.txt2img.steps,
           "denoising_strength": 0.3,
           "firstphase_width": provider.txt2img.width,
           "firstphase_height": provider.txt2img.height,
@@ -226,7 +230,7 @@ class TXT2IMGWidget extends StatelessWidget {
         // if (true) {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            promptStylePicker.getStylePromptV3(provider.txt2img.steps*2~/3);
+            promptStylePicker.getStylePromptV3(provider.txt2img.steps * 2 ~/ 3);
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +
@@ -322,14 +326,13 @@ class TXT2IMGWidget extends StatelessWidget {
                   // print('insert:$insert');
                 }
               }
-                Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-                  "urls": fileProt
-                      .map((e) => GenerateResultItem.fromJson(e))
-                      .toList(),
-                  "savePath": provider.selectWorkspace!.dirPath,
-                  "scanAvailable": provider.netWorkState >= ONLINE
-                });
-
+              Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
+                "urls": fileProt
+                    .map((e) => GenerateResultItem.fromJson(e))
+                    .toList(),
+                "savePath": provider.selectWorkspace!.dirPath,
+                "scanAvailable": provider.netWorkState >= ONLINE
+              });
             } else {
               Fluttertoast.showToast(msg: '接口错误');
             }

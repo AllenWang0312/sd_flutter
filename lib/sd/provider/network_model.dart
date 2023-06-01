@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
@@ -53,14 +54,14 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
 
   void loadOptionalMapFromService(int userAge,String path){
     logt(TAG,"loadOptionalMapFromService $path");
-
     String? csv;
-    get(path,timeOutSecond: 20).then((value) {
+    get(path,timeOutSecond: 20,exceptionCallback: (e){
+      logt(TAG,e.toString());
+    }).then((value) {
       if (null != value && null != value.data) {
         csv = value.data.toString();
         List styles = loadPromptStyleFromString(csv!, userAge,groupRecord: publicStyles,extend: true);
         String group='';
-
         Optional? target;
         for (PromptStyle item in styles) {
           if(item.group!=group){
@@ -76,13 +77,11 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
             // logt(TAG," ${target?.name} ${item.name}");
           logt(TAG,item.toString());
           if(item is Optional) {
-            logt(TAG,"addOption $item");
             target?.addOption(item.name, item);
           }
           // }
         }
       }
-      logt(TAG,"loadOptionalMapFromService $optional");
       return;
     });
   }

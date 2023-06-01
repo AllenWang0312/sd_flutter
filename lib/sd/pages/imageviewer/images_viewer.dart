@@ -434,6 +434,6 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
         tag: isRemote ? fileLocation : index,
         child: interactiveView(isRemote
             ? CachedNetworkImage(imageUrl: fileLocation)
-            : Image.memory(datas[index]!)));
+            : dataType==ImagesType.files?Image.file(File(fileLocation)):Image.memory(datas[index]!)));
   }
 }

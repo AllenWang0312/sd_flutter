@@ -7,7 +7,7 @@ class Cmd {
       this.generate = 0,
       this.saveStyle = 0,
       this.getTXT2IMGHistory = 0,
-      this.getInterrogators = 0,
+      this.refreshInterrogators = 0,
       this.getImageTaggers = 0,
       this.deleteFile = 0,
       this.switchSDModel = 0,});
@@ -20,7 +20,7 @@ class Cmd {
     generate = json['generate'];
     saveStyle = json['saveStyle'];
     getTXT2IMGHistory = json['getTXT2IMGHistory'];
-    getInterrogators = json['getInterrogators'];
+    refreshInterrogators = json['refreshInterrogators'];
     getImageTaggers = json['getImageTaggers'];
     deleteFile = json['deleteFile'];
     switchSDModel = json['switchSDModel'];
@@ -32,7 +32,7 @@ class Cmd {
   int generate = 0;
   int saveStyle = 0;
   int getTXT2IMGHistory = 0;
-  int getInterrogators = 0;
+  int refreshInterrogators = 0;
   int getImageTaggers = 0;
   int deleteFile = 0;
   int switchSDModel = 0;
@@ -46,7 +46,7 @@ class Cmd {
     map['generate'] = generate;
     map['saveStyle'] = saveStyle;
     map['getTXT2IMGHistory'] = getTXT2IMGHistory;
-    map['getInterrogators'] = getInterrogators;
+    map['refreshInterrogators'] = refreshInterrogators;
     map['getImageTaggers'] = getImageTaggers;
     map['deleteFile'] = deleteFile;
     map['switchSDModel'] = switchSDModel;

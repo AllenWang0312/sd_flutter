@@ -89,7 +89,7 @@ String nameToUrl(String name) {
   return "$sdHttpService/file=${urlEncode}";
 }
 
-getModelImageUrl(String modelType, String name, {bool preview = true}) {
+getModelImageUrl(String modelType, String name, {bool preview = false}) {
   return sdHttpService! +
       '/file=models/$modelType/' +
       name +

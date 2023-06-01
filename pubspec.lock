@@ -105,6 +105,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "5.0.2"
+  dcache:
+    dependency: "direct main"
+    description:
+      name: dcache
+      sha256: "93118d20137b84a0ec8f0960ee3fdbc1f7173e56affc9656d2ede223ff48ebbe"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.4.0"
   dio:
     dependency: "direct main"
     description:

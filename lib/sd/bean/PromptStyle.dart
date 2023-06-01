@@ -38,7 +38,7 @@ class PromptStyle {
   int? limitAge = 0;
 
   String group = '';
-  int step = 0;
+  int? step;
   String? type = '';
   String name = "";
   String? prompt = "";
@@ -56,7 +56,6 @@ class PromptStyle {
     this.prompt,
     this.negativePrompt,
   }) {
-    logt(TAG, "$group $name");
     promptLen = wordsCount(prompt);
     negativeLen = wordsCount(negativePrompt);
     // logt(TAG,"prompt $promptLen negative $negativeLen");

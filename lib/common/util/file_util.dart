@@ -40,7 +40,7 @@ Future<List<PromptStyle>> loadPromptStyleFromCSVFile(
 }
 
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
-    {Map<String, List<PromptStyle>>? groupRecord,bool extend = false}) {
+    {Map<String, List<PromptStyle>>? groupRecord, bool extend = false}) {
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
   List colums = csvTable.removeAt(0);
 
@@ -70,21 +70,22 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       String? negPrompt = negPromptIndex >= 0 ? e[negPromptIndex] : null;
       int step = stepIndex >= 0 ? toInt(e[stepIndex], 0) : 0;
       String? type = typeIndex >= 0 ? e[typeIndex].toString() : '';
-      logt(TAG, "$group $name");
 
-      item = extend?Optional(name,
-          limitAge: limitAge,
-          prompt: prompt,
-          negativePrompt: negPrompt,
-          group: group,
-          step: step,
-          type: type):PromptStyle(name,
-          limitAge: limitAge,
-          prompt: prompt,
-          negativePrompt: negPrompt,
-          group: group,
-          step: step,
-          type: type);
+      item = extend
+          ? Optional(name,
+              limitAge: limitAge,
+              prompt: prompt,
+              negativePrompt: negPrompt,
+              group: group,
+              step: step,
+              type: type)
+          : PromptStyle(name,
+              limitAge: limitAge,
+              prompt: prompt,
+              negativePrompt: negPrompt,
+              group: group,
+              step: step,
+              type: type);
     } catch (err) {
       logt("loadPromptStyleFromString", e.toString());
     }

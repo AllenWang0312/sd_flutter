@@ -2,14 +2,12 @@ import 'dart:math';
 
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/bean/Configs.dart';
-import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/provider/db_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:universal_platform/universal_platform.dart';
-
 const TAG = "SPModel";
 
 class SPModel extends DBModel {
@@ -40,6 +38,30 @@ class SPModel extends DBModel {
 
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
+
+
+  List<String> checkedRadioGroup = [];
+  List<String> checkedRadio = [];
+  List<String> checkedStyles = [];
+
+  void updateCheckRadio(String group, String? name) {
+
+    if(null!=name){
+      bool exit = checkedRadioGroup.contains(group);
+      if(exit){
+        checkedRadio[checkedRadioGroup.indexOf(group)]=name;
+      }else{
+        checkedRadioGroup.add(group);
+        checkedRadio.add(name);
+      }
+    }else{
+      int index = checkedRadioGroup.indexOf(group);
+      checkedRadio.removeAt(index);
+      checkedRadioGroup.removeAt(index);
+    }
+    logt(TAG,"${checkedRadioGroup.toString()} ${checkedRadio.toString()}");
+    notifyListeners();
+  }
 
   void loadFromSP(SharedPreferences sp) {
 
@@ -107,8 +129,11 @@ class SPModel extends DBModel {
 
   void updatePrompts(String? prompt, String? negPrompt,
       {int? steps, String? sampler, double? cfgScale, double? seed}) {
-    this.txt2img.prompt = prompt??"";
-    this.txt2img.negativePrompt = negPrompt??"";
+    var newPrompts = autoCheckStyle(prompt??"",negPrompt??"");
+
+
+    this.txt2img.prompt = newPrompts.prompt!;
+    this.txt2img.negativePrompt = newPrompts.negativePrompt!;
     if (null != steps) this.txt2img.steps = min(100, steps);
     if (null != sampler) this.txt2img.sampler = sampler;
     if (null != cfgScale) this.txt2img.cfgScale = cfgScale;
@@ -162,10 +187,6 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  List<String> checkedRadioGroup = [];
-  List<String> checkedRadio = [];
-  List<String> checkedStyles = [];
-
   String? getCheckedRadio(String group){
     if(checkedRadioGroup.contains(group)){
       return checkedRadio[checkedRadioGroup.indexOf(group)];
@@ -195,7 +216,7 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  void cleanCheckedStyles() {
+  void cleanCheckedStyles({bool notify = true}) {
     checkedStyles.clear();
     checkedRadioGroup.clear();
     checkedRadio.clear();
@@ -253,6 +274,28 @@ class SPModel extends DBModel {
   void updateCheckIdentity(bool value) {
     this.checkIdentityWhenReEnter = value;
     notifyListeners();
+  }
+
+  PromptStyle autoCheckStyle(String prompt, String negPrompt) {
+    var result = PromptStyle('result',prompt: prompt,negativePrompt: negPrompt);
+
+    for(PromptStyle style in styles){
+      if((null==style.prompt||style.prompt!.isEmpty||prompt.contains("{${style.prompt}},"))&&
+          (null==style.negativePrompt||style.negativePrompt!.isEmpty||negPrompt.contains("${style.negativePrompt}," )) ){
+        if(style.name.endsWith("*")){
+          updateCheckRadio(style.group, style.name);
+        }else{
+          checkedStyles.add(style.name);
+        }
+        result.prompt?.replaceAll("\{${style.prompt}\}\,", "");
+        result.negativePrompt?.replaceAll("${style.negativePrompt}\,", "");
+
+        logt(TAG,"after replace prompt:${style.prompt} neg: ${style.negativePrompt}");
+        logt(TAG,"result prompt:${result.prompt} neg: ${result.negativePrompt} ");
+
+      }
+    }
+    return result;
   }
 
 }

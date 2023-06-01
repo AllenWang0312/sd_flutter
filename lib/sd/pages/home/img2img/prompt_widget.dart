@@ -70,6 +70,7 @@ class PromptWidget extends StatelessWidget {
                         // promptController.text = value?.data['data'][0]['value'];
                         // provider.cleanCheckedStyles();
                         if (value != null) {
+                          provider.cleanCheckedStyles(notify: false);
                           provider.updatePrompts(
                             value.data['data'][0]['value'],
                             value.data['data'][1]['value'],

@@ -4,6 +4,7 @@ import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 
 import '../../../../common/util/string_util.dart';
+import '../../../http_service.dart';
 
 class PromptStylePicker extends StatelessWidget {
   PromptStylePicker();
@@ -20,35 +21,37 @@ class PromptStylePicker extends StatelessWidget {
 
   String getStylePromptV3(int poseStep) {
     List<String> prompt = List.generate(10, (index) => "");
-
-
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-      prompt[style.step]+=appendCommaIfNotExist(style.prompt ?? "");
+        if (null != style.prompt && style.prompt!.isNotEmpty) {
+          prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
+        }
       }
       if (provider.checkedRadio.contains(style.name)) {
-        prompt[style.step]+=appendCommaIfNotExist(style.prompt ?? "");
+        if(null != style.prompt && style.prompt!.isNotEmpty){
+          prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
+        }
       }
     }
 
-    return "${prompt[0]}"
+    return "${prompt[0]}" +
+        (sfw ? "((sfw))," : "") +
         "${prompt[1]}"
-        "${prompt[9]}"
-
-        "${prompt[2]}"
-        "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
-
-        "{${prompt[6]}"
-        "[(${prompt[7]}):(${prompt[8]}):$poseStep]}"
-
-        "${prompt[5]}";
+            "${prompt[9]}"
+            "${prompt[2]}"
+            "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
+            "{${prompt[6]}"
+            "[(${prompt[7]}):(${prompt[8]}):$poseStep]}"
+            "${prompt[5]}";
   }
 
   String getStyleNegPrompt() {
-    String prompt = "";
+    String prompt = sfw ? "((nsfw))," : "";
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        prompt += appendCommaIfNotExist(style.negativePrompt ?? "");
+        if(null!=style.negativePrompt&&style.negativePrompt!.isNotEmpty){
+          prompt += appendCommaIfNotExist(style.negativePrompt!);
+        }
       }
     }
     return prompt;
@@ -65,7 +68,10 @@ class PromptStylePicker extends StatelessWidget {
           spacing: 8,
           direction: Axis.horizontal,
           alignment: WrapAlignment.center,
-          children: ([]..addAll(provider.checkedStyles)..addAll(provider.checkedRadio)).map((e) => RawChip(
+          children: ([]
+                ..addAll(provider.checkedStyles)
+                ..addAll(provider.checkedRadio))
+              .map((e) => RawChip(
                     label: Text(e),
                     onDeleted: () {
                       provider.unCheckStyles(e);
@@ -81,15 +87,18 @@ class PromptStylePicker extends StatelessWidget {
               onPressed: () => showStyleDialog(context),
               icon: const Icon(Icons.add_box_outlined)),
           Selector<AIPainterModel, bool>(
-            selector: (_, model) => model.checkedStyles.isEmpty&&model.checkedRadio.isEmpty,
+            selector: (_, model) =>
+                model.checkedStyles.isEmpty && model.checkedRadio.isEmpty,
             builder: (_, newValue, child) {
               return Offstage(
                 offstage: newValue,
                 child: Column(
                   children: [
-                    IconButton(onPressed: (){
-                      provider.randomCheckedStyle();
-                    }, icon: const Icon(Icons.refresh)),
+                    IconButton(
+                        onPressed: () {
+                          provider.randomCheckedStyle();
+                        },
+                        icon: const Icon(Icons.refresh)),
                     IconButton(
                         onPressed: () {
                           provider.cleanCheckedStyles();
@@ -122,7 +131,7 @@ class PromptStylePicker extends StatelessWidget {
 
   Future<void> showStyleDialog(BuildContext context) async {
     if (null != provider.publicStyles) {
-      showModalBottomSheet(
+      showBottomSheet(
           context: context,
           builder: (context) {
             AIPainterModel provider = Provider.of<AIPainterModel>(context);

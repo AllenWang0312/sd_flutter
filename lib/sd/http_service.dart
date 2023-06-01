@@ -10,16 +10,14 @@ import 'package:universal_platform/universal_platform.dart';
 
 import 'const/config.dart';
 
-int userAge = 17;
-
-
+int userAge = 1000;
+bool sfw = userAge < 18;
 //todo 热更新后不会清空值
 bool? sdShare = false;
 String? sdPublicDomain = null;
 String? sdHttpService = null;
-
 // bool? sdShare = true;
-// String? sdPublicDomain = "88f89353-454a-4a33";
+// String? sdPublicDomain = "6e4c2aa6-9925-41fc";
 // String? sdHttpService = "https://$sdPublicDomain.gradio.live";
 
 String sdHost = UniversalPlatform.isWeb || Platform.isWindows
@@ -51,6 +49,7 @@ logt(String tag, String msg) {
 }
 
 const HTTP_TIME_OUT = 10 * 60;
+
 final String TAG = "http_service";
 
 Future<String> download(String url, String savePath,
