@@ -58,7 +58,8 @@ class NavigationControls extends StatelessWidget {
                 onPressed: () async {
                   if (await webViewController.canGoBack()) {
                     await webViewController.goBack();
-                    model.updateCurrentUrl(await webViewController.currentUrl());
+                    model
+                        .updateCurrentUrl(await webViewController.currentUrl());
                   } else {
                     if (context.mounted) {
                       Navigator.pop(context);
@@ -71,11 +72,13 @@ class NavigationControls extends StatelessWidget {
                 onPressed: () async {
                   if (await webViewController.canGoForward()) {
                     await webViewController.goForward();
-                    model.updateCurrentUrl(await webViewController.currentUrl());
+                    model
+                        .updateCurrentUrl(await webViewController.currentUrl());
                   } else {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No forward history item')),
+                        const SnackBar(
+                            content: Text('No forward history item')),
                       );
                     }
                   }
