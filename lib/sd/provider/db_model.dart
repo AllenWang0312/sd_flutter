@@ -28,9 +28,7 @@ class DBModel extends NetWorkProvider {
 
   Workspace? selectWorkspace;
 
-  late Map<String, int> limit = {};//sign age
-  // LruCache<String,Uint8List> localImageData=LruCache(storage: {});
-
+  late Map<String, int> limit = {};
 
   int promptType = 3;
 
@@ -55,17 +53,13 @@ class DBModel extends NetWorkProvider {
       }
     }
     return ws;
-    // logt(TAG, "load config${selectWorkspace?.absPath}");
   }
 
   initLocalLimitFromDB() async {
     await DBController.instance.queryAgeLevelRecord()?.then((value) {
-      // logt(TAG, "limit size${value.length}");
       value.forEach((element) {
-        // logt(TAG, "ageLevelRecord $element");
         limit.putIfAbsent(element['sign'], () => element['ageLevel']);
       });
-      // logt(TAG, "limit size${limit.keys}");
     });
   }
 
@@ -85,15 +79,18 @@ class DBModel extends NetWorkProvider {
 
   Future<void> initPublicStyle(
       List<PromptStyleFileConfig>? styleConfigs, int userAge) async {
-    for (PromptStyleFileConfig item in styleConfigs!) {
+    if(null==styleConfigs||styleConfigs.isEmpty){
+      return initPublicStyleWithNetwork();
+    }
+    for (PromptStyleFileConfig item in styleConfigs) {
       if (!File(item.configPath).existsSync() ||
           null == item.configPath ||
           item.configPath.isEmpty) {
-        initPublicStyleWithNetwork();
+        return initPublicStyleWithNetwork();
       } else {
         List<PromptStyle> styles =
             await loadPromptStyleFromCSVFile(item.configPath, userAge);
-        publicStyles?.putIfAbsent(item.name, () => styles);
+        publicStyles.putIfAbsent(item.name, () => styles);
       }
     }
   }

@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/my_checkbox.dart';
 import 'package:sd/common/third_util.dart';
+import 'package:sd/common/ui_util.dart';
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/db/History.dart';
@@ -32,6 +33,7 @@ import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/widget/GenerateButton.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../../const/default.dart';
 import '../../../widget/restartable_widget.dart';
 
 const TAG = "TXT2IMGWidget";
@@ -230,14 +232,17 @@ class TXT2IMGWidget extends StatelessWidget {
         // if (true) {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            promptStylePicker.getStylePromptV3(provider.txt2img.steps * 2 ~/ 3);
+            (provider.generateType == 3
+                ? promptStylePicker
+                    .getStylePromptV3(provider.txt2img.steps * 2 ~/ 3)
+                : promptStylePicker.getStylePrompt());
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +
                 promptStylePicker.getStyleNegPrompt();
         from['prompt'] = prompt + provider.getCheckedPluginsString();
         from['negative_prompt'] = negativePrompt;
-        if (provider.generateType == 0) {
+        if (sdShare! || provider.generateType == 0) {
           post("$sdHttpService$TXT_2_IMG", formData: from,
                   exceptionCallback: (e) {
             Fluttertoast.showToast(
@@ -431,66 +436,7 @@ class TXT2IMGWidget extends StatelessWidget {
               index: newValue.index,
               children: [
                 _basic(provider, sampler, upScaler),
-                Column(
-                  children: [
-                    Selector<AIPainterModel, int>(
-                        selector: (_, model) => model.batchCount,
-                        shouldRebuild: (pre, next) => pre != next,
-                        builder: (context, newValue, child) {
-                          TextEditingController widthController =
-                              TextEditingController(text: newValue.toString());
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(AppLocalizations.of(context).batchCount),
-                              SizedBox(
-                                  width: 40,
-                                  child: TextField(
-                                      // initialValue: provider.samplerSteps.toString(),
-                                      controller: widthController)),
-                              Slider(
-                                value: newValue.toDouble(),
-                                min: 1,
-                                max: 100,
-                                divisions: 99,
-                                onChanged: (double value) {
-                                  provider.updateBatch(value);
-                                  // samplerStepsController.text = samplerSteps.toString();
-                                },
-                              )
-                            ],
-                          );
-                        }),
-                    Selector<AIPainterModel, int>(
-                        selector: (_, model) => model.batchSize,
-                        shouldRebuild: (pre, next) => pre != next,
-                        builder: (context, newValue, child) {
-                          TextEditingController heightController =
-                              TextEditingController(text: newValue.toString());
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(AppLocalizations.of(context).batchSize),
-                              SizedBox(
-                                  width: 40,
-                                  child: TextField(
-                                      // initialValue: provider.samplerSteps.toString(),
-                                      controller: heightController)),
-                              Slider(
-                                value: newValue.toDouble(),
-                                min: 1,
-                                max: 100,
-                                divisions: 99,
-                                onChanged: (double value) {
-                                  provider.updateBatchSize(value);
-                                  // samplerStepsController.text = samplerSteps.toString();
-                                },
-                              )
-                            ],
-                          );
-                        }),
-                  ],
-                ),
+                _advanced(provider, !sdShare! && provider.generateType == 1),
                 // TagWidget(TAG_MODELTYPE_LORA, TAG_PREFIX_LORA, GET_LORA_NAMES),
                 // TagWidget(TAG_MODELTYPE_HPE, TAG_PREFIX_HPE, GET_HYP_NAMES),
               ],
@@ -635,5 +581,195 @@ class TXT2IMGWidget extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _advanced(AIPainterModel provider, bool xyz) {
+    return Column(
+      children: [
+        Selector<AIPainterModel, int>(
+            selector: (_, model) => model.batchCount,
+            shouldRebuild: (pre, next) => pre != next,
+            builder: (context, newValue, child) {
+              TextEditingController widthController =
+                  TextEditingController(text: newValue.toString());
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(AppLocalizations.of(context).batchCount),
+                  SizedBox(
+                      width: 40,
+                      child: TextField(
+                          // initialValue: provider.samplerSteps.toString(),
+                          controller: widthController)),
+                  Slider(
+                    value: newValue.toDouble(),
+                    min: 1,
+                    max: 100,
+                    divisions: 99,
+                    onChanged: (double value) {
+                      provider.updateBatch(value);
+                      // samplerStepsController.text = samplerSteps.toString();
+                    },
+                  )
+                ],
+              );
+            }),
+        Selector<AIPainterModel, int>(
+            selector: (_, model) => model.batchSize,
+            shouldRebuild: (pre, next) => pre != next,
+            builder: (context, newValue, child) {
+              TextEditingController heightController =
+                  TextEditingController(text: newValue.toString());
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(AppLocalizations.of(context).batchSize),
+                  SizedBox(
+                      width: 40,
+                      child: TextField(
+                          // initialValue: provider.samplerSteps.toString(),
+                          controller: heightController)),
+                  Slider(
+                    value: newValue.toDouble(),
+                    min: 1,
+                    max: 100,
+                    divisions: 99,
+                    onChanged: (double value) {
+                      provider.updateBatchSize(value);
+                      // samplerStepsController.text = samplerSteps.toString();
+                    },
+                  )
+                ],
+              );
+            }),
+        if (xyz)
+          FutureBuilder(
+              future: post("$sdHttpService$RUN_PREDICT",
+                  formData: getXYZConfig(cmd.XYZConfig)),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  List data = snapshot.data!.data['data'];
+                  logt(TAG, data.toString());
+                  return _XYZplot(
+                      provider,
+                      data[0]["visible"],
+                      data[1]["visible"],
+                      data[2]["visible"],
+                      data[3]["visible"]);
+                } else {
+                  return const CircularProgressIndicator();
+                }
+              })
+      ],
+    );
+  }
+
+  Widget _XYZplot(AIPainterModel provider, bool randomSeed, bool includeSubImg,
+      bool includeTitle, bool includeSubGrids) {
+    return Column(
+      children: [
+        const Row(children: [
+          Text("x轴类型"),
+          Text("x轴数值"),
+        ]),
+        Selector<AIPainterModel, int>(
+            builder: (_, newValue, child) {
+              TextEditingController controller =
+                  TextEditingController(text: "");
+              return Row(children: [
+                DropdownButton(
+                    value: XYZKeys[newValue],
+                    items: getStringItems(XYZKeys),
+                    onChanged: (newValue) {
+                      int index = XYZKeys.indexOf(newValue);
+                      if (Promptable[index]) {}
+                      provider.updateXValue(index);
+                    }),
+                Expanded(
+                    child: TextFormField(
+                        maxLines: 10, minLines: 1, controller: controller)),
+                Offstage(
+                    offstage: !Promptable[newValue],
+                    child: IconButton(
+                      onPressed: () => loadXYZValueForController(
+                          XYZValues[newValue], controller),
+                      icon: Icon(Icons.file_download),
+                    ))
+              ]);
+            },
+            selector: (_, model) => model.txt2img.XValue),
+        const Row(children: [
+          Text("Y轴类型"),
+          Text("Y轴数值"),
+        ]),
+        Selector<AIPainterModel, int>(
+            builder: (_, newValue, child) {
+              TextEditingController controller =
+                  TextEditingController(text: "");
+              return Row(children: [
+                DropdownButton(
+                    value: XYZKeys[newValue],
+                    items: getStringItems(XYZKeys),
+                    onChanged: (newValue) {
+                      int index = XYZKeys.indexOf(newValue);
+                      if (Promptable[index]) {}
+                      provider.updateYValue(index);
+                    }),
+                Expanded(
+                    child: TextFormField(
+                        maxLines: 10, minLines: 1, controller: controller)),
+                Offstage(
+                    offstage: !Promptable[newValue],
+                    child: IconButton(
+                      onPressed: () => loadXYZValueForController(
+                          XYZValues[newValue], controller),
+                      icon: Icon(Icons.file_download),
+                    ))
+              ]);
+            },
+            selector: (_, model) => model.txt2img.YValue),
+        const Row(children: [
+          Text("Z轴类型"),
+          Text("Z轴数值"),
+        ]),
+        Selector<AIPainterModel, int>(
+            builder: (_, newValue, child) {
+              TextEditingController controller =
+                  TextEditingController(text: "");
+              return Row(children: [
+                DropdownButton(
+                    value: XYZKeys[newValue],
+                    items: getStringItems(XYZKeys),
+                    onChanged: (newValue) {
+                      int index = XYZKeys.indexOf(newValue);
+                      if (Promptable[index]) {}
+                      provider.updateZValue(index);
+                    }),
+                Expanded(
+                    child: TextFormField(
+                        maxLines: 10, minLines: 1, controller: controller)),
+                Offstage(
+                    offstage: !Promptable[newValue],
+                    child: IconButton(
+                      onPressed: () => loadXYZValueForController(
+                          XYZValues[newValue], controller),
+                      icon: Icon(Icons.file_download),
+                    ))
+              ]);
+            },
+            selector: (_, model) => model.txt2img.ZValue)
+      ],
+    );
+  }
+
+  loadXYZValueForController(String key, TextEditingController controller) {
+    post("$sdHttpService$RUN_PREDICT",
+            formData: loadXYZValue(cmd.loadXYZValue, key))
+        .then((value) {
+      String? result = value?.data['data'][0];
+      if (null != result) {
+        controller.text = result;
+      }
+    });
   }
 }

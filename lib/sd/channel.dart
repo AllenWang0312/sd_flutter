@@ -9,7 +9,7 @@ Future<dynamic> openNativeWebView(String url) async {
   if (UniversalPlatform.isWeb || UniversalPlatform.isMacOS || UniversalPlatform.isWindows) {
     return await launchUrl(Uri.parse(url));
   } else if (UniversalPlatform.isAndroid) {
-    // return await platform.invokeMethod(
+    // return await channel.invokeMethod(
     //     "edu.tjrac.swant.FlutterFragmentWrapperActivity",
     //     {'moduleName': url, "pageName": url});
     return await channel

@@ -18,6 +18,9 @@ class Configs {
   int seed = -1;
   String modelHash = '';
   String _size = '512x768';
+  int XValue = 0;
+  int YValue = 0;
+  int ZValue = 0;
 
   set size(String value) {
     _size = value;

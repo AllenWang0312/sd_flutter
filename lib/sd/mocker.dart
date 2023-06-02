@@ -268,7 +268,19 @@ dynamic getPreview(int id,String taskId) {
   };
 }
 
+dynamic getXYZConfig(int fnIndex){
+  return {
+    "data":["X/Y/Z plot"],
+    "fn_index":fnIndex
+  };
+}
 
+dynamic loadXYZValue(int fnIndex,String prompt){
+  return {
+    "data":[prompt],
+    "fn_index":fnIndex
+  };
+}
 
 //data:image/png;base64,
 dynamic tagger(int cmd,String encodeData, String interrogator, double threshold) {

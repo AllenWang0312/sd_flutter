@@ -10,7 +10,8 @@ class Cmd {
       this.refreshInterrogators = 0,
       this.getImageTaggers = 0,
       this.deleteFile = 0,
-      this.switchSDModel = 0,});
+      this.switchSDModel = 0,}){
+  }
 
   Cmd.fromJson(dynamic json) {
     refreshModel = json['refreshModel'];
@@ -36,6 +37,10 @@ class Cmd {
   int getImageTaggers = 0;
   int deleteFile = 0;
   int switchSDModel = 0;
+
+  int loadXYZValue = 251;
+  int setXType = 254;
+  // 262
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -67,5 +72,7 @@ class Cmd {
   get CMD_REFRESH_STYLE => refreshModel + 6;
 
   get CMD_GET_LAST_PROMPT => refreshModel + 9; //9
+
+  get XYZConfig => setXType + 8;
 
 }

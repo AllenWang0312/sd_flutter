@@ -113,7 +113,9 @@ class ConfigModel extends SPModel {
 
   Future<void> initPromptStyleIfServiceActive({int userAge = 12}) async {
     if (null != selectWorkspace?.id) {
-      if (promptType == 2) {
+      if (promptType == 1) {
+        initPublicStyle(null, userAge);
+      } else if (promptType == 2) {
         styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
         initPublicStyle(styleConfigs, userAge);
       } else if (promptType == 3) {

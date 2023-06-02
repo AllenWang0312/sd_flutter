@@ -25,7 +25,7 @@ import 'package:sd/sd/pages/web/web_home_model.dart';
 import 'package:sd/sd/pages/web/web_home_page.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
-import 'package:sd/sd/widget/HideWhenInactive.dart';
+import 'package:sd/sd/widget/biological_auth.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
 
 import 'common/third_util.dart';
@@ -112,7 +112,7 @@ Map<String, Function> getMobileRoutes() {
 // ChangeNotifierProvider(
 //   create: (_) => HomeModel(),
 //   child:
-        HideWhenInactive(
+        BiologicalAuthenticaionInterceptor(
             needCheckUserIdentity: true,
             child: HomePage(index: arguments?['index'])),
 // ),
@@ -145,7 +145,6 @@ void main() async {
     final String? name = settings.name;
     final Function pageContentBuilder =
         (isMobile() ? getMobileRoutes() : getWebRoutes())[name!] as Function;
-    if (pageContentBuilder != null) {
       if (settings.arguments != null) {
         final Route route = MaterialPageRoute(
             builder: (context) =>
@@ -156,7 +155,6 @@ void main() async {
             builder: (context) => pageContentBuilder(context));
         return route;
       }
-    }
   }
 
   logt('isMobile', '${isMobile()}');
@@ -171,32 +169,16 @@ void main() async {
           ChangeNotifierProvider(create: (_) => AIPainterModel()),
         ],
         child: MaterialApp(
-          // onGenerateTitle: (context) => DemoLocalizations.of(context).title,
           debugShowCheckedModeBanner: false,
           builder: FToastBuilder(),
           title: 'Flutter Demo',
 
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          // localizationsDelegates: [
-          //   AppLocalizations.delegate,
-          //   GlobalMaterialLocalizations.delegate,
-          //   GlobalWidgetsLocalizations.delegate,
-          //   GlobalCupertinoLocalizations.delegate,
-          // ],
-          // supportedLocales: [
-          //   Locale('en'),
-          //   Locale('zh'),
-          // ],
           theme: ThemeData(
             splashColor: COLOR_BACKGROUND,
             brightness: Brightness.dark,
             primaryColor: COLOR_ACCENT,
-            // textTheme: const TextTheme(
-            //   displayLarge: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
-            //   titleLarge: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
-            //   bodyMedium: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
-            // ),
           ),
           home: SplashPage(),
           onGenerateRoute: _generateRoute,

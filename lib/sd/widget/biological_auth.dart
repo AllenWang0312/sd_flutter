@@ -10,19 +10,19 @@ import '../provider/AIPainterModel.dart';
 import '../http_service.dart';
 
 const TAG = "HideWhenInactive";
-class HideWhenInactive extends StatefulWidget {
+class BiologicalAuthenticaionInterceptor extends StatefulWidget {
   Widget child;
   bool needCheckUserIdentity; //是否需要校验身份才能使用
 
-  HideWhenInactive({this.needCheckUserIdentity = false, required this.child});
+  BiologicalAuthenticaionInterceptor({this.needCheckUserIdentity = false, required this.child});
 
   @override
   State<StatefulWidget> createState() {
-    return _HideWhenInactiveState();
+    return _BiologicalAuthenticaionInterceptorState();
   }
 }
 
-class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
+class _BiologicalAuthenticaionInterceptorState extends LifecycleState<BiologicalAuthenticaionInterceptor>
      {
   bool canAuthenticateWithBiometrics = false;
   final LocalAuthentication auth = LocalAuthentication();
@@ -30,6 +30,8 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
   late AIPainterModel provider;
 
   bool showFilter  = false;
+  bool isDialog = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,8 +58,9 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
     canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
     final bool canAuthenticate =
         canAuthenticateWithBiometrics || await auth.isDeviceSupported();
-    if (canAuthenticate)
+    if (canAuthenticate) {
       availableBiometrics = await auth.getAvailableBiometrics();
+    }
     // if (availableBiometrics.contains(BiometricType.strong) ||
     //     availableBiometrics.contains(BiometricType.face)) {
     //   // Specific types of biometrics are available.
@@ -74,12 +77,13 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
       if (widget.needCheckUserIdentity &&
           provider.checkIdentityWhenReEnter &&
           availableBiometrics != null &&
-          availableBiometrics!.isNotEmpty) {
+          availableBiometrics!.isNotEmpty&&!isDialog) {
         showDialog(
             barrierDismissible: false,
             // useRootNavigator:false;
             context: context,
             builder: (context) {
+              isDialog = true;
               return WillPopScope(// 禁止滑动取消dialog
                 onWillPop: ()async{
                   return false;
@@ -99,8 +103,9 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
                               if (didAuthenticate) {
                                 setState(() {
                                   showFilter = false;
+                                  isDialog = false;
                                 });
-                                Navigator.pop(context);
+                                if(context.mounted)Navigator.pop(context);
                               }
                             } on PlatformException catch (e) {
                               if (e.code == auth_error.notEnrolled) {
@@ -133,7 +138,6 @@ class _HideWhenInactiveState extends LifecycleState<HideWhenInactive>
           showFilter = true;
         });
       }
-
     } else if (state == AppLifecycleState.detached) {
       logt(TAG, "detached");
     }

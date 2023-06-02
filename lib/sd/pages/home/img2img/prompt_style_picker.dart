@@ -15,6 +15,9 @@ class PromptStylePicker extends StatelessWidget {
       if (provider.checkedStyles.contains(style.name)) {
         prompt += appendCommaIfNotExist(style.prompt ?? "");
       }
+      if (provider.checkedRadio.contains(style.name)) {
+        prompt += appendCommaIfNotExist(style.prompt ?? "");
+      }
     }
     return prompt;
   }
@@ -28,28 +31,20 @@ class PromptStylePicker extends StatelessWidget {
         }
       }
       if (provider.checkedRadio.contains(style.name)) {
-        if(null != style.prompt && style.prompt!.isNotEmpty){
+        if (null != style.prompt && style.prompt!.isNotEmpty) {
           prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
         }
       }
     }
 
-    return "${prompt[0]}" +
-        (sfw ? "((sfw))," : "") +
-        "${prompt[1]}"
-            "${prompt[9]}"
-            "${prompt[2]}"
-            "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
-            "{${prompt[6]}"
-            "[(${prompt[7]}):(${prompt[8]}):$poseStep]}"
-            "${prompt[5]}";
+    return "${prompt[0]}${sfw ? "((sfw))," : ""}${prompt[1]}${prompt[9]}${prompt[2]}[(${prompt[3]}):(${prompt[4]}):$poseStep] {${prompt[6]}[(${prompt[7]}):(${prompt[8]}):$poseStep]}${prompt[5]}";
   }
 
   String getStyleNegPrompt() {
     String prompt = sfw ? "((nsfw))," : "";
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        if(null!=style.negativePrompt&&style.negativePrompt!.isNotEmpty){
+        if (null != style.negativePrompt && style.negativePrompt!.isNotEmpty) {
           prompt += appendCommaIfNotExist(style.negativePrompt!);
         }
       }
@@ -101,6 +96,11 @@ class PromptStylePicker extends StatelessWidget {
                         icon: const Icon(Icons.refresh)),
                     IconButton(
                         onPressed: () {
+                          provider.save();
+                        },
+                        icon: Icon(Icons.save)),
+                    IconButton(
+                        onPressed: () {
                           provider.cleanCheckedStyles();
                         },
                         icon: const Icon(Icons.delete))
@@ -135,7 +135,28 @@ class PromptStylePicker extends StatelessWidget {
           context: context,
           builder: (context) {
             AIPainterModel provider = Provider.of<AIPainterModel>(context);
-            return SingleChildScrollView(
+            return
+              // provider.promptType == 3
+              //     ?
+              // //provider.optional.generate(provider)
+              // DefaultTabController(
+              //     length: provider.optional.options!.keys.length,
+              //     child: Column(
+              //       children: [
+              //         TabBar(
+              //             tabs: provider.optional.options!.keys
+              //                 .map((e) => Tab(
+              //               text: e,
+              //             ))
+              //                 .toList()),
+              //         TabBarView(
+              //             children: provider.optional.options!.values
+              //                 .map((e) => e.content(provider, e.options))
+              //                 .toList())
+              //       ],
+              //     ))
+              //     :
+              SingleChildScrollView(
                 child: provider.promptType == 3
                     ? provider.optional.generate(provider)
                     : generateStyles(provider.publicStyles));

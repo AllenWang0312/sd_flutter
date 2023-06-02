@@ -35,7 +35,7 @@ class _SplashPageState extends State<SplashPage> {
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (provider.countdownNum <= 0) {
-        jumpAndCancelTimerIfSettingIsReady(context, null);
+        jumpAndCancelTimerIfSettingIsReady(context);
       }
 
       if (provider.countdownNum == SPLASH_WATTING_TIME - 2) {
@@ -83,7 +83,7 @@ class _SplashPageState extends State<SplashPage> {
                 child: InkWell(
                   onTap: () {
                     // jump(token.toString());
-                    jumpAndCancelTimerIfSettingIsReady(context, null);
+                    jumpAndCancelTimerIfSettingIsReady(context);
                   },
                   child: Container(
                     alignment: Alignment.center,
@@ -138,7 +138,7 @@ class _SplashPageState extends State<SplashPage> {
     });
   }
 
-  void jumpAndCancelTimerIfSettingIsReady(BuildContext context, String? token) {
+  void jumpAndCancelTimerIfSettingIsReady(BuildContext context) {
     if (getSettingSuccess != null && getSettingSuccess != 0) {
       if (context.mounted) {
         Navigator.popAndPushNamed(context, ROUTE_HOME);
