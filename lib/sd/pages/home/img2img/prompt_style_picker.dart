@@ -157,7 +157,7 @@ class PromptStylePicker extends StatelessWidget {
               //     ))
               //     :
               SingleChildScrollView(
-                child: provider.promptType == 3
+                child: provider.styleFrom == 3
                     ? provider.optional.generate(provider)
                     : generateStyles(provider.publicStyles));
           });

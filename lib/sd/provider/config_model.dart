@@ -89,6 +89,7 @@ class ConfigModel extends SPModel {
     String name = sp.getString(SP_CURRENT_WS) ?? DEFAULT_WORKSPACE_NAME;
     selectWorkspace = await initConfigFromDB(name);
     initLocalLimitFromDB();
+    loadFromSP(sp);
 
     // if (null == sdHttpService) {
     //   String host = 'raw.githubusercontent.com';
@@ -99,7 +100,6 @@ class ConfigModel extends SPModel {
     initNetworkConfig(sp);
     // }
 
-    loadFromSP(sp);
     // notifyListeners();
     // List<String> split = view.split("\r\n");
     // logt(TAG, "view:${split.length} ${split.toString()}");
@@ -112,14 +112,16 @@ class ConfigModel extends SPModel {
   }
 
   Future<void> initPromptStyleIfServiceActive({int userAge = 12}) async {
+    logt(TAG,"initPromptStyleIfServiceActive $styleFrom");
+
     if (null != selectWorkspace?.id) {
-      if (promptType == 1) {
+      if (styleFrom == 1) {
         initPublicStyle(null, userAge);
-      } else if (promptType == 2) {
+      } else if (styleFrom == 2) {
         styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
         initPublicStyle(styleConfigs, userAge);
-      } else if (promptType == 3) {
-        for(int i = 0;i<9;i++){
+      } else if (styleFrom == 3) {
+        for(int i = 0;i<6;i++){
           loadOptionalMapFromService(userAge,
               "$sdHttpService$TAG_MY_TAGS/$i.csv"); //todo 更具用户id 读取不同配置
         }
@@ -128,7 +130,7 @@ class ConfigModel extends SPModel {
     }
   }
 
-  void initTranlatesIfServiceActive() {
+  void initTranslatesIfServiceActive() {
     int? localVersion = sp.getInt(SP_SERVICE_VERSION);
     logt(TAG,"initTranlatesIfServiceActive $localVersion $serviceVersion");
 

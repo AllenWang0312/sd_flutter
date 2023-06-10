@@ -123,7 +123,7 @@ class _SettingPageState extends State<SettingPage> {
             //       );
             //     }),
             Selector<AIPainterModel, int>(
-                selector: (_, model) => model.promptType,
+                selector: (_, model) => model.styleFrom,
                 shouldRebuild: (pre, next) => pre != next,
                 builder: (_, newValue, child) {
                   return SizedBox(

@@ -38,7 +38,7 @@ class PromptStyle {
   int? limitAge = 0;
 
   String group = '';
-  int? step;
+  int step = -1;
   String? type = '';
   String name = "";
   String? prompt = "";

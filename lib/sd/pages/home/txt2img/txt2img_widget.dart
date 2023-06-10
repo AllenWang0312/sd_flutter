@@ -232,7 +232,7 @@ class TXT2IMGWidget extends StatelessWidget {
         // if (true) {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            (provider.generateType == 3
+            (provider.styleFrom == 3
                 ? promptStylePicker
                     .getStylePromptV3(provider.txt2img.steps * 2 ~/ 3)
                 : promptStylePicker.getStylePrompt());
@@ -242,6 +242,7 @@ class TXT2IMGWidget extends StatelessWidget {
                 promptStylePicker.getStyleNegPrompt();
         from['prompt'] = prompt + provider.getCheckedPluginsString();
         from['negative_prompt'] = negativePrompt;
+
         if (sdShare! || provider.generateType == 0) {
           post("$sdHttpService$TXT_2_IMG", formData: from,
                   exceptionCallback: (e) {

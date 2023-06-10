@@ -113,7 +113,7 @@ class _SplashPageState extends State<SplashPage> {
 
    getSettings() {
     // provider.networkInitApiOptions();
-    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 10,
+    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 20,
         exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) async {
@@ -129,7 +129,7 @@ class _SplashPageState extends State<SplashPage> {
 
         serviceVersion = await provider.initServiceConfigIfServiceActive();
         provider.initPromptStyleIfServiceActive(userAge:provider.userInfo.age);
-        provider.initTranlatesIfServiceActive();
+        provider.initTranslatesIfServiceActive();
 
         provider.netWorkState = ONLINE;
         provider.updateSDModel(modelName);

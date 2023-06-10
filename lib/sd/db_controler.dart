@@ -205,9 +205,10 @@ class DBController {
 
   Future<List<dynamic>?> queryHistorys(int pageNum, int pageSize,
       {String? order, bool asc = true}) {
+    logt(TAG,"$pageNum $pageSize");
     if (null != database && database!.isOpen) {
       return database!.rawQuery(
-          'SELECT * FROM ${History.TABLE_NAME} order by $order ${asc ? "asc" : "desc"} limit $pageNum ,$pageSize');
+          'SELECT * FROM ${History.TABLE_NAME} order by $order ${asc ? "asc" : "desc"} limit $pageSize offset ${pageNum*pageSize}');
     }
     return Future.value(null);
   }

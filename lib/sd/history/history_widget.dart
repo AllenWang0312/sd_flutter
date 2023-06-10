@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
-import 'package:sd/common/empty_view.dart';
 import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/history/PageListState.dart';
 import 'package:sd/sd/widget/AgeLevelCover.dart';
 
+import '../http_service.dart';
 import '../widget/PageListViewer.dart';
 
 const TAG = "HistoryWidget";
@@ -61,7 +61,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
               widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
         },
         onLoad: () async {
-          if (history.length > 0 && history.length % widget.pageSize == 0) {
+          if (history.isNotEmpty && history.length % widget.pageSize == 0) {
             widget.pageNum += 1;
             loadData(
                 widget.pageNum, widget.pageSize, widget.dateOrder, widget.asc);
@@ -70,6 +70,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
         childBuilder: (context, physics) {
           return GridView.builder(
             physics: physics,
+            controller: scroller,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, childAspectRatio: 512 / 768),
             itemCount: history.length,
@@ -95,11 +96,11 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
     }
     DBController.instance
         .queryHistorys(pageNum, pageSize,
-            order: dateOrder ? History.ORDER_BY_TIME : History.ORDER_BY_PATH,
+            order: History.ORDER_BY_TIME,
             asc: asc)
         .then((value) {
       // setState(() {
-      if (null!=value) {
+      if (null != value) {
         List<History> list = value.map((e) => History.fromJson(e)).toList();
         // logt(TAG,list.toString());
         if (filterNotExist) {
@@ -108,13 +109,14 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
               !File(element.localPath!).existsSync());
         }
         setState(() {
+          logt(TAG,list.map((e) => e.getFileLocation()).toList().toString());
+
           history.addAll(list);
         });
-
       }
       controller.finishRefresh(
           pageNum == 0 ? IndicatorResult.success : IndicatorResult.noMore);
-      controller.finishLoad(value?.length==36
+      controller.finishLoad(value?.length == 36
           ? IndicatorResult.success
           : IndicatorResult.noMore);
     });
@@ -133,20 +135,21 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
     // AIPainterModel provider = Provider.of<AIPainterModel>(context);
     return InkWell(
         onTap: () async {
-          Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER,
-              arguments: {
-                "urls": history,
-                "index": index,
-                // "savePath": WORKSPACES,
-                "isFavourite":true,
-              });
+          Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
+            "urls": history,
+            "index": index,
+            // "savePath": WORKSPACES,
+            "isFavourite": true,
+          });
         },
-
-        child: AgeLevelCover(item));
+        child:
+        AgeLevelCover(item)
     // return file.existsSync()?InkWell(
 
     //   // child: AgeLevelCover(item),
-    //   child: Image.file(file),
+    //   child:
+    //   Image.file(File(item.localPath!))
+    );
     //
     // ):CachedNetworkImage(imageUrl: placeHolderUrl(width:256,height:256));
   }

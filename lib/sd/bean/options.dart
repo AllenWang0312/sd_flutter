@@ -30,6 +30,7 @@ class Optional extends PromptStyle {
       super.negativePrompt});
 
   Map<String, Optional>? options;
+  bool? _expand;
 
   void addOption(String name, Optional item) {
     options ??= {};
@@ -38,10 +39,10 @@ class Optional extends PromptStyle {
       _radioCount += 1;
     }
     options!.putIfAbsent(item.name, () => item);
-    if((name.isNotEmpty||group.isNotEmpty)&&item.group.isEmpty){
-      item.group=groupName(group,name);
+    if ((name.isNotEmpty || group.isNotEmpty) && item.group.isEmpty) {
+      item.group = groupName(group, name);
     }
-    if(this.step==null&&item.step!=null){
+    if (this.step == null && item.step != null) {
       step = item.step;
     }
   }
@@ -67,8 +68,9 @@ class Optional extends PromptStyle {
 
   Widget generate(AIPainterModel provider) {
     if (null != options && options!.keys.isNotEmpty) {
+      initExpand(provider);
       return Expandable(
-          true,
+          _expand!,
           Row(
             children: [
               (isRadio ||
@@ -83,7 +85,7 @@ class Optional extends PromptStyle {
                             label: Text(name),
                             selected: newValue.contains(name),
                             onSelected: (newValue) {
-                              if(isRadio){
+                              if (isRadio) {
                                 if (newValue) {
                                   //勾选
                                   provider.updateCheckRadio(group, name);
@@ -91,8 +93,8 @@ class Optional extends PromptStyle {
                                   //取消
                                   provider.updateCheckRadio(group, null);
                                 }
-                              }else{
-                                provider.switchChecked(newValue,name);
+                              } else {
+                                provider.switchChecked(newValue, name);
                               }
                             });
                       })
@@ -111,35 +113,38 @@ class Optional extends PromptStyle {
   }
 
   void randomChild(AIPainterModel provider) {
-    logt(TAG,"random Child $group $name $step");
+    logt(TAG, "random Child $group $name $step");
+
     if (
-    step!=0&& //todo 过滤还有缺陷
+    // step != 0 && //todo 过滤还有缺陷
         null != options) {
 
       Iterable<String> all = options!.keys;
       List<String> others =
           all.where((element) => !element.endsWith("*")).toList();
-      bool radioChecked = provider.checkedRadioGroup.contains(groupName(group, name));
+      bool radioChecked =
+          provider.checkedRadioGroup.contains(groupName(group, name));
       final Random random = Random();
 
       if (radioChecked) {
-        logt(TAG, "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
+        logt(TAG,
+            "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
 
         List<String> radios =
             all.where((element) => element.endsWith("*")).toList();
         logt(TAG, "random radios ${radios.toString()}");
 
-        if(radios.isNotEmpty){
+        if (radios.isNotEmpty) {
           int index = random.nextInt(radios.length);
           logt(TAG, "random radio $index");
-          provider.updateCheckRadio(groupName(group,name), radios[index]);
+          provider.updateCheckRadio(groupName(group, name), radios[index]);
         }
       }
 
       int checkCount = 0;
       for (String item in others) {
         if (provider.checkedStyles.contains(item)) {
-          provider.checkedStyles.remove(item);
+          provider.removeCheckedStyles(item);
           logt(TAG, "random remove items$item");
           checkCount++;
         }
@@ -148,7 +153,7 @@ class Optional extends PromptStyle {
         for (int i = 0; i < checkCount; i++) {
           int ran = random.nextInt(others.length);
           logt(TAG, "random items$ran");
-          provider.checkedStyles.add(others[ran]);
+          provider.addCheckedStyles(others[ran],refresh: true);
           others.removeAt(ran);
         }
       }
@@ -185,7 +190,8 @@ class Optional extends PromptStyle {
                   label: Text(e.name),
                   selected: newValue.contains(e.name),
                   onSelected: (newValue) {
-                    logt(TAG,"radio onSelected ${e.group} ${e.name} $newValue");
+                    logt(
+                        TAG, "radio onSelected ${e.group} ${e.name} $newValue");
                     if (newValue != null && newValue) {
                       //勾选
                       provider.updateCheckRadio(e.group, e.name);
@@ -205,7 +211,10 @@ class Optional extends PromptStyle {
                   selectedColor: Colors.grey,
                   selected: newValue.contains(e.name),
                   onSelected: (bool selected) {
-                    logt(TAG, "onSelected $selected ${e.name}",);
+                    logt(
+                      TAG,
+                      "onSelected $selected ${e.name}",
+                    );
                     provider.switchChecked(selected, e.name);
                   },
                   label: Text(e.name));
@@ -263,6 +272,34 @@ class Optional extends PromptStyle {
   }
 
   String groupName(String group, String name) {
-    return (group.isEmpty?"":"$group|")+this.name;
+    return (group.isEmpty ? "" : "$group|") + this.name;
+  }
+
+  exist(List<String> checkedStyles, Iterable<String> keys) {
+    if (checkedStyles.isNotEmpty && keys.isNotEmpty) {
+      for (String item in keys) {
+        if (checkedStyles.contains(item)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool initExpand(AIPainterModel provider) {
+    _expand ??= needExpands(provider, options ?? {}) ||
+        name.isEmpty ||
+        (provider.checkedRadioGroup.contains(group) ||
+            exist(provider.checkedStyles, options?.keys ?? []));
+    return _expand!;
+  }
+
+  bool needExpands(AIPainterModel provider, Map<String, Optional> options) {
+    for (String entry in options.keys) {
+      if (options[entry]?.initExpand(provider)??false) {
+        return true;
+      }
+    }
+    return false;
   }
 }

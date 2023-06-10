@@ -16,7 +16,7 @@ class SPModel extends DBModel {
 
 //todo ui不依赖 可以 移走 单次请求接口方式 0 优先api 1 优先predict
 
-  int generateType = -1;   //公网 predict 会报错
+  int generateType = 0;   //公网 predict 会报错
   // String _cover =
   //     'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
 
@@ -67,11 +67,13 @@ class SPModel extends DBModel {
   void loadFromSP(SharedPreferences sp) {
 
     // share = sp.getBool(SP_SHARE)??false;
-    if(sdShare!){
-      promptType = -1;
-    }else{
-      promptType = sp.getInt(SP_PROMPT_TYPE) ?? 3;
-    }
+    // if(sdShare!){
+    //   styleFrom = -1;
+    // }else{
+      styleFrom = sp.getInt(SP_PROMPT_TYPE) ?? 3;
+    // }
+    generateType = sp.getInt(SP_GENERATE_TYPE)??0;
+
     // if (!UniversalPlatform.isIOS) {
     splashImg = '$sdHttpService/favicon.ico';
     // } else {

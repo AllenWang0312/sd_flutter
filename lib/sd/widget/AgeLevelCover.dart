@@ -18,7 +18,7 @@ class AgeLevelCover extends StatelessWidget {
   UniqueSign info;
   bool? needInfoLogo;
 
-  AgeLevelCover(this.info, {this.needInfoLogo = true});
+  AgeLevelCover(this.info, {super.key, this.needInfoLogo = true});
 
   late AIPainterModel provider;
 
@@ -26,7 +26,7 @@ class AgeLevelCover extends StatelessWidget {
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
     String fileLocation = info.getFileLocation();
-    logt(TAG,fileLocation);
+    logt(TAG,"fileLocation"+fileLocation);
     if (fileLocation.startsWith("http")&&fileLocation.endsWith(".png")) {
       // bytes = await getBytesWithDio(info.url!);
       return Card(
@@ -37,7 +37,7 @@ class AgeLevelCover extends StatelessWidget {
           builder: (context, snapshot) {
             return Stack(
               children: [
-                filterCover(provider, info, snapshot.data!),
+                filterCover(provider, info),
                 Positioned(
                     right: 0,
                     top: 0,
@@ -62,7 +62,7 @@ class AgeLevelCover extends StatelessWidget {
           builder: (context, snapshot) {
             return Stack(
               children: [
-                filterCover(provider, info, bytes),
+                filterCover(provider, info),
                 if (null != snapshot.data &&
                     snapshot.data!.isNotEmpty &&
                     null != needInfoLogo &&
@@ -86,7 +86,7 @@ class AgeLevelCover extends StatelessWidget {
   }
 }
 
-filterCover(AIPainterModel provider, UniqueSign info, Uint8List bytes) {
+filterCover(AIPainterModel provider, UniqueSign info) {
   return Selector<AIPainterModel, int>(
       selector: (_, model) =>
           provider.hideNSFW ? provider.getAgeLevel(info.uniqueTag()) : 0,
@@ -96,10 +96,7 @@ filterCover(AIPainterModel provider, UniqueSign info, Uint8List bytes) {
             : child!;
       },
       child: SizedBox.expand(
-          child: Image.memory(
-        bytes,
-        fit: BoxFit.cover,
-      ))
+          child: Image.file(File(info.getFileLocation())))
       // Selector<AIPainterModel, ImageSize?>(
       //   selector: (_, model) => model.imgSize[info.sign],
       //   builder: (context, value, child) {

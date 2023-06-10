@@ -128,6 +128,20 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
 
   }
 
+  void removeCheckedStyles(String item,{refresh = false}) {
+    checkedStyles.remove(item);
+    if(refresh){
+      notifyListeners();
+    }
+  }
+
+  void addCheckedStyles(String other,{refresh = false}) {
+    checkedStyles.add(other);
+    if(refresh){
+      notifyListeners();
+    }
+  }
+
 
   // void updateLastGenerate(String lastGenerate){
   //   this.lastGenerate = lastGenerate;
