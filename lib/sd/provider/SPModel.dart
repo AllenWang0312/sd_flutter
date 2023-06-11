@@ -3,20 +3,19 @@ import 'dart:math';
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/bean/Configs.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
+import 'package:sd/sd/bean/options.dart';
 import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/provider/db_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 const TAG = "SPModel";
 
 class SPModel extends DBModel {
-
-
-
 //todo ui不依赖 可以 移走 单次请求接口方式 0 优先api 1 优先predict
 
-  int generateType = 0;   //公网 predict 会报错
+  int generateType = 0; //公网 predict 会报错
   // String _cover =
   //     'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
 
@@ -40,39 +39,76 @@ class SPModel extends DBModel {
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
 
-
+  List<String> lockedRadioGroup = [];
   List<String> checkedRadioGroup = [];
   List<String> checkedRadio = [];
   List<String> checkedStyles = [];
+  List<String> lockedStyles = [];
+
+  void lockSelector(String name) {
+    if(isSingle(name)){
+      if (checkedRadio.contains(name)) {
+        String target = checkedRadioGroup[checkedRadio.indexOf(name)];
+        if (lockedRadioGroup.contains(target)) {
+          lockedRadioGroup.remove(target);
+          logt(TAG,'$target unlocked');
+        } else {
+          lockedRadioGroup.add(target);
+          logt(TAG,'$target locked');
+
+        }
+        notifyListeners();
+      }
+    }else{
+      if(lockedStyles.contains(name)){
+        lockedStyles.remove(name);
+        logt(TAG,'$name unlocked');
+
+      }else{
+        lockedStyles.add(name);
+        logt(TAG,'$name locked');
+
+      }
+      notifyListeners();
+    }
+
+  }
+
+  bool selectorLocked(String name) {
+    int index = checkedRadio.indexOf(name);
+    if (index >= 0) {
+      String group = checkedRadioGroup[index];
+      return lockedRadioGroup.contains(group);
+    }
+    return false;
+  }
 
   void updateCheckRadio(String group, String? name) {
-
-    if(null!=name){
+    if (null != name) {
       bool exit = checkedRadioGroup.contains(group);
-      if(exit){
-        checkedRadio[checkedRadioGroup.indexOf(group)]=name;
-      }else{
+      if (exit) {
+        checkedRadio[checkedRadioGroup.indexOf(group)] = name;
+      } else {
         checkedRadioGroup.add(group);
         checkedRadio.add(name);
       }
-    }else{
+    } else {
       int index = checkedRadioGroup.indexOf(group);
       checkedRadio.removeAt(index);
       checkedRadioGroup.removeAt(index);
     }
-    logt(TAG,"${checkedRadioGroup.toString()} ${checkedRadio.toString()}");
+    logt(TAG, "${checkedRadioGroup.toString()} ${checkedRadio.toString()}");
     notifyListeners();
   }
 
   void loadFromSP(SharedPreferences sp) {
-
     // share = sp.getBool(SP_SHARE)??false;
     // if(sdShare!){
     //   styleFrom = -1;
     // }else{
-      styleFrom = sp.getInt(SP_PROMPT_TYPE) ?? 3;
+    styleFrom = sp.getInt(SP_PROMPT_TYPE) ?? 3;
     // }
-    generateType = sp.getInt(SP_GENERATE_TYPE)??0;
+    generateType = sp.getInt(SP_GENERATE_TYPE) ?? 0;
 
     // if (!UniversalPlatform.isIOS) {
     splashImg = '$sdHttpService/favicon.ico';
@@ -80,12 +116,21 @@ class SPModel extends DBModel {
     //   splashImg = 'https://stability.ai/favicon.ico'; // ios 第一次https 调用才会触发授权弹框
     // }
     // splashImg = 'https://img-md.veimg.cn/meadincms/img1/21/2021/0119/1703252.jpg';
+
+    txt2img.prompt = sp.getString(SP_PROMPT) ?? "";
+    txt2img.negativePrompt = sp.getString(SP_NEG_PROMPT) ?? "";
+
     txt2img.sampler = sp.getString(SP_SAMPLER) ?? DEFAULT_SAMPLER;
     txt2img.steps = sp.getInt(SP_SAMPLER_STEPS) ?? DEFAULT_SAMPLER_STEPS;
     txt2img.width = sp.getInt(SP_WIDTH) ?? DEFAULT_WIDTH;
     txt2img.height = sp.getInt(SP_HEIGHT) ?? DEFAULT_HEIGHT;
 
     checkedStyles = sp.getStringList(SP_CHECKED_STYLES) ?? [];
+    checkedRadioGroup = sp.getStringList(SP_CHECKED_RADIO_GROUPS) ?? [];
+    lockedRadioGroup = sp.getStringList(SP_LOCKED_RADIO_GROUPS) ?? [];
+    lockedStyles= sp.getStringList(SP_LOCKED_STYLES) ?? [];
+
+    checkedRadio = sp.getStringList(SP_CHECKED_RADIOS) ?? [];
 
     faceFix = sp.getBool(SP_FACE_FIX) ?? DEFAULT_FACE_FIX;
     hiresFix = sp.getBool(SP_HIRES_FIX) ?? DEFAULT_HIRES_FIX;
@@ -99,13 +144,20 @@ class SPModel extends DBModel {
 
   save() async {
     SharedPreferences sp = await SharedPreferences.getInstance();
+
+    await sp.setString(SP_PROMPT, txt2img.prompt);
+    await sp.setString(SP_NEG_PROMPT, txt2img.negativePrompt);
+
     await sp.setString(SP_SAMPLER, txt2img.sampler);
     await sp.setInt(SP_SAMPLER_STEPS, txt2img.steps);
     await sp.setInt(SP_WIDTH, txt2img.width);
     await sp.setInt(SP_HEIGHT, txt2img.height);
+
     await sp.setStringList(SP_CHECKED_STYLES, checkedStyles);
     await sp.setStringList(SP_CHECKED_RADIOS, checkedRadio);
     await sp.setStringList(SP_CHECKED_RADIO_GROUPS, checkedRadioGroup);
+    await sp.setStringList(SP_LOCKED_RADIO_GROUPS, lockedRadioGroup);
+    await sp.setStringList(SP_LOCKED_STYLES, lockedStyles);
 
     await sp.setBool(SP_FACE_FIX, faceFix);
     await sp.setBool(SP_HIRES_FIX, hiresFix);
@@ -118,10 +170,9 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-
-
   void removePluginPrompt(String prefix, String name) {
-    txt2img.prompt.replaceAll(getPluginMarch(prefix, name), "");
+    txt2img.prompt.replaceAll(
+        getPluginMarch(prefix, name), ""); //todo replace 失效 导致重复append
   }
 
   void addPluginPrompt(String prefix, String name) {
@@ -135,8 +186,7 @@ class SPModel extends DBModel {
 
   void updatePrompts(String? prompt, String? negPrompt,
       {int? steps, String? sampler, double? cfgScale, double? seed}) {
-    var newPrompts = autoCheckStyle(prompt??"",negPrompt??"");
-
+    var newPrompts = autoCheckStyle(prompt ?? "", negPrompt ?? "");
 
     this.txt2img.prompt = newPrompts.prompt!;
     this.txt2img.negativePrompt = newPrompts.negativePrompt!;
@@ -152,16 +202,18 @@ class SPModel extends DBModel {
     this.txt2img = prompt;
     notifyListeners();
   }
-  void updateXValue(int value){
+
+  void updateXValue(int value) {
     this.txt2img.XValue = value;
     notifyListeners();
   }
-  void updateYValue(int value){
+
+  void updateYValue(int value) {
     this.txt2img.YValue = value;
     notifyListeners();
   }
 
-  void updateZValue(int value){
+  void updateZValue(int value) {
     this.txt2img.ZValue = value;
     notifyListeners();
   }
@@ -206,15 +258,12 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  String? getCheckedRadio(String group){
-    if(checkedRadioGroup.contains(group)){
+  String? getCheckedRadio(String group) {
+    if (checkedRadioGroup.contains(group)) {
       return checkedRadio[checkedRadioGroup.indexOf(group)];
     }
     return null;
   }
-
-
-
 
   // bool itemChecked(String? group, String name) {
   //   if(name.endsWith("*")&&null!=group){
@@ -224,7 +273,7 @@ class SPModel extends DBModel {
   //   }
   // }
 
-  void switchChecked(bool checked,String name) {
+  void switchChecked(bool checked, String name) {
     if (checked
     //txt2img.checkedStyles.contains(name)
     ) {
@@ -296,25 +345,31 @@ class SPModel extends DBModel {
   }
 
   PromptStyle autoCheckStyle(String prompt, String negPrompt) {
-    var result = PromptStyle('result',prompt: prompt,negativePrompt: negPrompt);
+    var result =
+    PromptStyle('result', prompt: prompt, negativePrompt: negPrompt);
 
-    for(PromptStyle style in styles){
-      if((null==style.prompt||style.prompt!.isEmpty||prompt.contains("{${style.prompt}},"))&&
-          (null==style.negativePrompt||style.negativePrompt!.isEmpty||negPrompt.contains("${style.negativePrompt}," )) ){
-        if(style.name.endsWith("*")){
+    for (PromptStyle style in styles) {
+      if ((null == style.prompt ||
+          style.prompt!.isEmpty ||
+          prompt.contains("{${style.prompt}},")) &&
+          (null == style.negativePrompt ||
+              style.negativePrompt!.isEmpty ||
+              negPrompt.contains("${style.negativePrompt},"))) {
+        if (isSingle(style.name)) {
           updateCheckRadio(style.group, style.name);
-        }else{
+        } else {
           checkedStyles.add(style.name);
         }
         result.prompt?.replaceAll("\{${style.prompt}\}\,", "");
         result.negativePrompt?.replaceAll("${style.negativePrompt}\,", "");
 
-        logt(TAG,"after replace prompt:${style.prompt} neg: ${style.negativePrompt}");
-        logt(TAG,"result prompt:${result.prompt} neg: ${result.negativePrompt} ");
-
+        logt(TAG,
+            "after replace prompt:${style.prompt} neg: ${style
+                .negativePrompt}");
+        logt(TAG,
+            "result prompt:${result.prompt} neg: ${result.negativePrompt} ");
       }
     }
     return result;
   }
-
 }

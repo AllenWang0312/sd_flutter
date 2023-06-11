@@ -13,12 +13,16 @@ const String SP_PROMPT_TYPE = 'prompt_type';
 const String SP_CURRENT_WS = 'current_ws';
 const String SP_WIDTH = "width";
 const String SP_HEIGHT = "height";
+const String SP_PROMPT = "prompt";
+const String SP_NEG_PROMPT = "neg_prompt";
+
 const String SP_SAMPLER = "sampler";
 const String SP_SAMPLER_STEPS = "sampler_steps";
 const String SP_CHECKED_STYLES = "checked_styles";
 const String SP_CHECKED_RADIOS = "checked_radios";
 const String SP_CHECKED_RADIO_GROUPS = "checked_radio_groups";
-
+const String SP_LOCKED_RADIO_GROUPS = "locked_radio_groups";
+const String SP_LOCKED_STYLES= "locked_styles";
 
 
 const String SP_AUTO_SAVE = "auto_save";

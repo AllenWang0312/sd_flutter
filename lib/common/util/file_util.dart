@@ -61,6 +61,8 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
                 ? 0
                 : element[limitIndex]);
   }).map((e) {
+    logt(TAG,e.toString());
+
     String group = groupIndex >= 0 ? e[groupIndex] : '';
     late PromptStyle item;
     try {

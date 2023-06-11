@@ -10,12 +10,21 @@ import 'PromptStyle.dart';
 
 const TAG = "Optional";
 
+
+ bool autoSingle(String element) {
+return element.endsWith("*");
+}
+
+ bool isSingle(String element) {
+return element.endsWith("*")||element.endsWith("^");
+}
+
 class Optional extends PromptStyle {
   int _radioCount = 0;
   bool? _isRaido;
 
   bool get isRadio {
-    _isRaido ??= name.endsWith("*");
+    _isRaido ??= name.endsWith("*")||name.endsWith("^");
     return _isRaido!;
   }
 
@@ -35,7 +44,7 @@ class Optional extends PromptStyle {
   void addOption(String name, Optional item) {
     options ??= {};
     item.parent = this;
-    if (name.endsWith("*")) {
+    if (isRadio) {
       _radioCount += 1;
     }
     options!.putIfAbsent(item.name, () => item);
@@ -68,9 +77,10 @@ class Optional extends PromptStyle {
 
   Widget generate(AIPainterModel provider) {
     if (null != options && options!.keys.isNotEmpty) {
-      initExpand(provider);
+      // initExpand(provider);
       return Expandable(
-          _expand!,
+          // _expand!
+          true,
           Row(
             children: [
               (isRadio ||
@@ -81,6 +91,9 @@ class Optional extends PromptStyle {
                           isRadio ? model.checkedRadio : model.checkedStyles,
                       builder: (_, newValue, child) {
                         return ChoiceChip(
+                          avatar: (provider.selectorLocked("$group|$name")||provider.lockedStyles.contains(name))
+                        ?  CircleAvatar(radius: 6,child:Container(color: Colors.red,) ,)
+                            : null,
                             selectedColor: Colors.grey,
                             label: Text(name),
                             selected: newValue.contains(name),
@@ -113,6 +126,7 @@ class Optional extends PromptStyle {
   }
 
   void randomChild(AIPainterModel provider) {
+
     logt(TAG, "random Child $group $name $step");
 
     if (
@@ -121,25 +135,29 @@ class Optional extends PromptStyle {
 
       Iterable<String> all = options!.keys;
       List<String> others =
-          all.where((element) => !element.endsWith("*")).toList();
-      bool radioChecked =
-          provider.checkedRadioGroup.contains(groupName(group, name));
+          all.where((element) => !isSingle(element)&&!provider.lockedStyles.contains(element)&&(options![element]?.prompt!=null||options![element]?.negativePrompt!=null)).toList();
       final Random random = Random();
 
-      if (radioChecked) {
-        logt(TAG,
-            "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
+      if(!provider.lockedRadioGroup.contains("$group|$name")){
+        bool radioChecked =
+        provider.checkedRadioGroup.contains(groupName(group, name));
 
-        List<String> radios =
-            all.where((element) => element.endsWith("*")).toList();
-        logt(TAG, "random radios ${radios.toString()}");
+        if (radioChecked) {
+          logt(TAG,
+              "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
 
-        if (radios.isNotEmpty) {
-          int index = random.nextInt(radios.length);
-          logt(TAG, "random radio $index");
-          provider.updateCheckRadio(groupName(group, name), radios[index]);
+          List<String> radios =
+          all.where((element) => autoSingle(element)).toList();
+          logt(TAG, "random radios ${radios.toString()}");
+
+          if (radios.isNotEmpty) {
+            int index = random.nextInt(radios.length);
+            logt(TAG, "random radio $index");
+            provider.updateCheckRadio(groupName(group, name), radios[index]);
+          }
         }
       }
+
 
       int checkCount = 0;
       for (String item in others) {
@@ -302,4 +320,5 @@ class Optional extends PromptStyle {
     }
     return false;
   }
+
 }

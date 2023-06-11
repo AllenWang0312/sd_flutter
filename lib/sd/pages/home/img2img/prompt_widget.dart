@@ -24,7 +24,15 @@ class PromptWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
+    promptController = TextEditingController(text: provider.txt2img.prompt);
+    promptController.addListener(() {
+      provider.updatePrompt(promptController.text);
+    });
 
+    negController = TextEditingController(text: provider.txt2img.negativePrompt);
+    negController.addListener(() {
+      provider.updateNegPrompt(negController.text);
+    });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,28 +40,22 @@ class PromptWidget extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Selector<AIPainterModel, String>(
-                selector: (_, model) => model.txt2img.prompt,
-                builder: (context, newValue, child) {
-                  promptController = TextEditingController(text: newValue);
-                  return TextFormField(
-                    // initialValue: newValue,
-                    // focusNode: FocusNode(
-                    //   onKey: (_,keyEvent){
-                    //     if(keyEvent.isAltPressed){
-                    //
-                    //     }
-                    //     return KeyEventResult.handled;
-                    //   }
-                    // ),
-                    keyboardType: TextInputType.multiline,
-                    maxLines: 4,
-                    controller: promptController,
-                    // textInputAction: TextInputAction.done,
-                    onEditingComplete: () {
-                      provider.updatePrompt(promptController.text);
-                    },
-                  );
+              child: TextFormField(
+                // initialValue: newValue,
+                // focusNode: FocusNode(
+                //   onKey: (_,keyEvent){
+                //     if(keyEvent.isAltPressed){
+                //
+                //     }
+                //     return KeyEventResult.handled;
+                //   }
+                // ),
+                keyboardType: TextInputType.multiline,
+                maxLines: 4,
+                controller: promptController,
+                // textInputAction: TextInputAction.done,
+                onEditingComplete: () {
+                  provider.updatePrompt(promptController.text);
                 },
               ),
             ),
@@ -111,19 +113,14 @@ class PromptWidget extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Selector<AIPainterModel, String>(
-                  selector: (_, model) => model.txt2img.negativePrompt,
-                  builder: (context, newValue, child) {
-                    negController = TextEditingController(text: newValue);
-                    return TextField(
-                      // textInputAction: TextInputAction.send,
-                      maxLines: 4,
-                      controller: negController,
-                      onEditingComplete: () {
-                        provider.updateNegPrompt(negController.text);
-                      },
-                    );
-                  }),
+              child: TextField(
+                // textInputAction: TextInputAction.send,
+                maxLines: 4,
+                controller: negController,
+                onEditingComplete: () {
+                  provider.updateNegPrompt(negController.text);
+                },
+              ),
             ),
             Column(
               children: [

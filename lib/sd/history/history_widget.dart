@@ -96,7 +96,6 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
     }
     DBController.instance
         .queryHistorys(pageNum, pageSize,
-            order: History.ORDER_BY_TIME,
             asc: asc)
         .then((value) {
       // setState(() {

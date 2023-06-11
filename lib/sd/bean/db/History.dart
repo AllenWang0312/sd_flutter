@@ -7,7 +7,6 @@ class History extends UniqueSign{
 
   static var TABLE_NAME = 'history';
 
-  static var ORDER_BY_TIME = 'date,time';
   static var ORDER_BY_PATH = 'imgPath';
 
   static var TABLE_CREATE =

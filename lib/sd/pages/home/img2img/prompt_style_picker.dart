@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
@@ -66,11 +67,23 @@ class PromptStylePicker extends StatelessWidget {
           children: ([]
                 ..addAll(provider.checkedStyles)
                 ..addAll(provider.checkedRadio))
-              .map((e) => RawChip(
-                    label: Text(e),
-                    onDeleted: () {
-                      provider.unCheckStyles(e);
-                      provider.unCheckRadio(e);
+              .map((e) => Selector<AIPainterModel, int>(
+                    selector: (_, model) => model.lockedRadioGroup.length+model.lockedStyles.length,
+                    builder: (_, value, child) {
+                      return GestureDetector(
+                          onLongPressEnd: (detail) {
+                            provider.lockSelector(e);
+                          },
+                          child: RawChip(
+                            avatar: (provider.selectorLocked(e)||provider.lockedStyles.contains(e))
+                                ?  CircleAvatar(radius: 6,child:Container(color: Colors.red,) ,)
+                                : null,
+                            label: Text(e),
+                            onDeleted: () {
+                              provider.unCheckStyles(e);
+                              provider.unCheckRadio(e);
+                            },
+                          ));
                     },
                   ))
               .toList(),
@@ -136,30 +149,32 @@ class PromptStylePicker extends StatelessWidget {
           builder: (context) {
             AIPainterModel provider = Provider.of<AIPainterModel>(context);
             return
-              // provider.promptType == 3
-              //     ?
-              // //provider.optional.generate(provider)
-              // DefaultTabController(
-              //     length: provider.optional.options!.keys.length,
-              //     child: Column(
-              //       children: [
-              //         TabBar(
-              //             tabs: provider.optional.options!.keys
-              //                 .map((e) => Tab(
-              //               text: e,
-              //             ))
-              //                 .toList()),
-              //         TabBarView(
-              //             children: provider.optional.options!.values
-              //                 .map((e) => e.content(provider, e.options))
-              //                 .toList())
-              //       ],
-              //     ))
-              //     :
-              SingleChildScrollView(
-                child: provider.styleFrom == 3
-                    ? provider.optional.generate(provider)
-                    : generateStyles(provider.publicStyles));
+                // provider.promptType == 3
+                //     ?
+                // //provider.optional.generate(provider)
+                // DefaultTabController(
+                //     length: provider.optional.options!.keys.length,
+                //     child: Column(
+                //       children: [
+                //         TabBar(
+                //             tabs: provider.optional.options!.keys
+                //                 .map((e) => Tab(
+                //               text: e,
+                //             ))
+                //                 .toList()),
+                //         TabBarView(
+                //             children: provider.optional.options!.values
+                //                 .map((e) => e.content(provider, e.options))
+                //                 .toList())
+                //       ],
+                //     ))
+                //     :
+                SingleChildScrollView(
+                    child:
+                        // provider.styleFrom == 3 ?
+                        provider.optional.generate(provider)
+                    // : generateStyles(provider.publicStyles)
+                    );
           });
     }
   }

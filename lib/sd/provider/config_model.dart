@@ -121,12 +121,13 @@ class ConfigModel extends SPModel {
         styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
         initPublicStyle(styleConfigs, userAge);
       } else if (styleFrom == 3) {
-        for(int i = 0;i<6;i++){
-          loadOptionalMapFromService(userAge,
-              "$sdHttpService$TAG_MY_TAGS/$i.csv"); //todo 更具用户id 读取不同配置
-        }
-        logt(TAG,"loadOptionalMapFromService $optional");
+
       }
+      for(int i = 0;i<6;i++){
+        loadOptionalMapFromService(userAge,
+            "$sdHttpService$TAG_MY_TAGS/$i.csv"); //todo 更具用户id 读取不同配置
+      }
+      logt(TAG,"loadOptionalMapFromService $optional");
     }
   }
 

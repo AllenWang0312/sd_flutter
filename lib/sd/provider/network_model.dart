@@ -65,7 +65,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
         Optional? target;
         for (PromptStyle item in styles) {
           if(item.group!=group){
-            group = item.group??"";
+            group = item.group;
             target = optional.createIfNotExit(
                 group.contains("|") ? group.split('|'): [group],0);
           }
@@ -75,14 +75,12 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
 
           // } else {
             // logt(TAG," ${target?.name} ${item.name}");
-          logt(TAG,item.toString());
           if(item is Optional) {
             target?.addOption(item.name, item);
           }
           // }
         }
       }
-      return;
     });
   }
 

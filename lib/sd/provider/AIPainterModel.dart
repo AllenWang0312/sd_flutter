@@ -142,6 +142,11 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     }
   }
 
+  void updateWeight(double value) {
+    txt2img.weight = value;
+    notifyListeners();
+  }
+
 
   // void updateLastGenerate(String lastGenerate){
   //   this.lastGenerate = lastGenerate;

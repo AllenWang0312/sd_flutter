@@ -11,8 +11,11 @@ class Configs {
   String prompt = '';
   String negativePrompt = '';
 
-
   int steps = DEFAULT_SAMPLER_STEPS;
+  double weight = 6.0;
+
+
+
   String sampler = DEFAULT_SAMPLER;
   double cfgScale = 7.0;
   int seed = -1;
@@ -50,25 +53,29 @@ class Configs {
   }
 
   Configs updateConfigs(String prompt) {
-    List<StringIndicator> indicators = KEYS.map((e) {
-      int start = prompt.indexOf(e);
-      int end = start + e.length;
-      return StringIndicator(e, start, end);
-    }).where((element) => element.start > 0).toList()
+    List<StringIndicator> indicators = KEYS
+        .map((e) {
+          int start = prompt.indexOf(e);
+          int end = start + e.length;
+          return StringIndicator(e, start, end);
+        })
+        .where((element) => element.start > 0)
+        .toList()
       ..sort((a, b) => a.start - b.start);
     logt(TAG, indicators.toString());
 
     Configs result = Configs();
     result.prompt = withDefault(substring(prompt, indicators, index: -1), '');
-    result.negativePrompt= withDefault(substring(prompt, indicators, key: NEGATIVE_KEY), '');
+    result.negativePrompt =
+        withDefault(substring(prompt, indicators, key: NEGATIVE_KEY), '');
     result.steps = toInt(substring(prompt, indicators, key: STEPS_KEY), 30);
-    result.sampler = withDefault(substring(prompt, indicators, key: SAMPLER_KEY), this.sampler);
-      result.cfgScale = toDouble(
-          substring(prompt, indicators,key:CFG_KEY),7.0);
-      result.seed = toInt(
-          substring(prompt, indicators, key:SEED_KEY),-1);
-      result.modelHash =
-          withDefault(substring(prompt, indicators, key:MODEL_HASH_KEY), this.modelHash);
+    result.sampler = withDefault(
+        substring(prompt, indicators, key: SAMPLER_KEY), this.sampler);
+    result.cfgScale =
+        toDouble(substring(prompt, indicators, key: CFG_KEY), 7.0);
+    result.seed = toInt(substring(prompt, indicators, key: SEED_KEY), -1);
+    result.modelHash = withDefault(
+        substring(prompt, indicators, key: MODEL_HASH_KEY), this.modelHash);
     // result.modelHash = prompt.substring(
     //     indicators[5].end + 1, nextAvailable(indicators, 5)?.start - 2);
     // result.size = prompt.substring(indicators[6].end + 1);
@@ -93,8 +100,6 @@ class Configs {
     }
     return -1;
   }
-
-
 
 // Pair a = findPrompt(0, prompt, NEGATIVE_KEY);
 // result.prompt=a.a;
