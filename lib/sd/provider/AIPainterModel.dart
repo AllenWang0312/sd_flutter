@@ -147,6 +147,15 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     notifyListeners();
   }
 
+  int selectedStyleLen() {
+    return checkedRadio.length+checkedStyles.length;
+  }
+
+  void updateAutoGenerate(bool value) {
+    autoGenerate = value;
+    notifyListeners();
+  }
+
 
   // void updateLastGenerate(String lastGenerate){
   //   this.lastGenerate = lastGenerate;

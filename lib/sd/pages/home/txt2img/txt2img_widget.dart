@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/my_checkbox.dart';
@@ -49,6 +50,9 @@ class TXT2IMGWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // bool canVibrate = await Vibrate.canVibrate;
+
+
     logt(TAG, "build");
     TXT2IMGModel model = Provider.of<TXT2IMGModel>(context, listen: false);
     AIPainterModel provider =
@@ -187,7 +191,16 @@ class TXT2IMGWidget extends StatelessWidget {
             Positioned(
                 right: 16,
                 bottom: 16,
-                child: GenerateButton(() => txt2img(context, model, provider)))
+                child: Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          provider.randomCheckedStyle();
+                        },
+                        icon: const Icon(Icons.refresh)),
+                    GenerateButton(() => txt2img(context, model, provider)),
+                  ],
+                ))
           ]),
         )
       ],
@@ -279,16 +292,32 @@ class TXT2IMGWidget extends StatelessWidget {
                         workspace: provider.selectWorkspace?.name),
                   );
                 }
+
                 //todo 自动保存之后 是不是不该显示下载按钮 或者 下载到Download
                 Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
                   "datas": datas,
                   "savePath": provider.autoSave
                       ? null
                       : provider.selectWorkspace!.dirPath,
-                  "scanAvailable": provider.netWorkState >= ONLINE
+                  "scanAvailable": provider.netWorkState >= ONLINE,
+                  "autoCancel":provider.autoGenerate?3:null
                 });
               }
+              if(provider.txt2img.steps>=40&&provider.selectedStyleLen()>30){
+                  Vibrate.vibrateWithPauses([
+                  const Duration(minutes: 200),
+                  const Duration(minutes: 300),
+                  const Duration(minutes: 500)
+                ]);
+              }
+
               provider.save();
+              if(provider.autoGenerate){
+                if(provider.autoRandom){
+                  provider.optional.randomChild(provider);
+                }
+              txt2img(context,model,provider);
+              }
             }
           });
         } else {
@@ -452,7 +481,7 @@ class TXT2IMGWidget extends StatelessWidget {
       children: [
         if(provider.styleFrom==3)Row(
           children: [
-            Text('主体'),
+            const Text('主体'),
             Expanded(
               child: Selector<AIPainterModel, double>(
                 selector: (_, model) => model.txt2img.weight,
@@ -470,7 +499,7 @@ class TXT2IMGWidget extends StatelessWidget {
                 },
               ),
             ),
-            Text('装饰物')
+            const Text('装饰物')
           ],
         ),
         Row(

@@ -82,9 +82,9 @@ class SamplerWidget extends StatelessWidget {
                 shouldRebuild: (pre, next) => pre != next,
                 builder: (context, steps, child) => Slider(
                   value: steps.toDouble(),
-                  min: 1,
-                  max: 100,
-                  divisions: 99,
+                  min: 30,
+                  max: 90,
+                  divisions: 6,
                   onChanged: (double value) {
                     print("steps seek$value");
                     provider.updateSteps(value);

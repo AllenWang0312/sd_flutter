@@ -71,7 +71,7 @@ class PromptStylePicker extends StatelessWidget {
                     selector: (_, model) => model.lockedRadioGroup.length+model.lockedStyles.length,
                     builder: (_, value, child) {
                       return GestureDetector(
-                          onLongPressEnd: (detail) {
+                          onTap: () {
                             provider.lockSelector(e);
                           },
                           child: RawChip(
@@ -102,11 +102,6 @@ class PromptStylePicker extends StatelessWidget {
                 offstage: newValue,
                 child: Column(
                   children: [
-                    IconButton(
-                        onPressed: () {
-                          provider.randomCheckedStyle();
-                        },
-                        icon: const Icon(Icons.refresh)),
                     IconButton(
                         onPressed: () {
                           provider.save();

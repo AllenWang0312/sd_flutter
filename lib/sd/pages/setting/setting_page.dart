@@ -50,7 +50,7 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<AIPainterModel>(context);
+    provider = Provider.of<AIPainterModel>(context,listen: false);
     ipConfigWidget = IPConfigWidget(sdShare);
 
     return Scaffold(
@@ -145,6 +145,30 @@ class _SettingPageState extends State<SettingPage> {
                   );
                 }),
             Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.autoGenerate,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return Container(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "自动重试",
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_AUTO_GENERATE, value);
+                            provider
+                                .updateAutoGenerate(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
               selector: (_, model) => model.autoSave,
               shouldRebuild: (pre, next) => pre != next,
               builder: (_, newValue, child) {
@@ -161,7 +185,7 @@ class _SettingPageState extends State<SettingPage> {
                           value: newValue,
                           onChanged: (value) {
                             sp.setBool(SP_AUTO_SAVE, value);
-                            Provider.of<AIPainterModel>(context, listen: false)
+                            provider
                                 .updateAutoSave(value);
                           })
                     ],
@@ -186,7 +210,7 @@ class _SettingPageState extends State<SettingPage> {
                           value: newValue,
                           onChanged: (value) {
                             sp.setBool(SP_HIDE_NSFW, value);
-                            Provider.of<AIPainterModel>(context, listen: false)
+                            provider
                                 .updateHideNSFW(value);
                           })
                     ],
@@ -211,7 +235,7 @@ class _SettingPageState extends State<SettingPage> {
                           value: newValue,
                           onChanged: (value) {
                             sp.setBool(SP_CHECK_IDENTITY, value);
-                            Provider.of<AIPainterModel>(context, listen: false)
+                            provider
                                 .updateCheckIdentity(value);
                           })
                     ],
@@ -227,7 +251,7 @@ class _SettingPageState extends State<SettingPage> {
                   style: settingTitle,
                 ),
                 IconButton(
-                  icon: Icon(Icons.add),
+                  icon: const Icon(Icons.add),
                   onPressed: () {
                     editOrCreateWorkspace(context);
                   },

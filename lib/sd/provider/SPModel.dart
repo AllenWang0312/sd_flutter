@@ -30,7 +30,9 @@ class SPModel extends DBModel {
   int batchSize = 1;
 
   // String host =
+  bool autoGenerate = true;
   bool autoSave = true;
+  bool autoRandom = true;
   bool hideNSFW = true;
   bool checkIdentityWhenReEnter = true;
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,6 +11,7 @@ import 'package:sd/sd/bean/db/LocalFileInfo.dart';
 import 'package:sd/sd/bean/file/Showable.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
+
 import '../../../common/third_util.dart';
 import '../../bean/file/UniqueSign.dart';
 import '../../const/config.dart';
@@ -49,11 +51,13 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   bool? isFavourite;
   String? type;
   int fnIndex; //remote +3 fav-10 del -12
+  int? autoCancel;
 
   late ImagesType dataType;
 
   ImagesViewer(
-      {this.urls,
+      {this.autoCancel,
+      this.urls,
       this.index,
       this.fnIndex = 0,
       this.title,
@@ -83,9 +87,20 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
   late ImagesModel images;
 
   List<String>? removedItems;
-
+  Timer? countdownTimer;
   @override
   Widget build(BuildContext context) {
+    if (autoCancel != null && autoCancel! > 0) {
+      countdownTimer =
+          Timer.periodic(const Duration(seconds: 1), (timer) async {
+        if (autoCancel! <= 0) {
+          Navigator.pop(context);
+          countdownTimer?.cancel();
+          countdownTimer = null;
+        }
+        autoCancel = autoCancel! - 1;
+      });
+    }
     provider = Provider.of<AIPainterModel>(context, listen: false);
     images = Provider.of<ImagesModel>(context, listen: false);
 
@@ -225,7 +240,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                 if (await DBController.instance
                         .insertAgeLevelRecord(data, datas[index], value) >
                     0) {
-                  provider.setAgeLevel(sign,value);
+                  provider.setAgeLevel(sign, value);
                 }
               }
             } else if (value == -100) {
@@ -248,14 +263,14 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                 });
               } else {
                 String? localPath = urls?[index].getFileLocation();
-                if(null!=localPath){
-                  int result = await DBController.instance.deleteLocalRecord(localPath);
-                  if(result>0){
+                if (null != localPath) {
+                  int result =
+                      await DBController.instance.deleteLocalRecord(localPath);
+                  if (result > 0) {
                     File(localPath).deleteSync(recursive: true);
                   }
-                  logt(TAG,"delete result $result $localPath");
+                  logt(TAG, "delete result $result $localPath");
                 }
-
               }
             } else {
               if (await DBController.instance
@@ -362,8 +377,8 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
                   int? page = controller.page?.toInt();
                   if (null != page) {
                     Uint8List bytes = await getBytes(page);
-                    await syncTagger(cmd.getImageTaggers,bytes, provider.selectedInterrogator, 30,
-                        (tagger) {
+                    await syncTagger(cmd.getImageTaggers, bytes,
+                        provider.selectedInterrogator, 30, (tagger) {
                       showDialog(
                           context: context,
                           builder: (context) {
@@ -434,6 +449,8 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
         tag: isRemote ? fileLocation : index,
         child: interactiveView(isRemote
             ? CachedNetworkImage(imageUrl: fileLocation)
-            : dataType==ImagesType.files?Image.file(File(fileLocation)):Image.memory(datas[index]!)));
+            : dataType == ImagesType.files
+                ? Image.file(File(fileLocation))
+                : Image.memory(datas[index]!)));
   }
 }

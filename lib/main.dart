@@ -78,6 +78,7 @@ Map<String, Function> PUBLIC_ROUTES = {
         child: _swipeBack(
             context,
             _addSafeIfMobile(ImagesViewer(
+              autoCancel: arguments['autoCancel'],
                 urls: arguments['urls'],
                 index: arguments['index'],
                 datas: arguments['datas'],
