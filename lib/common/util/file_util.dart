@@ -93,6 +93,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
     }
     if (null != groupRecord) {
       if (groupRecord.keys.contains(group)) {
+        groupRecord[group]??=[];
         groupRecord[group]?.add(item);
       } else {
         groupRecord.putIfAbsent(group, () => [item]);

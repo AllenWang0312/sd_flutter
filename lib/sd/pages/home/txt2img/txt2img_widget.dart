@@ -314,6 +314,7 @@ class TXT2IMGWidget extends StatelessWidget {
               provider.save();
               if(provider.autoGenerate){
                 if(provider.autoRandom){
+                  provider.randomHW();
                   provider.optional.randomChild(provider);
                 }
               txt2img(context,model,provider);

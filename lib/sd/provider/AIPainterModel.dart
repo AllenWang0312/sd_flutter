@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:sd/common/splash_page.dart';
 import 'package:sd/sd/bean4json/UpScaler.dart';
 import 'package:sd/sd/http_service.dart';
@@ -153,6 +155,22 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
 
   void updateAutoGenerate(bool value) {
     autoGenerate = value;
+    notifyListeners();
+  }
+
+  void randomHW() {
+    int size = Random().nextInt(3);
+    if(size==0){
+      txt2img.width = 512;
+      txt2img.height = 768;
+
+    }else if(size==1){
+      txt2img.width = 768;
+      txt2img.height = 512;
+    }else if(size==2){
+      txt2img.width = 768;
+      txt2img.height = 768;
+    }
     notifyListeners();
   }
 
