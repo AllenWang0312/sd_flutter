@@ -53,10 +53,10 @@ class SPModel extends DBModel {
         String target = checkedRadioGroup[checkedRadio.indexOf(name)];
         if (lockedRadioGroup.contains(target)) {
           lockedRadioGroup.remove(target);
-          logt(TAG,'$target unlocked');
+          logt(TAG,'$target unlocked $lockedRadioGroup $checkedRadioGroup');
         } else {
           lockedRadioGroup.add(target);
-          logt(TAG,'$target locked');
+          logt(TAG,'$target locked $lockedRadioGroup $checkedRadioGroup');
 
         }
         notifyListeners();

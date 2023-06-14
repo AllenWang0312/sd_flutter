@@ -127,7 +127,6 @@ class Optional extends PromptStyle {
 
   void randomChild(AIPainterModel provider) {
 
-    logt(TAG, "random Child $group $name $step");
 
     if (
     // step != 0 && //todo 过滤还有缺陷
@@ -138,7 +137,9 @@ class Optional extends PromptStyle {
           all.where((element) => !isSingle(element)&&!provider.lockedStyles.contains(element)&&(options![element]?.prompt!=null||options![element]?.negativePrompt!=null)).toList();
       final Random random = Random();
 
-      if(!provider.lockedRadioGroup.contains("$group|$name")){
+      if(!provider.lockedRadioGroup.contains(groupName(group, name))){
+        logt(TAG, "random Child $group $name $step");
+
         bool radioChecked =
         provider.checkedRadioGroup.contains(groupName(group, name));
 
