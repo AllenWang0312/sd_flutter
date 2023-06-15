@@ -169,6 +169,30 @@ class _SettingPageState extends State<SettingPage> {
               },
             ),
             Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.vibrate,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return Container(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "震动提醒",
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_VIBRATE, value);
+                            provider
+                                .updateVibrate(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
               selector: (_, model) => model.autoSave,
               shouldRebuild: (pre, next) => pre != next,
               builder: (_, newValue, child) {

@@ -174,6 +174,11 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     notifyListeners();
   }
 
+  void updateVibrate(bool value) {
+    vibrate = value;
+    notifyListeners();
+  }
+
 
   // void updateLastGenerate(String lastGenerate){
   //   this.lastGenerate = lastGenerate;

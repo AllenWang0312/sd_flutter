@@ -303,7 +303,10 @@ class TXT2IMGWidget extends StatelessWidget {
                   "autoCancel":provider.autoGenerate?3:null
                 });
               }
-              if(provider.txt2img.steps>=40&&provider.selectedStyleLen()>30){
+              if(
+              provider.vibrate
+              // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
+            ){
                   Vibrate.vibrateWithPauses([
                   const Duration(minutes: 200),
                   const Duration(minutes: 300),

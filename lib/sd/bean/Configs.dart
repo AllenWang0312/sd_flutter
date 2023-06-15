@@ -25,6 +25,7 @@ class Configs {
   int YValue = 0;
   int ZValue = 0;
 
+
   set size(String value) {
     _size = value;
     var sizes = value.split('x');

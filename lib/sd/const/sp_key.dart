@@ -25,6 +25,8 @@ const String SP_LOCKED_RADIO_GROUPS = "locked_radio_groups";
 const String SP_LOCKED_STYLES= "locked_styles";
 
 const String SP_AUTO_GENERATE = "auto_generate";
+const String SP_VIBRATE = "vibrate";
+
 const String SP_AUTO_SAVE = "auto_save";
 const String SP_HIDE_NSFW = "hide_nsfw";
 const String SP_CHECK_IDENTITY = "check_identity";

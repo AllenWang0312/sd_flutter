@@ -31,6 +31,8 @@ class SPModel extends DBModel {
 
   // String host =
   bool autoGenerate = true;
+  bool vibrate = false;
+
   bool autoSave = true;
   bool autoRandom = true;
   bool hideNSFW = true;
