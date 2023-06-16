@@ -113,7 +113,7 @@ class _SplashPageState extends State<SplashPage> {
 
    getSettings() {
     // provider.networkInitApiOptions();
-    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 20,
+    get("$sdHttpService$GET_OPTIONS", timeOutSecond: 60,
         exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) async {

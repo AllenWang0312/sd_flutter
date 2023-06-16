@@ -8,23 +8,19 @@ import 'package:sd/sd/pages/home/txt2img/tagger_widget.dart';
 import 'package:sd/sd/provider/config_model.dart';
 import 'package:sd/sd/provider/index_recorder.dart';
 
-
-
 //存放需要在闪屏页初始化的配置
 //todo 类瘦身 没必要常态化持有的 拆分出去
 
 const String TAG = 'AIPainterModel';
 
-
-class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider{
+class AIPainterModel extends ConfigModel
+    with IndexRecorder, NetWorkStateProvider {
   int countdownNum = SPLASH_WATTING_TIME; // todo 连同timer 封装到组件  闪屏页倒计时
 
   String? selectedSDModel;
   String selectedInterrogator = DEFAULT_INTERROGATOR;
   List<UpScaler> upScalers = [];
   String lastGenerate = '';
-
-
 
   // late Map<String, ImageSize?> imgSize = {};
   // bool https = false;
@@ -34,12 +30,11 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
   // String selectedSDModel = "";
   // Map<String, double> checkedPlugins = Map(); // lora
 
-
-  void setAgeLevel(String sign,int value) {
+  void setAgeLevel(String sign, int value) {
     if (value > 0) {
       limit.putIfAbsent(sign, () => value);
     } else {
-     limit.remove(sign);
+      limit.remove(sign);
     }
     notifyListeners();
   }
@@ -48,12 +43,12 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     return limit[sign] ?? 0;
   }
 
-
   @override
   void updateIndex(int index) {
     this.index = index;
     notifyListeners();
   }
+
   @override
   void updateNetworkState(int i) {
     netWorkState = i;
@@ -71,10 +66,9 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     notifyListeners();
   }
 
-
   updateSDModel(String? model) {
     selectedSDModel = model;
-    logt(TAG, model??"null");
+    logt(TAG, model ?? "null");
     notifyListeners();
   }
 
@@ -97,8 +91,6 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     notifyListeners();
   }
 
-
-
   String getCheckedPluginsString() {
     String result = "";
     for (String key in checkedPlugins.keys) {
@@ -107,13 +99,9 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     return result;
   }
 
-
-
   int limitedUrl(String imgUrl) {
     return limit[imgUrl] ?? 0;
   }
-
-
 
   void randomCheckedStyle() {
     optional.randomChild(this);
@@ -122,24 +110,23 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
 
   void unCheckRadio(String name) {
     int index = checkedRadio.indexOf(name);
-    if(index>=0){
+    if (index >= 0) {
       checkedRadio.remove(name);
       checkedRadioGroup.removeAt(index);
-    notifyListeners();
-    }
-
-  }
-
-  void removeCheckedStyles(String item,{refresh = false}) {
-    checkedStyles.remove(item);
-    if(refresh){
       notifyListeners();
     }
   }
 
-  void addCheckedStyles(String other,{refresh = false}) {
+  void removeCheckedStyles(String item, {refresh = false}) {
+    checkedStyles.remove(item);
+    if (refresh) {
+      notifyListeners();
+    }
+  }
+
+  void addCheckedStyles(String other, {refresh = false}) {
     checkedStyles.add(other);
-    if(refresh){
+    if (refresh) {
       notifyListeners();
     }
   }
@@ -150,7 +137,7 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
   }
 
   int selectedStyleLen() {
-    return checkedRadio.length+checkedStyles.length;
+    return checkedRadio.length + checkedStyles.length;
   }
 
   void updateAutoGenerate(bool value) {
@@ -158,20 +145,30 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     notifyListeners();
   }
 
-  void randomHW() {
-    int size = Random().nextInt(3);
-    if(size==0){
-      txt2img.width = 512;
-      txt2img.height = 768;
+  //3840*2160 1/2 1920*1080 1/3 1280*720
+  //2688*1242 1/2 1344*621
+  //2400x1080 1/2 1200*540
+  // 768 512
+  static const sizes = [
+    [768, 512],
+    [1200, 540],
+    [1344, 621],
+    [1280, 720]
+  ];
 
-    }else if(size==1){
-      txt2img.width = 768;
-      txt2img.height = 512;
-    }else if(size==2){
+  void randomHW() {
+    int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
+    int size = Random().nextInt(4);
+    if (vertical == 2) {
       txt2img.width = 768;
       txt2img.height = 768;
+    } else if (vertical == 1) {
+      txt2img.width = sizes[size][1];
+      txt2img.height = sizes[size][0];
+    } else if (vertical == 0) {
+      txt2img.width = sizes[size][0];
+      txt2img.height = sizes[size][1];
     }
-    notifyListeners();
   }
 
   void updateVibrate(bool value) {
@@ -179,12 +176,16 @@ class AIPainterModel extends ConfigModel with IndexRecorder,NetWorkStateProvider
     notifyListeners();
   }
 
-
   // void updateLastGenerate(String lastGenerate){
   //   this.lastGenerate = lastGenerate;
   //
   //   notifyListeners();
   // }
 
-
+  void switchWH() {
+    int width = txt2img.width;
+    txt2img.width = txt2img.height;
+    txt2img.height = width;
+    notifyListeners();
+  }
 }

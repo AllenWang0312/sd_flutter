@@ -32,7 +32,6 @@ class Configs {
     width = int.parse(sizes[0]);
     height = int.parse(sizes[1]);
   }
-
   int width = DEFAULT_WIDTH;
   int height = DEFAULT_HEIGHT;
 

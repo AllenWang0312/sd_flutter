@@ -172,7 +172,7 @@ void main() async {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           builder: FToastBuilder(),
-          title: 'Flutter Demo',
+          title: 'SD Flutter',
 
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -182,6 +182,7 @@ void main() async {
             primaryColor: COLOR_ACCENT,
           ),
           home: SplashPage(),
+
           onGenerateRoute: _generateRoute,
         )),
   ));

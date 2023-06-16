@@ -136,7 +136,7 @@ class ConfigModel extends SPModel {
     logt(TAG,"initTranlatesIfServiceActive $localVersion $serviceVersion");
 
     if (localVersion==null||localVersion < serviceVersion) {
-      get("$sdHttpService$TAG_COMPUTE_CN", timeOutSecond: 10)
+      get("$sdHttpService$TAG_COMPUTE_CN", timeOutSecond: 60)
           .then((value) async {
         if (null != value) {
           asyncDecodeTranslateAndSaveToDB(value.data.toString());

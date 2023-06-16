@@ -50,9 +50,6 @@ class TXT2IMGWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // bool canVibrate = await Vibrate.canVibrate;
-
-
     logt(TAG, "build");
     TXT2IMGModel model = Provider.of<TXT2IMGModel>(context, listen: false);
     AIPainterModel provider =
@@ -276,7 +273,7 @@ class TXT2IMGWidget extends StatelessWidget {
                 if (provider.autoSave) {
                   String now = DateTime.now().toString();
                   logt(TAG, now.substring(0, 10));
-                  String fileName = "${dbString(now)}.png";
+                  String fileName = "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
                   // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
                   String result = await saveBytesToLocal(
                       bytes, fileName, provider.selectWorkspace!.absPath);
@@ -300,7 +297,7 @@ class TXT2IMGWidget extends StatelessWidget {
                       ? null
                       : provider.selectWorkspace!.dirPath,
                   "scanAvailable": provider.netWorkState >= ONLINE,
-                  "autoCancel":provider.autoGenerate?3:null
+                  "autoCancel": provider.autoGenerate ? 3 : null
                 });
               }
               if(
@@ -320,7 +317,7 @@ class TXT2IMGWidget extends StatelessWidget {
                   provider.randomHW();
                   provider.optional.randomChild(provider);
                 }
-              txt2img(context,model,provider);
+                txt2img(context, model, provider);
               }
             }
           });
@@ -470,10 +467,10 @@ class TXT2IMGWidget extends StatelessWidget {
               index: newValue.index,
               children: [
                 _basic(provider, sampler, upScaler),
-                _advanced(provider,
+                _advanced(
+                    provider,
                     // !sdShare! && provider.generateType == 1
-                true
-                ),
+                    true),
                 // TagWidget(TAG_MODELTYPE_LORA, TAG_PREFIX_LORA, GET_LORA_NAMES),
                 // TagWidget(TAG_MODELTYPE_HPE, TAG_PREFIX_HPE, GET_HYP_NAMES),
               ],
@@ -483,29 +480,30 @@ class TXT2IMGWidget extends StatelessWidget {
   Widget _basic(AIPainterModel provider, Widget sampler, Widget upScaler) {
     return Column(
       children: [
-        if(provider.styleFrom==3)Row(
-          children: [
-            const Text('主体'),
-            Expanded(
-              child: Selector<AIPainterModel, double>(
-                selector: (_, model) => model.txt2img.weight,
-                builder: (_, newValue, child) {
-                  return Slider(
-                    value: newValue,
-                    min: 1,
-                    max: 9,
-                    divisions: 8,
-                    onChanged: (double value) {
-                      provider.updateWeight(value);
-                      // samplerStepsController.text = samplerSteps.toString();
-                    },
-                  );
-                },
+        if (provider.styleFrom == 3)
+          Row(
+            children: [
+              const Text('主体'),
+              Expanded(
+                child: Selector<AIPainterModel, double>(
+                  selector: (_, model) => model.txt2img.weight,
+                  builder: (_, newValue, child) {
+                    return Slider(
+                      value: newValue,
+                      min: 1,
+                      max: 9,
+                      divisions: 8,
+                      onChanged: (double value) {
+                        provider.updateWeight(value);
+                        // samplerStepsController.text = samplerSteps.toString();
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            const Text('装饰物')
-          ],
-        ),
+              const Text('装饰物')
+            ],
+          ),
         Row(
           children: [
             Selector<AIPainterModel, bool>(
@@ -551,67 +549,76 @@ class TXT2IMGWidget extends StatelessWidget {
           ],
         ),
         sampler,
-        Selector<AIPainterModel, int>(
-            selector: (_, model) => model.txt2img.width,
-            shouldRebuild: (pre, next) => pre != next,
-            builder: (context, newValue, child) {
-              AIPainterModel provider = Provider.of<AIPainterModel>(context);
-
-              TextEditingController widthController =
-                  TextEditingController(text: newValue.toString());
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("width"),
-                  SizedBox(
-                      width: 40,
-                      child: TextField(
-                          // initialValue: provider.samplerSteps.toString(),
-                          controller: widthController)),
-                  Slider(
-                    value: newValue.toDouble(),
-                    min: 512,
-                    max: 2560,
-                    divisions: 16,
-                    onChanged: (double value) {
-                      print("steps seek$value");
-                      provider.updateWidth(value);
-                      // samplerStepsController.text = samplerSteps.toString();
-                    },
-                  )
-                ],
-              );
-            }),
-        Selector<AIPainterModel, int>(
-            selector: (_, model) => model.txt2img.height,
-            shouldRebuild: (pre, next) => pre != next,
-            builder: (context, newValue, child) {
-              AIPainterModel provider = Provider.of<AIPainterModel>(context);
-              TextEditingController heightController =
-                  TextEditingController(text: newValue.toString());
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("height"),
-                  SizedBox(
-                      width: 40,
-                      child: TextField(
-                          // initialValue: provider.samplerSteps.toString(),
-                          controller: heightController)),
-                  Slider(
-                    value: newValue.toDouble(),
-                    min: 512,
-                    max: 2560,
-                    divisions: 16,
-                    onChanged: (double value) {
-                      print("steps seek$value");
-                      provider.updateHeight(value);
-                      // samplerStepsController.text = samplerSteps.toString();
-                    },
-                  )
-                ],
-              );
-            }),
+        Row(
+          children: [
+            Column(
+              children: [
+                Selector<AIPainterModel, int>(
+                    selector: (_, model) => model.txt2img.width,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (context, newValue, child) {
+                      TextEditingController widthController =
+                          TextEditingController(text: newValue.toString());
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("width"),
+                          SizedBox(
+                              width: 40,
+                              child: TextField(
+                                  // initialValue: provider.samplerSteps.toString(),
+                                  controller: widthController)),
+                          Slider(
+                            value: newValue.toDouble(),
+                            min: 512,
+                            max: 2560,
+                            divisions: 16,
+                            onChanged: (double value) {
+                              provider.updateWidth(value);
+                              // samplerStepsController.text = samplerSteps.toString();
+                            },
+                          )
+                        ],
+                      );
+                    }),
+                Selector<AIPainterModel, int>(
+                    selector: (_, model) => model.txt2img.height,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (context, newValue, child) {
+                      TextEditingController heightController =
+                          TextEditingController(text: newValue.toString());
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("height"),
+                          SizedBox(
+                              width: 40,
+                              child: TextField(
+                                  // initialValue: provider.samplerSteps.toString(),
+                                  controller: heightController)),
+                          Slider(
+                            value: newValue.toDouble(),
+                            min: 512,
+                            max: 2560,
+                            divisions: 16,
+                            onChanged: (double value) {
+                              print("steps seek$value");
+                              provider.updateHeight(value);
+                              // samplerStepsController.text = samplerSteps.toString();
+                            },
+                          )
+                        ],
+                      );
+                    }),
+              ],
+            ),
+            IconButton(
+                onPressed: () {
+                  provider.switchWH();
+                },
+                icon: const Icon(Icons.compare_arrows_rounded))
+          ],
+        ),
         Selector<AIPainterModel, bool>(
           selector: (_, model) => model.hiresFix,
           builder: (context, newValue, child) => Column(
@@ -623,8 +630,7 @@ class TXT2IMGWidget extends StatelessWidget {
                       value: newValue,
                       onChanged: (newValue) {
                         // setState(() {
-                        Provider.of<AIPainterModel>(context, listen: false)
-                            .setHiresFix(newValue!);
+                        provider.setHiresFix(newValue!);
                         // });
                       }),
                   Text(AppLocalizations.of(context).hires),
