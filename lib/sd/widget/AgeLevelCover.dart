@@ -79,16 +79,16 @@ class AgeLevelCover extends StatelessWidget with FilePromptReader {
                             provider, context, snapshot.data.toString()),
                         icon: const Icon(Icons.info),
                       )),
-                if(configs!=null)
+                if (configs != null)
                   Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Column(children: [
-                        Text(configs?.model??'未读取到主模'),
-
-                        Text('高 ${configs?.height} 宽 ${configs?.width}')
-                      ],)),
-
+                      left: 0,
+                      bottom: 0,
+                      child: Column(
+                        children: [
+                          Text(configs?.model ?? '未读取到主模'),
+                          Text('高 ${configs?.height} 宽 ${configs?.width}')
+                        ],
+                      )),
               ],
             );
           },
