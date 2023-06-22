@@ -209,7 +209,7 @@ class TXT2IMGWidget extends StatelessWidget {
 
   txt2img(
       BuildContext context, TXT2IMGModel model, AIPainterModel provider) async {
-    if (provider.netWorkState == ONLINE) {
+    if (provider.netWorkState <= REQUEST_ERROR) {
       if (await checkStoragePermission()) {
         //todo autosave 在要求权限
         var from = {
@@ -246,6 +246,12 @@ class TXT2IMGWidget extends StatelessWidget {
                 ? promptStylePicker.getStylePromptV3(
                     provider.txt2img.steps * provider.txt2img.weight ~/ 10)
                 : promptStylePicker.getStylePrompt());
+        if(provider.txt2img.height>provider.txt2img.width*1.5){
+          prompt = "((solo)),beautiful detailed sky,full body,$prompt";
+        }
+        if(provider.txt2img.width>provider.txt2img.height*1.5){
+          prompt = "((solo)),upper body,$prompt";
+        }
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +

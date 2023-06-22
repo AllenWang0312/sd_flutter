@@ -1,20 +1,19 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:sd/sd/const/config.dart';
-import 'package:sd/sd/const/routes.dart';
+import 'package:sd/sd/widget/file_prompt_reader.dart';
 
 import '../../common/third_util.dart';
-import '../../common/util/file_util.dart';
 import '../../common/util/ui_util.dart';
+import '../bean/Configs.dart';
 import '../bean/file/UniqueSign.dart';
 import '../http_service.dart';
 import '../provider/AIPainterModel.dart';
 
 const TAG = 'AgeLevelCover';
-class AgeLevelCover extends StatelessWidget {
+
+class AgeLevelCover extends StatelessWidget with FilePromptReader {
   UniqueSign info;
   bool? needInfoLogo;
 
@@ -22,12 +21,14 @@ class AgeLevelCover extends StatelessWidget {
 
   late AIPainterModel provider;
 
+  Configs? configs;
+
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
     String fileLocation = info.getFileLocation();
-    logt(TAG,"fileLocation"+fileLocation);
-    if (fileLocation.startsWith("http")&&fileLocation.endsWith(".png")) {
+    logt(TAG, "fileLocation" + fileLocation);
+    if (fileLocation.startsWith("http") && fileLocation.endsWith(".png")) {
       // bytes = await getBytesWithDio(info.url!);
       return Card(
         clipBehavior: Clip.antiAlias,
@@ -52,14 +53,17 @@ class AgeLevelCover extends StatelessWidget {
         ),
       );
     } else {
-      File image= File(info.getFileLocation());
-      Uint8List bytes= image.readAsBytesSync();
+      File image = File(info.getFileLocation());
+      // Uint8List bytes= image.readAsBytesSync();
       return Card(
         clipBehavior: Clip.antiAlias,
         shape: SHAPE_IMAGE_CARD,
         child: FutureBuilder(
           future: info.getAndCacheExif(image),
           builder: (context, snapshot) {
+            if (null != snapshot.data) {
+              configs = pauseConfigs(snapshot.data.toString());
+            }
             return Stack(
               children: [
                 filterCover(provider, info),
@@ -74,7 +78,17 @@ class AgeLevelCover extends StatelessWidget {
                         onPressed: () => showPromptDialog(
                             provider, context, snapshot.data.toString()),
                         icon: const Icon(Icons.info),
-                      ))
+                      )),
+                if(configs!=null)
+                  Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Column(children: [
+                        Text(configs?.model??'未读取到主模'),
+
+                        Text('高 ${configs?.height} 宽 ${configs?.width}')
+                      ],)),
+
               ],
             );
           },
@@ -95,8 +109,7 @@ filterCover(AIPainterModel provider, UniqueSign info) {
             ? ImageFiltered(imageFilter: AGE_LEVEL_BLUR, child: child)
             : child!;
       },
-      child: SizedBox.expand(
-          child: Image.file(File(info.getFileLocation())))
+      child: SizedBox.expand(child: Image.file(File(info.getFileLocation())))
       // Selector<AIPainterModel, ImageSize?>(
       //   selector: (_, model) => model.imgSize[info.sign],
       //   builder: (context, value, child) {
@@ -104,35 +117,4 @@ filterCover(AIPainterModel provider, UniqueSign info) {
       //   },
       // ),
       );
-}
-
-Future<void> showPromptDialog(
-    AIPainterModel provider, BuildContext context, String prompt) async {
-  showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Prompt'),
-          content: SingleChildScrollView(child: SelectableText(prompt)),
-          actions: [
-            TextButton(
-                onPressed: () {
-                  provider.updatePrompt(prompt);
-                  // provider.updateConfigs(Configs.fromString(prompt));
-                  // 跳转使用
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, ROUTE_HOME, (route) => false,
-                      arguments: {"index": 1});
-                  // Navigator.pushAndRemoveUntil(context,MaterialPageRoute(builder: ),(route)=>false);
-                },
-                child: Text('立即使用')),
-            TextButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: prompt));
-                },
-                child: Text('复制'))
-          ],
-        );
-      });
-  // provider.updateIndex(result);
 }

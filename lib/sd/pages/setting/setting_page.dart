@@ -154,7 +154,7 @@ class _SettingPageState extends State<SettingPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "自动重试",
+                        "无限出图",
                       ),
                       CupertinoSwitch(
                           value: newValue,
@@ -162,6 +162,30 @@ class _SettingPageState extends State<SettingPage> {
                             sp.setBool(SP_AUTO_GENERATE, value);
                             provider
                                 .updateAutoGenerate(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.hwLocked,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return Container(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "固定宽高",
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_HW_Locked, value);
+                            provider
+                                .updateHWLocked(value);
                           })
                     ],
                   ),

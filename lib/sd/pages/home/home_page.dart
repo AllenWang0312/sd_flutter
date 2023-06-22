@@ -30,81 +30,79 @@ class HomePage extends StatelessWidget {
     provider = Provider.of<AIPainterModel>(context, listen: false);
     if (null != index) provider.index = index!;
     // home = Provider.of<HomeModel>(context, listen: false);
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: COLOR_BACKGROUND,
-        body: Selector<AIPainterModel, int>(
+    return Scaffold(
+      backgroundColor: COLOR_BACKGROUND,
+      body: Selector<AIPainterModel, int>(
+        selector: (_, model) => model.index,
+        shouldRebuild: (pre, next) => pre != next,
+        builder: (context, newValue, child) => IndexedStack(
+          index: newValue,
+          children: [
+            // LoraWidget(),
+            ChangeNotifierProvider(
+              create: (_) => TXT2IMGModel(),
+              child: TXT2IMGWidget(),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => IMG2IMGModel(),
+              child: IMG2IMGWidget(),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => RecordsModel(),
+              child: RecordsWidget(key: sonKey),
+            ),
+            // MineWidget(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Selector<AIPainterModel, int>(
           selector: (_, model) => model.index,
           shouldRebuild: (pre, next) => pre != next,
-          builder: (context, newValue, child) => IndexedStack(
-            index: newValue,
-            children: [
-              // LoraWidget(),
-              ChangeNotifierProvider(
-                create: (_) => TXT2IMGModel(),
-                child: TXT2IMGWidget(),
-              ),
-              ChangeNotifierProvider(
-                create: (_) => IMG2IMGModel(),
-                child: IMG2IMGWidget(),
-              ),
-              ChangeNotifierProvider(
-                create: (_) => RecordsModel(),
-                child: RecordsWidget(key: sonKey),
-              ),
-              // MineWidget(),
-            ],
-          ),
-        ),
-        bottomNavigationBar: Selector<AIPainterModel, int>(
-            selector: (_, model) => model.index,
-            shouldRebuild: (pre, next) => pre != next,
-            builder: (context, newValue, child) {
-              return BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                currentIndex: newValue,
-                items: [
-                  // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
-                  // BottomNavigationBarItem(
-                  //     icon: const Icon(Icons.find_in_page_outlined),
-                  //     label: AppLocalizations.of(context).tavern),
+          builder: (context, newValue, child) {
+            return BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              currentIndex: newValue,
+              items: [
+                // const BottomNavigationBarItem(icon: Icon(Icons.history), label: "Friends"),
+                // BottomNavigationBarItem(
+                //     icon: const Icon(Icons.find_in_page_outlined),
+                //     label: AppLocalizations.of(context).tavern),
 
-                  BottomNavigationBarItem(
-                      icon: const Icon(Icons.draw_outlined),
-                      label: AppLocalizations.of(context).txt2img),
-                  BottomNavigationBarItem(
-                      icon: const Icon(Icons.image_search),
-                      label: AppLocalizations.of(context).img2img),
-                  BottomNavigationBarItem(
-                      icon: GestureDetector(
-                        onDoubleTap: () {
-                          logt(TAG, 'onDoubleTap');
-                          sonKey.currentState?.returnTopAndRefresh();
-                        },
-                        child: Icon(Icons.find_in_page_outlined),
-                      ),
-                      label: AppLocalizations.of(context).history),
-                  // BottomNavigationBarItem(
-                  //     icon: const Icon(Icons.account_box_outlined),
-                  //     label: AppLocalizations.of(context).mine),
-                ],
-                onTap: (index) {
-                    Provider.of<AIPainterModel>(context, listen: false)
-                        .updateIndex(index);
+                BottomNavigationBarItem(
+                    icon: const Icon(Icons.draw_outlined),
+                    label: AppLocalizations.of(context).txt2img),
+                BottomNavigationBarItem(
+                    icon: const Icon(Icons.image_search),
+                    label: AppLocalizations.of(context).img2img),
+                BottomNavigationBarItem(
+                    icon: GestureDetector(
+                      onDoubleTap: () {
+                        logt(TAG, 'onDoubleTap');
+                        sonKey.currentState?.returnTopAndRefresh();
+                      },
+                      child: Icon(Icons.find_in_page_outlined),
+                    ),
+                    label: AppLocalizations.of(context).history),
+                // BottomNavigationBarItem(
+                //     icon: const Icon(Icons.account_box_outlined),
+                //     label: AppLocalizations.of(context).mine),
+              ],
+              onTap: (index) {
+                  Provider.of<AIPainterModel>(context, listen: false)
+                      .updateIndex(index);
 
-                },
-              );
-              // return BottomAppBar(
-              //   shape: const CircularNotchedRectangle(),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //     children: [
-              //
-              //     ],
-              //   ),
-              // );
-            }),
-      ),
+              },
+            );
+            // return BottomAppBar(
+            //   shape: const CircularNotchedRectangle(),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //     children: [
+            //
+            //     ],
+            //   ),
+            // );
+          }),
     );
   }
 

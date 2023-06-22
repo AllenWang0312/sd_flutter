@@ -157,17 +157,20 @@ class AIPainterModel extends ConfigModel
   ];
 
   void randomHW() {
-    int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
-    int size = Random().nextInt(4);
-    if (vertical == 2) {
-      txt2img.width = 768;
-      txt2img.height = 768;
-    } else if (vertical == 1) {
-      txt2img.width = sizes[size][1];
-      txt2img.height = sizes[size][0];
-    } else if (vertical == 0) {
-      txt2img.width = sizes[size][0];
-      txt2img.height = sizes[size][1];
+    if (!hwLocked) {
+      int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
+      int size = Random().nextInt(4);
+      if (vertical == 2) {
+        txt2img.width = 768;
+        txt2img.height = 768;
+      } else if (vertical == 1) {
+        txt2img.width = sizes[size][1];
+        txt2img.height = sizes[size][0];
+      } else if (vertical == 0) {
+        txt2img.width = sizes[size][0];
+        txt2img.height = sizes[size][1];
+      }
+      notifyListeners();
     }
   }
 
@@ -186,6 +189,11 @@ class AIPainterModel extends ConfigModel
     int width = txt2img.width;
     txt2img.width = txt2img.height;
     txt2img.height = width;
+    notifyListeners();
+  }
+
+  void updateHWLocked(bool value) {
+    this.hwLocked = value;
     notifyListeners();
   }
 }

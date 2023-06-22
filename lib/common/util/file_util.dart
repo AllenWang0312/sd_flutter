@@ -5,13 +5,13 @@ import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 import 'package:exif/exif.dart';
-import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/bean/options.dart';
 import 'package:sd/sd/db_controler.dart';
 
 import '../../sd/bean/PromptStyle.dart';
 import '../../sd/http_service.dart';
+import '../../sd/widget/file_prompt_reader.dart';
 
 const TAG = "file util";
 
@@ -144,18 +144,7 @@ Future<String?> getPngExt(File image, File prompt) async {
   }
 }
 
-String? getPNGExtData(Uint8List bytes) {
-  var chunks = pngExtract.extractChunks(bytes);
-  var scanChunkName = "tEXt";
-  for (Map chunk in chunks) {
-    for (String key in chunk.keys) {
-      if (chunk[key].toString() == scanChunkName) {
-        return String.fromCharCodes(chunk['data']);
-      }
-    }
-  }
-  return null;
-}
+
 
 bool createDirIfNotExit(String dirPath) {
   Directory dir = Directory(dirPath);

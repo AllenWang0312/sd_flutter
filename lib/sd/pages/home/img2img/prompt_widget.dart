@@ -88,7 +88,7 @@ class PromptWidget extends StatelessWidget {
                 IconButton(
                     onPressed: () {
                       var prompt = promptController.text;
-                      Configs dec = provider.txt2img.updateConfigs(prompt);
+                      Configs dec = pauseConfigs(prompt);
                       // provider.updatePrompt(dec.prompt);
                       provider.updateConfigs(dec);
                     },

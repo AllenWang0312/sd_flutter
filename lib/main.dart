@@ -25,6 +25,7 @@ import 'package:sd/sd/pages/web/web_home_model.dart';
 import 'package:sd/sd/pages/web/web_home_page.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
+import 'package:sd/sd/widget/WaitNetworkInterceptor.dart';
 import 'package:sd/sd/widget/biological_auth.dart';
 import 'package:sd/sd/widget/restartable_widget.dart';
 
@@ -77,8 +78,8 @@ Map<String, Function> PUBLIC_ROUTES = {
         create: (_) => ImagesModel(),
         child: _swipeBack(
             context,
-            _addSafeIfMobile(ImagesViewer(
-              autoCancel: arguments['autoCancel'],
+            ImagesViewer(
+                autoCancel: arguments['autoCancel'],
                 urls: arguments['urls'],
                 index: arguments['index'],
                 datas: arguments['datas'],
@@ -87,7 +88,7 @@ Map<String, Function> PUBLIC_ROUTES = {
                 //todo 是否可以扫描 也应该实时判断
                 fnIndex: arguments['fnIndex'] ?? 0,
                 isFavourite: arguments['isFavourite'] ?? false,
-                type: arguments['type']))),
+                type: arguments['type'])),
       )
 };
 
@@ -115,7 +116,7 @@ Map<String, Function> getMobileRoutes() {
 //   child:
         BiologicalAuthenticaionInterceptor(
             needCheckUserIdentity: true,
-            child: HomePage(index: arguments?['index'])),
+            child: WaitNetworkInterceptor(HomePage(index: arguments?['index']))),
 // ),
 
     ROUTE_FILE_MANAGER: (_) => AndroidDownloadWidget(),
