@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
+import 'package:sd/sd/bean/options.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 
 import '../../../../common/util/string_util.dart';
@@ -13,7 +13,7 @@ class PromptStylePicker extends StatelessWidget {
   String getStylePrompt() {
     String prompt = "";
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(style.name)) {
+      if (provider.checkedStyles.contains(groupName(style.group, style.name))) {
         prompt += appendCommaIfNotExist(style.prompt ?? "");
       }
       if (provider.checkedRadio.contains(style.name)) {
@@ -26,12 +26,13 @@ class PromptStylePicker extends StatelessWidget {
   String getStylePromptV3(int poseStep) {
     List<String> prompt = List.generate(10, (index) => "");
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(style.name)) {
+      var gN = groupName(style.group, style.name);
+      if (!provider.isHidden(gN)&&provider.checkedStyles.contains(gN)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
         }
       }
-      if (provider.checkedRadio.contains(style.name)) {
+      if (!provider.isHidden(gN)&&provider.checkedRadio.contains(style.name)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
         }
@@ -44,7 +45,7 @@ class PromptStylePicker extends StatelessWidget {
   String getStyleNegPrompt() {
     String prompt = sfw ? "((nsfw))," : "";
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(style.name)) {
+      if (provider.checkedStyles.contains(groupName(style.group, style.name))) {
         if (null != style.negativePrompt && style.negativePrompt!.isNotEmpty) {
           prompt += appendCommaIfNotExist(style.negativePrompt!);
         }
@@ -68,17 +69,31 @@ class PromptStylePicker extends StatelessWidget {
                 ..addAll(provider.checkedStyles)
                 ..addAll(provider.checkedRadio))
               .map((e) => Selector<AIPainterModel, int>(
-                    selector: (_, model) => model.lockedRadioGroup.length+model.lockedStyles.length,
+                    selector: (_, model) =>
+                        model.lockedRadioGroup.length +
+                        model.lockedStyles.length,
                     builder: (_, value, child) {
                       return GestureDetector(
                           onTap: () {
                             provider.lockSelector(e);
                           },
                           child: RawChip(
-                            avatar: (provider.selectorLocked(e)||provider.lockedStyles.contains(e))
-                                ?  CircleAvatar(radius: 6,child:Container(color: Colors.red,) ,)
+                            avatar: (provider.selectorLocked(e) ||
+                                    provider.lockedStyles.contains(e))
+                                ? CircleAvatar(
+                                    radius: 6,
+                                    child: Container(
+                                      color: Colors.red,
+                                    ),
+                                  )
                                 : null,
-                            label: Text(e),
+                            label: provider.isHidden(provider.fillGroupIfSingle(e))
+                                ? Text(
+                                    groupFilter(e),
+                                    style: const TextStyle(
+                                        decoration: TextDecoration.lineThrough),
+                                  )
+                                : Text(groupFilter(e)),
                             onDeleted: () {
                               provider.unCheckStyles(e);
                               provider.unCheckRadio(e);
@@ -197,6 +212,18 @@ class PromptStylePicker extends StatelessWidget {
       children: result,
     );
   }
+
+  String groupFilter(String e) {
+    var offset = e.lastIndexOf('|');
+    if (offset < 0) {
+      return e;
+    }
+    return e.substring(offset + 1);
+  }
+
+
+
+
 
 // refreshStyles(BuildContext context) {
 //   post("$sdHttpService$RUN_PREDICT",

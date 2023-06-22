@@ -22,6 +22,7 @@ const TAG = "NetWorkProvider";
 class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
   // ServiceConfig config = ServiceConfig();
   UserInfo userInfo = UserInfo();
+  Set<String> blackListGroup = Set();
   Optional optional = Optional('');
 
   Map<String, List<PromptStyle>> publicStyles = Map(); // '','privateFilePath'.''
@@ -76,7 +77,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
           // } else {
             // logt(TAG," ${target?.name} ${item.name}");
           if(item is Optional) {
-            target?.addOption(item.name, item);
+            target?.addOption(blackListGroup,item.name, item);
           }
           // }
         }

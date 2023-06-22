@@ -32,6 +32,7 @@ class SPModel extends DBModel {
   // String host =
   bool autoGenerate = true;
   bool vibrate = false;
+  bool hwLocked = false;
 
   bool autoSave = true;
   bool autoRandom = true;
@@ -43,12 +44,33 @@ class SPModel extends DBModel {
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
 
+
+
   List<String> lockedRadioGroup = [];
   List<String> checkedRadioGroup = [];
   List<String> checkedRadio = [];
+
   List<String> checkedStyles = [];
   List<String> lockedStyles = [];
 
+  bool isHidden(String groupName) {
+    for (String item in blackListGroup) {
+      if (groupName.contains(item)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  String fillGroupIfSingle(String name) {
+    if(isSingle(name)){
+      int offset = checkedRadio.indexOf(name);
+      return groupName(checkedRadioGroup[offset], name);
+    }
+    return name;
+  }
+
+  // 单选为name  多选为group+name
   void lockSelector(String name) {
     if(isSingle(name)){
       if (checkedRadio.contains(name)) {
@@ -277,13 +299,13 @@ class SPModel extends DBModel {
   //   }
   // }
 
-  void switchChecked(bool checked, String name) {
+  void switchChecked(bool checked,String group, String name) {
     if (checked
     //txt2img.checkedStyles.contains(name)
     ) {
-      checkedStyles.add(name);
+      checkedStyles.add(groupName(group,name));
     } else {
-      checkedStyles.remove(name);
+      checkedStyles.remove(groupName(group,name));
     }
     notifyListeners();
   }
@@ -332,10 +354,18 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  unCheckStyles(String style) {
-    checkedStyles.remove(style);
-    checkedRadio.remove(styles);
+  unCheckStyles(String name) {
+    checkedStyles.remove(name);
     notifyListeners();
+  }
+
+  void unCheckRadio(String name) {
+    int index = checkedRadio.indexOf(name);
+    if (index >= 0) {
+      checkedRadio.remove(name);
+      checkedRadioGroup.removeAt(index);
+      notifyListeners();
+    }
   }
 
   void updateHideNSFW(bool value) {
@@ -362,7 +392,7 @@ class SPModel extends DBModel {
         if (isSingle(style.name)) {
           updateCheckRadio(style.group, style.name);
         } else {
-          checkedStyles.add(style.name);
+          checkedStyles.add(groupName(style.group, style.name));
         }
         result.prompt?.replaceAll("\{${style.prompt}\}\,", "");
         result.negativePrompt?.replaceAll("${style.negativePrompt}\,", "");

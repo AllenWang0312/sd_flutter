@@ -15,10 +15,11 @@ class PromptStyle {
   static var LIMIT_AGE = 'limit_age';
   static var PROMPT = 'prompt';
   static var NEG_PROMPT = 'negative_prompt';
+  static var B_LIST = 'blist';
 
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
-      "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT";
+      "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT,bList TEXT";
 
   String? _readableType;
 
@@ -43,6 +44,8 @@ class PromptStyle {
   String name = "";
   String? prompt = "";
   String? negativePrompt = "";
+  String? bList = "";
+
 
   int promptLen = 0;
   int negativeLen = 0;

@@ -8,6 +8,8 @@ import 'package:sd/sd/pages/home/txt2img/tagger_widget.dart';
 import 'package:sd/sd/provider/config_model.dart';
 import 'package:sd/sd/provider/index_recorder.dart';
 
+import '../bean/db/History.dart';
+
 //存放需要在闪屏页初始化的配置
 //todo 类瘦身 没必要常态化持有的 拆分出去
 
@@ -108,14 +110,7 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  void unCheckRadio(String name) {
-    int index = checkedRadio.indexOf(name);
-    if (index >= 0) {
-      checkedRadio.remove(name);
-      checkedRadioGroup.removeAt(index);
-      notifyListeners();
-    }
-  }
+
 
   void removeCheckedStyles(String item, {refresh = false}) {
     checkedStyles.remove(item);
@@ -145,30 +140,31 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  //3840*2160 1/2 1920*1080 1/3 1280*720
-  //2688*1242 1/2 1344*621
-  //2400x1080 1/2 1200*540
-  // 768 512
-  static const sizes = [
-    [768, 512],
-    [1200, 540],
-    [1344, 621],
-    [1280, 720]
-  ];
+  //3840*2160 1/2 1920*1080 1/3 1280*720 tv
+  //2688*1242 1/2 1344*621 oneplus
+  //2400x1080 1/2 1200*540 iphone
+  // 768 512 default
+
 
   void randomHW() {
     if (!hwLocked) {
       int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
       int size = Random().nextInt(4);
       if (vertical == 2) {
+        txt2img.sizeType = -1;
+
         txt2img.width = 768;
         txt2img.height = 768;
       } else if (vertical == 1) {
-        txt2img.width = sizes[size][1];
-        txt2img.height = sizes[size][0];
+        txt2img.sizeType = size;
+
+        txt2img.width = KUAN[size];
+        txt2img.height = CHANG[size];
       } else if (vertical == 0) {
-        txt2img.width = sizes[size][0];
-        txt2img.height = sizes[size][1];
+        txt2img.sizeType = size;
+
+        txt2img.width = CHANG[size];
+        txt2img.height = KUAN[size];
       }
       notifyListeners();
     }

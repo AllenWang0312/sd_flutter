@@ -22,21 +22,23 @@ Configs pauseConfigs(String allPrompts) {
   result.negativePrompt =
       withDefault(substring(allPrompts, indicators, key: NEGATIVE_KEY), '');
   result.steps = toInt(substring(allPrompts, indicators, key: STEPS_KEY), 30);
-  result.sampler = withDefault(
-      substring(allPrompts, indicators, key: SAMPLER_KEY), '');
-  result.cfgScale = toDouble(substring(allPrompts, indicators, key: CFG_KEY), 7.0);
+  result.sampler =
+      withDefault(substring(allPrompts, indicators, key: SAMPLER_KEY), '');
+  result.cfgScale =
+      toDouble(substring(allPrompts, indicators, key: CFG_KEY), 7.0);
   result.seed = toInt(substring(allPrompts, indicators, key: SEED_KEY), -1);
-  result.modelHash = withDefault(
-      substring(allPrompts, indicators, key: MODEL_HASH_KEY), '');
+  result.modelHash =
+      withDefault(substring(allPrompts, indicators, key: MODEL_HASH_KEY), '');
 
-  result.model = withDefault(
-      substring(allPrompts, indicators, key: MODEL_KEY), '');
+  result.model =
+      withDefault(substring(allPrompts, indicators, key: MODEL_KEY), '');
   result._seedResizeFrom = withDefault(
       substring(allPrompts, indicators, key: SEED_RESIZE_FROM_KEY), '-1x-1');
-  result.modelHash =withDefault(
-      substring(allPrompts, indicators, key: MODEL_HASH_KEY), '');
-  result.size = withDefault(
-      substring(allPrompts, indicators, key: SIZE_KEY), '768x512');;
+  result.modelHash =
+      withDefault(substring(allPrompts, indicators, key: MODEL_HASH_KEY), '');
+  result.size =
+      withDefault(substring(allPrompts, indicators, key: SIZE_KEY), '768x512');
+  ;
   logt(TAG, result.toString());
   return result;
 }
@@ -95,6 +97,9 @@ class Configs {
     width = int.parse(sizes[0]);
     height = int.parse(sizes[1]);
   }
+
+  int sizeType = -1;
+
   int width = DEFAULT_WIDTH;
   int height = DEFAULT_HEIGHT;
 
