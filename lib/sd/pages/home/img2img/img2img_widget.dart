@@ -22,7 +22,7 @@ class _IMG2IMGWidgetState extends State<IMG2IMGWidget> {
   late AIPainterModel provider;
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<AIPainterModel>(context,listen: false);
+    provider = Provider.of<AIPainterModel>(context);
    return  SingleChildScrollView(
        child:
        // provider.styleFrom == 3 ?

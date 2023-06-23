@@ -131,6 +131,10 @@ class AIPainterModel extends ConfigModel
     }
   }
 
+  void updateBgWeight(double value) {
+    txt2img.bgWeight = value;
+    notifyListeners();
+  }
   void updateWeight(double value) {
     txt2img.weight = value;
     notifyListeners();
@@ -145,7 +149,8 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  //3840*2160 1/2 1920*1080 1/3 1280*720
+  //2560 1440 1280 720
+  //3840*2160 1/2 1920*1080 2/3  1/3 1280*720
   //2688*1242 1/2 1344*621
   //2400x1080 1/2 1200*540
   // 768 512
@@ -156,7 +161,7 @@ class AIPainterModel extends ConfigModel
     [1280, 720]
   ];
 
-  void randomHW() {
+  void randomSize() {
     if (!hwLocked) {
       int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
       int size = Random().nextInt(4);

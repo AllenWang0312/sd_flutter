@@ -316,7 +316,7 @@ class TXT2IMGWidget extends StatelessWidget {
               provider.savePromptsToSP();
               if(provider.autoGenerate){
                 if(provider.autoRandom){
-                  provider.randomHW();
+                  provider.randomSize();
                   provider.optional.randomChild(provider);
                 }
                 txt2img(context, model, provider);
@@ -483,6 +483,29 @@ class TXT2IMGWidget extends StatelessWidget {
     return Column(
       children: [
         if (provider.styleFrom == 3)
+          Row(
+            children: [
+              const Text('环境'),
+              Expanded(
+                child: Selector<AIPainterModel, double>(
+                  selector: (_, model) => model.txt2img.bgWeight,
+                  builder: (_, newValue, child) {
+                    return Slider(
+                      value: newValue,
+                      min: 1,
+                      max: 3,
+                      divisions: 8,
+                      onChanged: (double value) {
+                        provider.updateBgWeight(value);
+                        // samplerStepsController.text = samplerSteps.toString();
+                      },
+                    );
+                  },
+                ),
+              ),
+              const Text('主体')
+            ],
+          ),
           Row(
             children: [
               const Text('主体'),

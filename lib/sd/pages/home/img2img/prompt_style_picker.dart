@@ -22,7 +22,8 @@ class PromptStylePicker extends StatelessWidget {
     return prompt;
   }
 
-  String getStylePromptV3(int width, int height, int steps, double weight) {
+  String getStylePromptV3(
+      int width, int height, int steps, double bgWeight, double weight) {
     List<String> prompt = List.generate(10, (index) => "");
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
@@ -37,26 +38,23 @@ class PromptStylePicker extends StatelessWidget {
       }
     }
 
+    int bgStep = steps * bgWeight ~/ 10;
+    int mainStep = (steps - bgStep) * weight ~/ 10;
     if (provider.txt2img.height > provider.txt2img.width * 1.5) {
-      int bgStep = (steps * 0.2).toInt();
-      int poseStep = steps * 0.8 * weight ~/ 10;
       return "${prompt[0]}"
           "[{beautiful detailed sky,${prompt[1]}}:{"
           "${prompt[9]}${prompt[2]}"
-          "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
+          "[(${prompt[3]}):(${prompt[4]}):$mainStep] "
           "{${prompt[6]}"
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]}${prompt[5]}"
+          "[(${prompt[7]}):(${prompt[8]}):$mainStep]}${prompt[5]}"
           "}:$bgStep]";
     } else if (provider.txt2img.width > provider.txt2img.height * 1.5) {
-      int bgStep = (steps * 0.2).toInt();
-      int poseStep = steps * 0.8 * weight ~/ 10;
-
       return "${prompt[0]}"
           "[{beautiful detailed sky,${prompt[1]}}:{"
           "${prompt[9]}${prompt[2]}"
-          "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
+          "[(${prompt[3]}):(${prompt[4]}):$mainStep] "
           "{${prompt[6]}"
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]}${prompt[5]}"
+          "[(${prompt[7]}):(${prompt[8]}):$mainStep]}${prompt[5]}"
           "}:$bgStep]";
     } else {
       int poseStep = steps * weight ~/ 10;
@@ -85,7 +83,7 @@ class PromptStylePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<AIPainterModel>(context,listen: false);
+    provider = Provider.of<AIPainterModel>(context); //需要监听配置改变
     return Row(children: [
       Expanded(
         child: Wrap(
@@ -178,7 +176,7 @@ class PromptStylePicker extends StatelessWidget {
       showBottomSheet(
           context: context,
           builder: (context) {
-            AIPainterModel provider = Provider.of<AIPainterModel>(context,listen: false);
+            AIPainterModel provider = Provider.of<AIPainterModel>(context);
             return
                 // provider.promptType == 3
                 //     ?
