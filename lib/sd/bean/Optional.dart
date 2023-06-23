@@ -159,9 +159,10 @@ class Optional extends PromptStyle {
           logt(TAG, "random radios ${radios.toString()}");
 
           if (radios.isNotEmpty) {
-            int weightIndex = random.nextInt(weightCount(radios));
+            int weights = weightCount(radios);
+            int weightIndex = random.nextInt(weights);
             logt(TAG, "random radio $weightIndex");
-            int index = offsetIndex(radios, weightIndex);
+            int index = offsetIndex(radios,weights, weightIndex);
             provider.updateCheckRadio(
                 groupName(group, name), radios[index].name);
           }
@@ -338,12 +339,15 @@ class Optional extends PromptStyle {
     return count;
   }
 
-  int offsetIndex(List<Optional> radios, int weightIndex) {
+  int offsetIndex(List<Optional> radios,int total, int weightIndex) {
+    int left = 0;
+    int right = 0;
     for (int i = 0; i < radios.length; i++) {
-      weightIndex-=radios[i].weight;
-      if (weightIndex <= 0) {
-        return i;
-      }
+     left = right;
+     right+=radios[i].weight;
+     if(weightIndex>=left&&weightIndex<right){
+       return i;
+     }
     }
     return 0;
   }

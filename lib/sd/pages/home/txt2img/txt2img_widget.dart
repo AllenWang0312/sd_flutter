@@ -46,7 +46,7 @@ class TXT2IMGWidget extends StatelessWidget {
 
   late AppBarProvider? appBar;
 
-  TXT2IMGWidget({super.key});
+  TXT2IMGWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -243,15 +243,11 @@ class TXT2IMGWidget extends StatelessWidget {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
             (provider.styleFrom == 3
-                ? promptStylePicker.getStylePromptV3(
-                    provider.txt2img.steps * provider.txt2img.weight ~/ 10)
+                ? promptStylePicker.getStylePromptV3(provider.txt2img.height,provider.txt2img.width,
+                    provider.txt2img.steps,provider.txt2img.weight)
                 : promptStylePicker.getStylePrompt());
-        if(provider.txt2img.height>provider.txt2img.width*1.5){
-          prompt = "((solo)),beautiful detailed sky,full body,$prompt";
-        }
-        if(provider.txt2img.width>provider.txt2img.height*1.5){
-          prompt = "((solo)),upper body,$prompt";
-        }
+
+
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +

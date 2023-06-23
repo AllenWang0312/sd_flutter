@@ -75,7 +75,7 @@ class Configs {
   String negativePrompt = '';
 
   int steps = DEFAULT_SAMPLER_STEPS;
-  double weight = 6.0;
+  double weight = 6.0; //0-10
 
   String sampler = DEFAULT_SAMPLER;
   double cfgScale = 7.0;
