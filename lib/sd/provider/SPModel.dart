@@ -1,9 +1,10 @@
 import 'dart:math';
 
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/bean/Configs.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
-import 'package:sd/sd/bean/options.dart';
+import 'package:sd/sd/bean/Optional.dart';
 import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/http_service.dart';
@@ -32,7 +33,7 @@ class SPModel extends DBModel {
   // String host =
   bool autoGenerate = true;
   bool vibrate = false;
-
+  bool hwLocked = false;
   bool autoSave = true;
   bool autoRandom = true;
   bool hideNSFW = true;
@@ -146,7 +147,7 @@ class SPModel extends DBModel {
         sp.getBool(SP_CHECK_IDENTITY) ?? DEFAULT_CHECK_IDENTITY;
   }
 
-  save() async {
+  savePromptsToSP({bool toast=false}) async {
     SharedPreferences sp = await SharedPreferences.getInstance();
 
     await sp.setString(SP_PROMPT, txt2img.prompt);
@@ -167,6 +168,9 @@ class SPModel extends DBModel {
     await sp.setBool(SP_HIRES_FIX, hiresFix);
     await sp.setInt(SP_BATCH_COUNT, batchCount);
     await sp.setInt(SP_BATCH_SIZE, batchSize);
+    if(toast){
+      Fluttertoast.showToast(msg: "保存成功");
+    }
   }
 
   void updateGenerateType(int type) {

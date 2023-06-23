@@ -91,9 +91,9 @@ class PromptStylePicker extends StatelessWidget {
       ),
       Column(
         children: [
-          IconButton(
-              onPressed: () => showStyleDialog(context),
-              icon: const Icon(Icons.add_box_outlined)),
+          // IconButton(
+          //     onPressed: () => showStyleDialog(context),
+          //     icon: const Icon(Icons.add_box_outlined)),
           Selector<AIPainterModel, bool>(
             selector: (_, model) =>
                 model.checkedStyles.isEmpty && model.checkedRadio.isEmpty,
@@ -104,7 +104,7 @@ class PromptStylePicker extends StatelessWidget {
                   children: [
                     IconButton(
                         onPressed: () {
-                          provider.save();
+                          provider.savePromptsToSP(toast: true);
                         },
                         icon: Icon(Icons.save)),
                     IconButton(

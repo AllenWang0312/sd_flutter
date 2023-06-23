@@ -10,7 +10,7 @@ import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/Cmd.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/bean/UserInfo.dart';
-import 'package:sd/sd/bean/options.dart';
+import 'package:sd/sd/bean/Optional.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/http_service.dart';

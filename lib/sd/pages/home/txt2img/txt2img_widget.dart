@@ -317,7 +317,7 @@ class TXT2IMGWidget extends StatelessWidget {
                 ]);
               }
 
-              provider.save();
+              provider.savePromptsToSP();
               if(provider.autoGenerate){
                 if(provider.autoRandom){
                   provider.randomHW();
