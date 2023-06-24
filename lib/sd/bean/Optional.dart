@@ -39,7 +39,8 @@ class Optional extends PromptStyle {
       super.limitAge,
       super.type,
       super.prompt,
-      super.negativePrompt});
+      super.negativePrompt,
+      super.weight});
 
   Map<String, Optional>? options;
   bool? _expand;
@@ -177,6 +178,7 @@ class Optional extends PromptStyle {
       }
 
       int checkCount = 0;
+
       for (String item in others) {
         if (provider.checkedStyles.contains("${groupName}|$item")) {
           provider.removeCheckedStyles(item);
@@ -333,4 +335,26 @@ class Optional extends PromptStyle {
     }
     return false;
   }
+
+  int weightCount(List<Optional> radios) {
+    int count = 0;
+    for (Optional item in radios) {
+      count += item.weight;
+    }
+    return count;
+  }
+
+  int offsetIndex(List<Optional> radios,int total, int weightIndex) {
+    int left = 0;
+    int right = 0;
+    for (int i = 0; i < radios.length; i++) {
+     left = right;
+     right+=radios[i].weight;
+     if(weightIndex>=left&&weightIndex<right){
+       return i;
+     }
+    }
+    return 0;
+  }
+
 }

@@ -10,21 +10,22 @@ class WaitNetworkInterceptor extends StatelessWidget {
 
   WaitNetworkInterceptor(this.child);
 
+  late AIPainterModel provider;
   @override
   Widget build(BuildContext context) {
-    return Selector<AIPainterModel, int>(
-      selector: (_, model) => model.netWorkState,
-      builder: (_, newValue, child) {
-        return WillPopScope(
-            child: this.child,
-            onWillPop: () async {
-              if (newValue > REQUEST_ERROR) {
-                Fluttertoast.showToast(msg: "正在等待生成图片");
-                return false;
-              }
-              return true;
-            });
-      },
-    );
+    provider = Provider.of<AIPainterModel>(context,listen: false);
+    return WillPopScope(
+        child: this.child,
+        onWillPop: () async {
+          if(provider.index>0){
+            provider.updateIndex(0);
+            return false;
+          }
+          if (provider.netWorkState > REQUEST_ERROR) {
+            Fluttertoast.showToast(msg: "正在等待生成图片");
+            return false;
+          }
+          return true;
+        });
   }
 }

@@ -1,7 +1,7 @@
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/http_service.dart';
 
-import 'options.dart';
+import 'Optional.dart';
 
 const TAG = "PromptStyle";
 
@@ -18,6 +18,7 @@ class PromptStyle {
   static var PROMPT = 'prompt';
   static var NEG_PROMPT = 'negative_prompt';
   static var B_LIST = 'blist';
+  static var WEIGHT = 'weight';
 
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
@@ -56,6 +57,9 @@ class PromptStyle {
   String? bList = "";
 
 
+  int weight = 1;
+
+
   int promptLen = 0;
   int negativeLen = 0;
 
@@ -67,6 +71,7 @@ class PromptStyle {
     this.limitAge,
     this.prompt,
     this.negativePrompt,
+        this.weight = 1,
   }) {
     promptLen = wordsCount(prompt);
     negativeLen = wordsCount(negativePrompt);
@@ -83,6 +88,7 @@ class PromptStyle {
     type = json['type'];
     prompt = json['prompt'];
     negativePrompt = json['negative_prompt'];
+    weight = json['weight'];
   }
 
   bool get isEmpty {
@@ -99,6 +105,7 @@ class PromptStyle {
     map['type'] = type;
     map['prompt'] = prompt;
     map['negative_prompt'] = negativePrompt;
+    map['weight'] = weight;
     return map;
   }
 

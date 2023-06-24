@@ -77,7 +77,10 @@ class Configs {
   String negativePrompt = '';
 
   int steps = DEFAULT_SAMPLER_STEPS;
-  double weight = 6.0;
+
+  double bgWeight = 2.0; //环境/主体 比重0-10  图片长变>短边*1.5时生效
+
+  double weight = 6.0; //主体/装饰物 比重0-10
 
   String sampler = DEFAULT_SAMPLER;
   double cfgScale = 7.0;
@@ -99,9 +102,9 @@ class Configs {
   }
 
   int sizeType = -1;
-
   int width = DEFAULT_WIDTH;
   int height = DEFAULT_HEIGHT;
+
 
   @override
   String toString() {

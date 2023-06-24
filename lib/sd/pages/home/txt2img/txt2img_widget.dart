@@ -46,7 +46,7 @@ class TXT2IMGWidget extends StatelessWidget {
 
   late AppBarProvider? appBar;
 
-  TXT2IMGWidget({super.key});
+  TXT2IMGWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -244,14 +244,12 @@ class TXT2IMGWidget extends StatelessWidget {
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
             (provider.styleFrom == 3
                 ? promptStylePicker.getStylePromptV3(
-                    provider.txt2img.steps * provider.txt2img.weight ~/ 10)
+                    provider.txt2img.height,
+                    provider.txt2img.width,
+                    provider.txt2img.steps,
+                provider.txt2img.weight,provider.txt2img.weight)
                 : promptStylePicker.getStylePrompt());
-        if(provider.txt2img.height>provider.txt2img.width*1.5){
-          prompt = "((solo)),beautiful detailed sky,full body,$prompt";
-        }
-        if(provider.txt2img.width>provider.txt2img.height*1.5){
-          prompt = "((solo)),upper body,$prompt";
-        }
+
         logt(TAG, prompt);
         String negativePrompt =
             appendCommaIfNotExist(provider.txt2img.negativePrompt) +
@@ -279,7 +277,8 @@ class TXT2IMGWidget extends StatelessWidget {
                 if (provider.autoSave) {
                   String now = DateTime.now().toString();
                   logt(TAG, now.substring(0, 10));
-                  String fileName = "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
+                  String fileName =
+                      "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
                   // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
                   String result = await saveBytesToLocal(
                       bytes, fileName, provider.selectWorkspace!.absPath);
@@ -306,21 +305,20 @@ class TXT2IMGWidget extends StatelessWidget {
                   "autoCancel": provider.autoGenerate ? 3 : null
                 });
               }
-              if(
-              provider.vibrate
-              // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
-            ){
-                  Vibrate.vibrateWithPauses([
+              if (provider.vibrate
+                  // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
+                  ) {
+                Vibrate.vibrateWithPauses([
                   const Duration(minutes: 200),
                   const Duration(minutes: 300),
                   const Duration(minutes: 500)
                 ]);
               }
 
-              provider.save();
-              if(provider.autoGenerate){
-                if(provider.autoRandom){
-                  provider.randomHW();
+              provider.savePromptsToSP();
+              if (provider.autoGenerate) {
+                if (provider.autoRandom) {
+                  provider.randomSizeIfNeed();
                   provider.optional.randomChild(provider);
                 }
                 txt2img(context, model, provider);
@@ -489,6 +487,30 @@ class TXT2IMGWidget extends StatelessWidget {
         if (provider.styleFrom == 3)
           Row(
             children: [
+              const Text('环境'),
+              Expanded(
+                child: Selector<AIPainterModel, double>(
+                  selector: (_, model) => model.txt2img.bgWeight,
+                  builder: (_, newValue, child) {
+                    return Slider(
+                      value: newValue,
+                      min: 1,
+                      max: 3,
+                      divisions: 8,
+                      onChanged: (double value) {
+                        provider.updateBgWeight(value);
+                        // samplerStepsController.text = samplerSteps.toString();
+                      },
+                    );
+                  },
+                ),
+              ),
+              const Text('主体')
+            ],
+          ),
+        if (provider.styleFrom == 3)
+          Row(
+            children: [
               const Text('主体'),
               Expanded(
                 child: Selector<AIPainterModel, double>(
@@ -622,7 +644,7 @@ class TXT2IMGWidget extends StatelessWidget {
                 onPressed: () {
                   provider.switchWH();
                 },
-                icon: const Icon(Icons.compare_arrows_rounded))
+                icon: const Icon(Icons.compare_arrows_rounded)),
           ],
         ),
         Selector<AIPainterModel, bool>(

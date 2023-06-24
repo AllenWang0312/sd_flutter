@@ -126,6 +126,10 @@ class AIPainterModel extends ConfigModel
     }
   }
 
+  void updateBgWeight(double value) {
+    txt2img.bgWeight = value;
+    notifyListeners();
+  }
   void updateWeight(double value) {
     txt2img.weight = value;
     notifyListeners();
@@ -140,15 +144,28 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  //3840*2160 1/2 1920*1080 1/3 1280*720 tv
-  //2688*1242 1/2 1344*621 oneplus
-  //2400x1080 1/2 1200*540 iphone
-  // 768 512 default
+  //2560 1440 1280 720
+  //3840*2160 1/2 1920*1080 2/3  1/3 1280*720
+  //2688*1242 1/2 1344*621
+  //2400x1080 1/2 1200*540
+  // 768 512
+  static const sizes = [
+    [768, 512],
+    [1200, 540],
+    [1344, 621],
+    [1280, 720]
+  ];
 
-
-  void randomHW() {
+  void randomSizeIfNeed() {
     if (!hwLocked) {
-      int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
+      int vertical;
+      if(hwSwitchLock){
+        vertical = isVertical?1:0;
+      }else{
+        vertical = Random().nextInt(2);//0 横 1 竖 2 等边
+        hwSwitchLock = vertical==1;
+      }
+
       int size = Random().nextInt(4);
       if (vertical == 2) {
         txt2img.sizeType = -1;
@@ -166,6 +183,7 @@ class AIPainterModel extends ConfigModel
         txt2img.width = CHANG[size];
         txt2img.height = KUAN[size];
       }
+      isVertical = txt2img.height>txt2img.width;
       notifyListeners();
     }
   }
@@ -185,11 +203,16 @@ class AIPainterModel extends ConfigModel
     int width = txt2img.width;
     txt2img.width = txt2img.height;
     txt2img.height = width;
+    isVertical = txt2img.height>txt2img.width;
     notifyListeners();
   }
 
   void updateHWLocked(bool value) {
     this.hwLocked = value;
+    notifyListeners();
+  }
+  void updateHWSwitchLocked(bool value) {
+    this.hwSwitchLock = value;
     notifyListeners();
   }
 }
