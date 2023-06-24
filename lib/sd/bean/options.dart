@@ -18,7 +18,7 @@ bool isSingle(String element) {
   return element.endsWith("*") || element.endsWith("^");
 }
 
-String groupName(String group, String name) {
+String appendName(String group, String name) {
   return (group.isEmpty ? "" : "$group|") + name;
 }
 
@@ -52,15 +52,14 @@ class Optional extends PromptStyle {
     }
     options!.putIfAbsent(item.name, () => item);
     if ((name.isNotEmpty || group.isNotEmpty) && item.group.isEmpty) {
-      item.group = groupName(group, name);
+      item.group = appendName(group, name);
     }
     if (this.step == null && item.step != null) {
       step = item.step;
     }
-    String gN = groupName(item.group, item.name);
-    if(!bListRecorder.contains(gN)){
+    if(!bListRecorder.contains(item.groupName)){
       if(item.bList!=null&&item.bList!.isNotEmpty){
-        bListRecorder.add(gN);
+        bListRecorder.add(item.groupName);
       }
     }
   }
@@ -100,8 +99,8 @@ class Optional extends PromptStyle {
                           isRadio ? model.checkedRadio : model.checkedStyles,
                       builder: (_, newValue, child) {
                         return ChoiceChip(
-                            avatar: (provider.selectorLocked("$group|$name") ||
-                                    provider.lockedStyles.contains(name))
+                            avatar: (provider.radioLocked("$group|$name") ||
+                                    provider.lockedStyles.contains(groupName))
                                 ? CircleAvatar(
                                     radius: 6,
                                     child: Container(
@@ -110,7 +109,7 @@ class Optional extends PromptStyle {
                                   )
                                 : null,
                             selectedColor: Colors.grey,
-                            label: Text(name,style: TextStyle(textBaseline: TextDecoration.),),
+                            label: Text(name),
                             selected: newValue.contains(name),
                             onSelected: (newValue) {
                               if (isRadio) {
@@ -122,7 +121,7 @@ class Optional extends PromptStyle {
                                   provider.updateCheckRadio(group, null);
                                 }
                               } else {
-                                provider.switchChecked(newValue,group, name);
+                                provider.switchChecked(newValue,groupName);
                               }
                             });
                       })
@@ -131,7 +130,7 @@ class Optional extends PromptStyle {
                   onPressed: () {
                     randomChild(provider);
                   },
-                  icon: Icon(Icons.refresh))
+                  icon: const Icon(Icons.refresh))
             ],
           ),
           content(provider, options));
@@ -145,24 +144,25 @@ class Optional extends PromptStyle {
         // step != 0 && //todo 过滤还有缺陷
         null != options) {
       Iterable<String> all = options!.keys;
+
       List<String> others = all
           .where((element) =>
               !isSingle(element) &&
-              !provider.lockedStyles.contains(element) &&
+              !provider.lockedStyles.contains("${groupName}|$element") &&
               (options![element]?.prompt != null ||
                   options![element]?.negativePrompt != null))
           .toList();
       final Random random = Random();
 
-      if (!provider.lockedRadioGroup.contains(groupName(group, name))) {
+      if (!provider.lockedRadioGroup.contains(groupName)) {
         logt(TAG, "random Child $group $name $step");
 
         bool radioChecked =
-            provider.checkedRadioGroup.contains(groupName(group, name));
+            provider.checkedRadioGroup.contains(groupName);
 
         if (radioChecked) {
           logt(TAG,
-              "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
+              "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName)]}");
 
           List<String> radios =
               all.where((element) => autoSingle(element)).toList();
@@ -171,14 +171,14 @@ class Optional extends PromptStyle {
           if (radios.isNotEmpty) {
             int index = random.nextInt(radios.length);
             logt(TAG, "random radio $index");
-            provider.updateCheckRadio(groupName(group, name), radios[index]);
+            provider.updateCheckRadio(groupName, radios[index]);
           }
         }
       }
 
       int checkCount = 0;
       for (String item in others) {
-        if (provider.checkedStyles.contains(item)) {
+        if (provider.checkedStyles.contains("${groupName}|$item")) {
           provider.removeCheckedStyles(item);
           logt(TAG, "random remove items$item");
           checkCount++;
@@ -244,13 +244,13 @@ class Optional extends PromptStyle {
               return ChoiceChip(
                   disabledColor: Colors.red,
                   selectedColor: Colors.grey,
-                  selected: newValue.contains(e.name),
+                  selected: newValue.contains(e.groupName),
                   onSelected: (bool selected) {
                     logt(
                       TAG,
                       "onSelected $selected ${e.name}",
                     );
-                    provider.switchChecked(selected, e.group,e.name);
+                    provider.switchChecked(selected, e.groupName);
                   },
                   label: Text(e.name));
             });
@@ -321,7 +321,7 @@ class Optional extends PromptStyle {
     _expand ??= needExpands(provider, options ?? {}) ||
         name.isEmpty ||
         (provider.checkedRadioGroup.contains(group) ||
-            exist(provider.checkedStyles.keys.toList(), options?.keys ?? []));
+            exist(provider.checkedStyles, options?.keys ?? []));
     return _expand!;
   }
 

@@ -13,7 +13,7 @@ class PromptStylePicker extends StatelessWidget {
   String getStylePrompt() {
     String prompt = "";
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(groupName(style.group, style.name))) {
+      if (provider.checkedStyles.contains(style.groupName)) {
         prompt += appendCommaIfNotExist(style.prompt ?? "");
       }
       if (provider.checkedRadio.contains(style.name)) {
@@ -26,13 +26,12 @@ class PromptStylePicker extends StatelessWidget {
   String getStylePromptV3(int poseStep) {
     List<String> prompt = List.generate(10, (index) => "");
     for (PromptStyle style in provider.styles) {
-      var gN = groupName(style.group, style.name);
-      if (!provider.isHidden(gN)&&provider.checkedStyles.contains(gN)) {
+      if (!provider.isHidden(style.groupName)&&provider.checkedStyles.contains(style.groupName)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
         }
       }
-      if (!provider.isHidden(gN)&&provider.checkedRadio.contains(style.name)) {
+      if (!provider.isHidden(style.groupName)&&provider.checkedRadio.contains(style.name)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
         }
@@ -45,7 +44,7 @@ class PromptStylePicker extends StatelessWidget {
   String getStyleNegPrompt() {
     String prompt = sfw ? "((nsfw))," : "";
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(groupName(style.group, style.name))) {
+      if (provider.checkedStyles.contains(style.groupName)) {
         if (null != style.negativePrompt && style.negativePrompt!.isNotEmpty) {
           prompt += appendCommaIfNotExist(style.negativePrompt!);
         }
@@ -75,10 +74,14 @@ class PromptStylePicker extends StatelessWidget {
                     builder: (_, value, child) {
                       return GestureDetector(
                           onTap: () {
-                            provider.lockSelector(e);
+                            if(isSingle(e)){
+                              provider.lockSingle(e);
+                            }else{
+                              provider.lockMultiple(e);
+                            }
                           },
                           child: RawChip(
-                            avatar: (provider.selectorLocked(e) ||
+                            avatar: (provider.radioLocked(e) ||
                                     provider.lockedStyles.contains(e))
                                 ? CircleAvatar(
                                     radius: 6,
@@ -197,13 +200,15 @@ class PromptStylePicker extends StatelessWidget {
         result.add(Text(key));
         result.add(Wrap(
           children: value
-              .map((e) => RawChip(
-                    label: Text(e.name + (e.readableType ?? "")),
-                    selected: provider.checkedStyles.contains(e.name),
-                    onSelected: (bool selected) {
-                      provider.switchChecked(selected,e.group, e.name);
-                    },
-                  ))
+              .map((e){
+                return RawChip(
+                  label: Text(e.name + (e.readableType ?? "")),
+                  selected: provider.checkedStyles.contains(e.groupName),
+                  onSelected: (bool selected) {
+                    provider.switchChecked(selected,e.groupName);
+                  },
+                );
+          })
               .toList(),
         ));
       }

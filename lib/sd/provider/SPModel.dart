@@ -50,7 +50,7 @@ class SPModel extends DBModel {
   List<String> checkedRadioGroup = [];
   List<String> checkedRadio = [];
 
-  List<String> checkedStyles = [];
+  List<String> checkedStyles = [];//groupName
   List<String> lockedStyles = [];
 
   bool isHidden(String groupName) {
@@ -65,42 +65,42 @@ class SPModel extends DBModel {
   String fillGroupIfSingle(String name) {
     if(isSingle(name)){
       int offset = checkedRadio.indexOf(name);
-      return groupName(checkedRadioGroup[offset], name);
+      return appendName(checkedRadioGroup[offset], name);
     }
     return name;
   }
-
-  // 单选为name  多选为group+name
-  void lockSelector(String name) {
-    if(isSingle(name)){
-      if (checkedRadio.contains(name)) {
-        String target = checkedRadioGroup[checkedRadio.indexOf(name)];
-        if (lockedRadioGroup.contains(target)) {
-          lockedRadioGroup.remove(target);
-          logt(TAG,'$target unlocked $lockedRadioGroup $checkedRadioGroup');
-        } else {
-          lockedRadioGroup.add(target);
-          logt(TAG,'$target locked $lockedRadioGroup $checkedRadioGroup');
-
-        }
-        notifyListeners();
-      }
-    }else{
-      if(lockedStyles.contains(name)){
-        lockedStyles.remove(name);
-        logt(TAG,'$name unlocked');
-
-      }else{
-        lockedStyles.add(name);
-        logt(TAG,'$name locked');
+  void lockSingle(String name){
+    if (checkedRadio.contains(name)) {
+      String target = checkedRadioGroup[checkedRadio.indexOf(name)];
+      if (lockedRadioGroup.contains(target)) {
+        lockedRadioGroup.remove(target);
+        logt(TAG,'$target unlocked $lockedRadioGroup $checkedRadioGroup');
+      } else {
+        lockedRadioGroup.add(target);
+        logt(TAG,'$target locked $lockedRadioGroup $checkedRadioGroup');
 
       }
       notifyListeners();
     }
-
   }
 
-  bool selectorLocked(String name) {
+  void lockMultiple(String groupName){
+    if(lockedStyles.contains(groupName)){
+      lockedStyles.remove(groupName);
+
+    }else{
+      lockedStyles.add(groupName);
+    }
+    notifyListeners();
+  }
+
+  // // 单选为name  多选为group+name
+  // void lockSelector(String group,String name) {
+  //
+  //
+  // }
+
+  bool radioLocked(String name) {
     int index = checkedRadio.indexOf(name);
     if (index >= 0) {
       String group = checkedRadioGroup[index];
@@ -299,13 +299,13 @@ class SPModel extends DBModel {
   //   }
   // }
 
-  void switchChecked(bool checked,String group, String name) {
+  void switchChecked(bool checked,String gN) {
     if (checked
     //txt2img.checkedStyles.contains(name)
     ) {
-      checkedStyles.add(groupName(group,name));
+      checkedStyles.add(gN);
     } else {
-      checkedStyles.remove(groupName(group,name));
+      checkedStyles.remove(gN);
     }
     notifyListeners();
   }
@@ -354,8 +354,8 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  unCheckStyles(String name) {
-    checkedStyles.remove(name);
+  unCheckStyles(String gN) {
+    checkedStyles.remove(gN);
     notifyListeners();
   }
 
@@ -392,7 +392,7 @@ class SPModel extends DBModel {
         if (isSingle(style.name)) {
           updateCheckRadio(style.group, style.name);
         } else {
-          checkedStyles.add(groupName(style.group, style.name));
+          checkedStyles.add(style.groupName);
         }
         result.prompt?.replaceAll("\{${style.prompt}\}\,", "");
         result.negativePrompt?.replaceAll("${style.negativePrompt}\,", "");

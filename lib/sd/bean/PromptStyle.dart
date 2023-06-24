@@ -1,6 +1,8 @@
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/http_service.dart';
 
+import 'options.dart';
+
 const TAG = "PromptStyle";
 
 class PromptStyle {
@@ -39,6 +41,13 @@ class PromptStyle {
   int? limitAge = 0;
 
   String group = '';
+  String? _groupName;
+  get groupName {
+    if(_groupName==null){
+      _groupName = appendName(group,name);
+    }
+    return _groupName;
+  }
   int step = -1;
   String? type = '';
   String name = "";
