@@ -67,7 +67,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
         for (PromptStyle item in styles) {
           if(item.group!=group){
             group = item.group;
-            target = optional.createIfNotExit(
+            target = optional.createIfNotExit(blackListGroup,
                 group.contains("|") ? group.split('|'): [group],0);
           }
           // if (item.isEmpty) {

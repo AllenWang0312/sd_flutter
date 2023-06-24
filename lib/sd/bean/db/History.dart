@@ -1,6 +1,5 @@
 
 import 'dart:math';
-
 import '../file/UniqueSign.dart';
 
  const SIZE_NAME = ['default', 'iphone', 'oneplus', 'tv'];
@@ -32,7 +31,6 @@ class History extends UniqueSign{
   String? workspace = '';
   String? url;
   String? localPath = '';
-
 
   int promptStar = 0; //模型兼容度
   int bodyStar = 0; //形体

@@ -44,7 +44,7 @@ class Optional extends PromptStyle {
   Map<String, Optional>? options;
   bool? _expand;
 
-  void addOption(String name, Optional item) {
+  void addOption(Set<String> bListRecorder,String name, Optional item) {
     options ??= {};
     item.parent = this;
     if (isRadio) {
@@ -57,9 +57,15 @@ class Optional extends PromptStyle {
     if (this.step == null && item.step != null) {
       step = item.step;
     }
+    String gN = groupName(item.group, item.name);
+    if(!bListRecorder.contains(gN)){
+      if(item.bList!=null&&item.bList!.isNotEmpty){
+        bListRecorder.add(gN);
+      }
+    }
   }
 
-  Optional createIfNotExit(List<String> names, int i) {
+  Optional createIfNotExit(Set<String> bList,List<String> names, int i) {
     options ??= {};
     Optional option;
 
@@ -68,11 +74,11 @@ class Optional extends PromptStyle {
       option = options![name]!;
     } else {
       option = Optional(name);
-      addOption(name, option);
+      addOption(bList,name, option);
     }
 
     if (i != names.length - 1) {
-      return option.createIfNotExit(names, i + 1);
+      return option.createIfNotExit(bList,names, i + 1);
     } else {
       return option;
     }
@@ -104,7 +110,7 @@ class Optional extends PromptStyle {
                                   )
                                 : null,
                             selectedColor: Colors.grey,
-                            label: Text(name),
+                            label: Text(name,style: TextStyle(textBaseline: TextDecoration.),),
                             selected: newValue.contains(name),
                             onSelected: (newValue) {
                               if (isRadio) {
@@ -244,7 +250,7 @@ class Optional extends PromptStyle {
                       TAG,
                       "onSelected $selected ${e.name}",
                     );
-                    provider.switchChecked(selected, e.name);
+                    provider.switchChecked(selected, e.group,e.name);
                   },
                   label: Text(e.name));
             });
@@ -315,7 +321,7 @@ class Optional extends PromptStyle {
     _expand ??= needExpands(provider, options ?? {}) ||
         name.isEmpty ||
         (provider.checkedRadioGroup.contains(group) ||
-            exist(provider.checkedStyles, options?.keys ?? []));
+            exist(provider.checkedStyles.keys.toList(), options?.keys ?? []));
     return _expand!;
   }
 

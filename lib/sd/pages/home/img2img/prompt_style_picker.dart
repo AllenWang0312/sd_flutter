@@ -201,7 +201,7 @@ class PromptStylePicker extends StatelessWidget {
                     label: Text(e.name + (e.readableType ?? "")),
                     selected: provider.checkedStyles.contains(e.name),
                     onSelected: (bool selected) {
-                      provider.switchChecked(selected, e.name);
+                      provider.switchChecked(selected,e.group, e.name);
                     },
                   ))
               .toList(),
