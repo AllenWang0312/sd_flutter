@@ -34,6 +34,9 @@ class SPModel extends DBModel {
   bool autoGenerate = true;
   bool vibrate = false;
   bool hwLocked = false;
+  bool hwSwitchLock = false;
+  bool isVertical = true;
+
   bool autoSave = true;
   bool autoRandom = true;
   bool hideNSFW = true;

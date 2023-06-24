@@ -122,8 +122,8 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
           if (item.isEmpty) {
             if (item != head) {
               if (group.length > 0) {
-                publicStyles?.putIfAbsent(head!.name, () => group);
-                await File("${getStylesPath()}/${head!.name}.csv")
+                publicStyles.putIfAbsent(head!.name, () => group);
+                await File("${getStylesPath()}/${head.name}.csv")
                     .writeAsString(const ListToCsvConverter()
                         .convert(PromptStyle.convertPromptStyle(group)));
               }

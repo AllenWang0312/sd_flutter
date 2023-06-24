@@ -40,15 +40,7 @@ class PromptStylePicker extends StatelessWidget {
 
     int bgStep = steps * bgWeight ~/ 10;
     int mainStep = (steps - bgStep) * weight ~/ 10;
-    if (provider.txt2img.height > provider.txt2img.width * 1.5) {
-      return "${prompt[0]}"
-          "[{beautiful detailed sky,${prompt[1]}}:{"
-          "${prompt[9]}${prompt[2]}"
-          "[(${prompt[3]}):(${prompt[4]}):$mainStep] "
-          "{${prompt[6]}"
-          "[(${prompt[7]}):(${prompt[8]}):$mainStep]}${prompt[5]}"
-          "}:$bgStep]";
-    } else if (provider.txt2img.width > provider.txt2img.height * 1.5) {
+    if (provider.txt2img.height > provider.txt2img.width * 1.7||provider.txt2img.width > provider.txt2img.height * 1.5) {
       return "${prompt[0]}"
           "[{beautiful detailed sky,${prompt[1]}}:{"
           "${prompt[9]}${prompt[2]}"

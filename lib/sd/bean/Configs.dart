@@ -104,6 +104,7 @@ class Configs {
   int width = DEFAULT_WIDTH;
   int height = DEFAULT_HEIGHT;
 
+
   @override
   String toString() {
     return '$prompt'

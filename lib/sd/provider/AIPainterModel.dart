@@ -161,9 +161,16 @@ class AIPainterModel extends ConfigModel
     [1280, 720]
   ];
 
-  void randomSize() {
+  void randomSizeIfNeed() {
     if (!hwLocked) {
-      int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
+      int vertical;
+      if(hwSwitchLock){
+        vertical = isVertical?1:0;
+      }else{
+        vertical = Random().nextInt(2);//0 横 1 竖 2 等边
+        hwSwitchLock = vertical==1;
+      }
+
       int size = Random().nextInt(4);
       if (vertical == 2) {
         txt2img.width = 768;
@@ -175,6 +182,7 @@ class AIPainterModel extends ConfigModel
         txt2img.width = sizes[size][0];
         txt2img.height = sizes[size][1];
       }
+      isVertical = txt2img.height>txt2img.width;
       notifyListeners();
     }
   }
@@ -194,11 +202,16 @@ class AIPainterModel extends ConfigModel
     int width = txt2img.width;
     txt2img.width = txt2img.height;
     txt2img.height = width;
+    isVertical = txt2img.height>txt2img.width;
     notifyListeners();
   }
 
   void updateHWLocked(bool value) {
     this.hwLocked = value;
+    notifyListeners();
+  }
+  void updateHWSwitchLocked(bool value) {
+    this.hwSwitchLock = value;
     notifyListeners();
   }
 }

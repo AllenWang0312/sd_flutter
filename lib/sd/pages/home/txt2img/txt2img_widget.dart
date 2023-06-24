@@ -243,10 +243,12 @@ class TXT2IMGWidget extends StatelessWidget {
 
         String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
             (provider.styleFrom == 3
-                ? promptStylePicker.getStylePromptV3(provider.txt2img.height,provider.txt2img.width,
-                    provider.txt2img.steps,provider.txt2img.weight)
+                ? promptStylePicker.getStylePromptV3(
+                    provider.txt2img.height,
+                    provider.txt2img.width,
+                    provider.txt2img.steps,
+                provider.txt2img.weight,provider.txt2img.weight)
                 : promptStylePicker.getStylePrompt());
-
 
         logt(TAG, prompt);
         String negativePrompt =
@@ -275,7 +277,8 @@ class TXT2IMGWidget extends StatelessWidget {
                 if (provider.autoSave) {
                   String now = DateTime.now().toString();
                   logt(TAG, now.substring(0, 10));
-                  String fileName = "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
+                  String fileName =
+                      "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
                   // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
                   String result = await saveBytesToLocal(
                       bytes, fileName, provider.selectWorkspace!.absPath);
@@ -302,11 +305,10 @@ class TXT2IMGWidget extends StatelessWidget {
                   "autoCancel": provider.autoGenerate ? 3 : null
                 });
               }
-              if(
-              provider.vibrate
-              // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
-            ){
-                  Vibrate.vibrateWithPauses([
+              if (provider.vibrate
+                  // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
+                  ) {
+                Vibrate.vibrateWithPauses([
                   const Duration(minutes: 200),
                   const Duration(minutes: 300),
                   const Duration(minutes: 500)
@@ -314,9 +316,9 @@ class TXT2IMGWidget extends StatelessWidget {
               }
 
               provider.savePromptsToSP();
-              if(provider.autoGenerate){
-                if(provider.autoRandom){
-                  provider.randomSize();
+              if (provider.autoGenerate) {
+                if (provider.autoRandom) {
+                  provider.randomSizeIfNeed();
                   provider.optional.randomChild(provider);
                 }
                 txt2img(context, model, provider);
@@ -506,6 +508,7 @@ class TXT2IMGWidget extends StatelessWidget {
               const Text('主体')
             ],
           ),
+        if (provider.styleFrom == 3)
           Row(
             children: [
               const Text('主体'),
@@ -641,7 +644,7 @@ class TXT2IMGWidget extends StatelessWidget {
                 onPressed: () {
                   provider.switchWH();
                 },
-                icon: const Icon(Icons.compare_arrows_rounded))
+                icon: const Icon(Icons.compare_arrows_rounded)),
           ],
         ),
         Selector<AIPainterModel, bool>(

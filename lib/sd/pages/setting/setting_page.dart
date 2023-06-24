@@ -35,7 +35,7 @@ class _SettingPageState extends State<SettingPage> {
   late AIPainterModel provider;
 
   TextStyle settingTitle =
-      const TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
   late SharedPreferences sp;
   late IPConfigWidget ipConfigWidget;
 
@@ -50,14 +50,16 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<AIPainterModel>(context,listen: false);
+    provider = Provider.of<AIPainterModel>(context, listen: false);
     ipConfigWidget = IPConfigWidget(sdShare);
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(
-          AppLocalizations.of(context).setting,
+          AppLocalizations
+              .of(context)
+              .setting,
         ),
         actions: [
           TextButton(
@@ -68,271 +70,111 @@ class _SettingPageState extends State<SettingPage> {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context).networkAddress,
-              style: settingTitle,
-            ),
-            //https://d17eae44-da1d-413c.gradio.live
-            ipConfigWidget,
-            Text('接口优先级'),
-            Selector<AIPainterModel, int>(
-              selector: (_, model) => model.generateType,
-              builder: (_, newValue, child) {
-                return Column(
-                  children: [
-                    RadioListTile<int>(
-                        title: Text('api 优先(返回原始数据,可以保存图片在端侧)'),
-                        value: 0,
-                        toggleable: true,
-                        groupValue: newValue,
-                        onChanged: _switchGenerateType),
-                    RadioListTile<int>(
-                        title: Text('predict 优先(返回远端文件路径,设置plugin封面依赖此方法)'),
-                        value: 1,
-                        toggleable: true,
-                        groupValue: newValue,
-                        onChanged: _switchGenerateType),
-                  ],
-                );
-              },
-            ),
-            // Text('prompt 主次执行'),
-            // Selector<AIPainterModel, int>(
-            //     selector: (_, model) => model.promptType,
-            //     shouldRebuild: (pre, next) => pre != next,
-            //     builder: (_, newValue, child) {
-            //       return Column(
-            //         children: [
-            //           RadioListTile<int>(
-            //               value: 2,
-            //               title: const Text('根据配置'),
-            //               toggleable: true,
-            //               groupValue: newValue,
-            //               onChanged: _switchPromptType),
-            //           RadioListTile<int>(
-            //               value: 3,
-            //               title: const Text('内部分类'),
-            //               toggleable: true,
-            //               groupValue: newValue,
-            //               onChanged: _switchPromptType),
-            //         ],
-            //       );
-            //     }),
-            Selector<AIPainterModel, int>(
-                selector: (_, model) => model.styleFrom,
-                shouldRebuild: (pre, next) => pre != next,
-                builder: (_, newValue, child) {
-                  return SizedBox(
-                    height: 48,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'prompt 主次执行',
-                          style: settingTitle,
-                        ),
-                        CupertinoSwitch(
-                            value: newValue == 3,
-                            onChanged: (value) {
-                              _switchPromptType(value ? 3 : 1);
-                            })
-                      ],
-                    ),
-                  );
-                }),
-            Selector<AIPainterModel, bool>(
-              selector: (_, model) => model.autoGenerate,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (_, newValue, child) {
-                return Container(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "无限出图",
-                      ),
-                      CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_AUTO_GENERATE, value);
-                            provider
-                                .updateAutoGenerate(value);
-                          })
-                    ],
-                  ),
-                );
-              },
-            ),
-            Selector<AIPainterModel, bool>(
-              selector: (_, model) => model.hwLocked,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (_, newValue, child) {
-                return Container(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "固定宽高",
-                      ),
-                      CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_HW_Locked, value);
-                            provider
-                                .updateHWLocked(value);
-                          })
-                    ],
-                  ),
-                );
-              },
-            ),
-            Selector<AIPainterModel, bool>(
-              selector: (_, model) => model.vibrate,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (_, newValue, child) {
-                return Container(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "震动提醒",
-                      ),
-                      CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_VIBRATE, value);
-                            provider
-                                .updateVibrate(value);
-                          })
-                    ],
-                  ),
-                );
-              },
-            ),
-            Selector<AIPainterModel, bool>(
-              selector: (_, model) => model.autoSave,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (_, newValue, child) {
-                return Container(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).autoSave,
-                        style: settingTitle,
-                      ),
-                      CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_AUTO_SAVE, value);
-                            provider
-                                .updateAutoSave(value);
-                          })
-                    ],
-                  ),
-                );
-              },
-            ),
-            Selector<AIPainterModel, bool>(
-              selector: (_, model) => model.hideNSFW,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (_, newValue, child) {
-                return Container(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).hideNSFW,
-                        style: settingTitle,
-                      ),
-                      CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_HIDE_NSFW, value);
-                            provider
-                                .updateHideNSFW(value);
-                          })
-                    ],
-                  ),
-                );
-              },
-            ),
-            Selector<AIPainterModel, bool>(
-              selector: (_, model) => model.checkIdentityWhenReEnter,
-              shouldRebuild: (pre, next) => pre != next,
-              builder: (_, newValue, child) {
-                return Container(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context).checkIdentity,
-                        style: settingTitle,
-                      ),
-                      CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_CHECK_IDENTITY, value);
-                            provider
-                                .updateCheckIdentity(value);
-                          })
-                    ],
-                  ),
-                );
-              },
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Column(children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context).workspace,
+                  AppLocalizations
+                      .of(context)
+                      .networkAddress,
                   style: settingTitle,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    editOrCreateWorkspace(context);
+                //https://d17eae44-da1d-413c.gradio.live
+                ipConfigWidget,
+                Text('接口优先级'),
+                Selector<AIPainterModel, int>(
+                  selector: (_, model) => model.generateType,
+                  builder: (_, newValue, child) {
+                    return Column(
+                      children: [
+                        RadioListTile<int>(
+                            title: Text('api 优先(返回原始数据,可以保存图片在端侧)'),
+                            value: 0,
+                            toggleable: true,
+                            groupValue: newValue,
+                            onChanged: _switchGenerateType),
+                        RadioListTile<int>(
+                            title: Text('predict 优先(返回远端文件路径,设置plugin封面依赖此方法)'),
+                            value: 1,
+                            toggleable: true,
+                            groupValue: newValue,
+                            onChanged: _switchGenerateType),
+                      ],
+                    );
                   },
-                )
-              ],
-            ),
-            FutureBuilder(
-                future: DBController.instance.queryWorkspaces(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    List datas = snapshot.data as List;
-                    logt(TAG, 'ws count ${datas.length}');
-                    if (datas.isNotEmpty) {
-                      workspaces = datas
-                          .map((e) =>
+                ),
+                // Text('prompt 主次执行'),
+                // Selector<AIPainterModel, int>(
+                //     selector: (_, model) => model.promptType,
+                //     shouldRebuild: (pre, next) => pre != next,
+                //     builder: (_, newValue, child) {
+                //       return Column(
+                //         children: [
+                //           RadioListTile<int>(
+                //               value: 2,
+                //               title: const Text('根据配置'),
+                //               toggleable: true,
+                //               groupValue: newValue,
+                //               onChanged: _switchPromptType),
+                //           RadioListTile<int>(
+                //               value: 3,
+                //               title: const Text('内部分类'),
+                //               toggleable: true,
+                //               groupValue: newValue,
+                //               onChanged: _switchPromptType),
+                //         ],
+                //       );
+                //     }),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations
+                          .of(context)
+                          .workspace,
+                      style: settingTitle,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        editOrCreateWorkspace(context);
+                      },
+                    )
+                  ],
+                ),
+                FutureBuilder(
+                    future: DBController.instance.queryWorkspaces(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        List datas = snapshot.data as List;
+                        logt(TAG, 'ws count ${datas.length}');
+                        if (datas.isNotEmpty) {
+                          workspaces = datas
+                              .map((e) =>
                               Workspace.fromJson(e, asyncPath + WORKSPACES))
-                          .toList();
+                              .toList();
 
-                      return Column(
-                        children: workspaces!
-                            .map((e) => Selector<AIPainterModel, Workspace?>(
-                                  selector: (_, model) => model.selectWorkspace,
+                          return Column(
+                            children: workspaces!
+                                .map((e) =>
+                                Selector<AIPainterModel, Workspace?>(
+                                  selector: (_, model) =>
+                                  model.selectWorkspace,
                                   builder: (context, selected, child) {
                                     return RadioListTile<Workspace>(
-                                        // 需要重写泛型类的 == 方法
+                                      // 需要重写泛型类的 == 方法
                                         value: e,
                                         title: Text(e.getName()),
                                         subtitle: child,
                                         secondary: InkWell(
-                                          onTap: () => editOrCreateWorkspace(
-                                              context,
-                                              type: e.pathType,
-                                              workspace: e),
+                                          onTap: () =>
+                                              editOrCreateWorkspace(
+                                                  context,
+                                                  type: e.pathType,
+                                                  workspace: e),
                                           child: const Icon(Icons.edit),
                                         ),
                                         groupValue: selected,
@@ -345,35 +187,241 @@ class _SettingPageState extends State<SettingPage> {
                                   },
                                   child: Text(e.getDesc()),
                                 ))
-                            .toList(),
+                                .toList(),
+                          );
+                        }
+                      }
+                      return Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.red,
                       );
-                    }
-                  }
-                  return Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.red,
-                  );
-                }),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  AppLocalizations.of(context).styleConfig,
-                  style: settingTitle,
+                    }),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations
+                          .of(context)
+                          .styleConfig,
+                      style: settingTitle,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: () {
+                        createPromptStyle(context);
+                      },
+                    )
+                  ],
                 ),
-                IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () {
-                    createPromptStyle(context);
-                  },
-                )
+                getPublicStyles(context),
               ],
             ),
-            getPublicStyles(context),
-          ],
+          ),
         ),
-      ),
+        GridView.count(
+          shrinkWrap: true,
+          crossAxisCount: 2,
+          childAspectRatio: 3,
+          children: [
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'prompt 主次执行',
+                    style: settingTitle,
+                  ),
+                  Selector<AIPainterModel, int>(
+                      selector: (_, model) => model.styleFrom,
+                      shouldRebuild: (pre, next) => pre != next,
+                      builder: (_, newValue, child) {
+                        return CupertinoSwitch(
+                            value: newValue == 3,
+                            onChanged: (value) {
+                              _switchPromptType(value ? 3 : 1);
+                            });
+                      }),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "无限出图",
+                  ),
+                  Selector<AIPainterModel, bool>(
+                    selector: (_, model) => model.autoGenerate,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (_, newValue, child) {
+                      return CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_AUTO_GENERATE, value);
+                            provider.updateAutoGenerate(value);
+                          });
+                    },
+                  )
+                ],
+              ),
+            ),
+            Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.hwLocked,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return SizedBox(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "固定宽高",
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_HW_Locked, value);
+                            provider.updateHWLocked(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.hwSwitchLock,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return SizedBox(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "固定横竖",
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_HW_SWITCH_Locked, value);
+                            provider.updateHWSwitchLocked(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            Selector<AIPainterModel, bool>(
+              selector: (_, model) => model.vibrate,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (_, newValue, child) {
+                return SizedBox(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "震动提醒",
+                      ),
+                      CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_VIBRATE, value);
+                            provider.updateVibrate(value);
+                          })
+                    ],
+                  ),
+                );
+              },
+            ),
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations
+                        .of(context)
+                        .autoSave,
+                    style: settingTitle,
+                  ),
+                  Selector<AIPainterModel, bool>(
+                    selector: (_, model) => model.autoSave,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (_, newValue, child) {
+                      return CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_AUTO_SAVE, value);
+                            provider.updateAutoSave(value);
+                          });
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations
+                        .of(context)
+                        .hideNSFW,
+                    style: settingTitle,
+                  ),
+                  Selector<AIPainterModel, bool>(
+                    selector: (_, model) => model.hideNSFW,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (_, newValue, child) {
+                      return CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_HIDE_NSFW, value);
+                            provider.updateHideNSFW(value);
+                          });
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations
+                        .of(context)
+                        .checkIdentity,
+                    style: settingTitle,
+                  ),
+                  Selector<AIPainterModel, bool>(
+                    selector: (_, model) => model.checkIdentityWhenReEnter,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (_, newValue, child) {
+                      return CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            sp.setBool(SP_CHECK_IDENTITY, value);
+                            provider.updateCheckIdentity(value);
+                          });
+                    },
+                  ),
+                ],
+              ),
+            )
+          ],
+        )
+      ]),
     );
   }
 
@@ -407,7 +455,7 @@ class _SettingPageState extends State<SettingPage> {
         var map = await DBController.instance.queryStyles(workspace.id!);
         wsStyleConfigs = map!
             .map((e) =>
-                PromptStyleFileConfig.fromJson(e, getStylesPath(), state: 1))
+            PromptStyleFileConfig.fromJson(e, getStylesPath(), state: 1))
             .toList();
       }
       logt(TAG, wsStyleConfigs.toString() ?? "null");
@@ -475,7 +523,8 @@ class _SettingPageState extends State<SettingPage> {
                 onLongPress: () {
                   showDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
+                      builder: (context) =>
+                          AlertDialog(
                             title: const Text("确认删除"),
                             content: Text("点击确认删除文件${e.path}"),
                             actions: [
@@ -496,10 +545,11 @@ class _SettingPageState extends State<SettingPage> {
                   title: Text(fileName),
                   subtitle: Text(e.path),
                   trailing: InkWell(
-                    onTap: () => editPromptStyle(
-                      context,
-                      e,
-                    ),
+                    onTap: () =>
+                        editPromptStyle(
+                          context,
+                          e,
+                        ),
                     child: const Icon(Icons.edit),
                   ),
                 ),
