@@ -9,7 +9,7 @@
     <application
         android:name="edu.tjrac.swant.flutter.SingleFlutterEngineApp"
         android:icon="@mipmap/ic_launcher_round"
-        android:label="稳定扩散"
+        android:label="SDFantasy"
         android:requestLegacyExternalStorage="true">
         <!--            android:theme="@style/LaunchTheme"-->
         <activity

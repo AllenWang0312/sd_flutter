@@ -145,12 +145,14 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  //3840*2160 1/2 1920*1080 1/3 1280*720
-  //2688*1242 1/2 1344*621
-  //2400x1080 1/2 1200*540
-  // 768 512
+  //3840*2160 1/2 1920*1080 1/3 1280*720 雷鸟s515c
+  //2688*1242 1/2 1344*621 iphone xs max
+  //2400x1080 1/2 1200*540 一加8
+  // 800 480 小米桌面音响
+  // 768 512 默认
   static const sizes = [
     [768, 512],
+    [800, 480],
     [1200, 540],
     [1344, 621],
     [1280, 720]
@@ -158,7 +160,7 @@ class AIPainterModel extends ConfigModel
 
   void randomHW() {
     int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
-    int size = Random().nextInt(4);
+    int size = Random().nextInt(5);
     if (vertical == 2) {
       txt2img.width = 768;
       txt2img.height = 768;
