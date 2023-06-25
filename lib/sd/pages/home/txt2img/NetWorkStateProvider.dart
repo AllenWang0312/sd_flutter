@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+const OFFLINE = 4;
 const BUSY = 3;
 const REQUESTING = 2;
 
-const ONLINE = 1;
-const OFFLINE = 0;
+const REQUEST_ERROR = 1;
+const ONLINE = 0;
+
 
 
 Color getStateColor(int state){

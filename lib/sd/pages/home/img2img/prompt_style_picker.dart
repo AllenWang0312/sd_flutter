@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
@@ -23,7 +22,8 @@ class PromptStylePicker extends StatelessWidget {
     return prompt;
   }
 
-  String getStylePromptV3(int poseStep) {
+  String getStylePromptV3(
+      int width, int height, int steps, double bgWeight, double weight) {
     List<String> prompt = List.generate(10, (index) => "");
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
@@ -38,7 +38,25 @@ class PromptStylePicker extends StatelessWidget {
       }
     }
 
-    return "${prompt[0]}${sfw ? "((sfw))," : ""}${prompt[1]}${prompt[9]}${prompt[2]}[(${prompt[3]}):(${prompt[4]}):$poseStep] {${prompt[6]}[(${prompt[7]}):(${prompt[8]}):$poseStep]}${prompt[5]}";
+    int bgStep = steps * bgWeight ~/ 10;
+    int mainStep = (steps - bgStep) * weight ~/ 10;
+    if (provider.txt2img.height > provider.txt2img.width * 1.7||provider.txt2img.width > provider.txt2img.height * 1.5) {
+      return "${prompt[0]}"
+          "[{beautiful detailed sky,${prompt[1]}}:{"
+          "${prompt[9]}${prompt[2]}"
+          "[(${prompt[3]}):(${prompt[4]}):$mainStep] "
+          "{${prompt[6]}"
+          "[(${prompt[7]}):(${prompt[8]}):$mainStep]}${prompt[5]}"
+          "}:$bgStep]";
+    } else {
+      int poseStep = steps * weight ~/ 10;
+      return "${prompt[0]}"
+          "${sfw ? "((sfw))," : ""}"
+          "${prompt[1]}${prompt[9]}${prompt[2]}"
+          "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
+          "{${prompt[6]}"
+          "[(${prompt[7]}):(${prompt[8]}):$poseStep]}${prompt[5]}";
+    }
   }
 
   String getStyleNegPrompt() {
@@ -57,7 +75,7 @@ class PromptStylePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<AIPainterModel>(context);
+    provider = Provider.of<AIPainterModel>(context); //需要监听配置改变
     return Row(children: [
       Expanded(
         child: Wrap(
@@ -68,15 +86,23 @@ class PromptStylePicker extends StatelessWidget {
                 ..addAll(provider.checkedStyles)
                 ..addAll(provider.checkedRadio))
               .map((e) => Selector<AIPainterModel, int>(
-                    selector: (_, model) => model.lockedRadioGroup.length+model.lockedStyles.length,
+                    selector: (_, model) =>
+                        model.lockedRadioGroup.length +
+                        model.lockedStyles.length,
                     builder: (_, value, child) {
                       return GestureDetector(
                           onTap: () {
                             provider.lockSelector(e);
                           },
                           child: RawChip(
-                            avatar: (provider.selectorLocked(e)||provider.lockedStyles.contains(e))
-                                ?  CircleAvatar(radius: 6,child:Container(color: Colors.red,) ,)
+                            avatar: (provider.selectorLocked(e) ||
+                                    provider.lockedStyles.contains(e))
+                                ? CircleAvatar(
+                                    radius: 6,
+                                    child: Container(
+                                      color: Colors.red,
+                                    ),
+                                  )
                                 : null,
                             label: Text(e),
                             onDeleted: () {
@@ -91,9 +117,9 @@ class PromptStylePicker extends StatelessWidget {
       ),
       Column(
         children: [
-          IconButton(
-              onPressed: () => showStyleDialog(context),
-              icon: const Icon(Icons.add_box_outlined)),
+          // IconButton(
+          //     onPressed: () => showStyleDialog(context),
+          //     icon: const Icon(Icons.add_box_outlined)),
           Selector<AIPainterModel, bool>(
             selector: (_, model) =>
                 model.checkedStyles.isEmpty && model.checkedRadio.isEmpty,
@@ -104,7 +130,7 @@ class PromptStylePicker extends StatelessWidget {
                   children: [
                     IconButton(
                         onPressed: () {
-                          provider.save();
+                          provider.savePromptsToSP(toast: true);
                         },
                         icon: Icon(Icons.save)),
                     IconButton(

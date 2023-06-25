@@ -26,6 +26,8 @@ const String SP_LOCKED_STYLES= "locked_styles";
 
 const String SP_AUTO_GENERATE = "auto_generate";
 const String SP_VIBRATE = "vibrate";
+const String SP_HW_Locked = "hw_locked";
+const String SP_HW_SWITCH_Locked = "hw_switch_locked";
 
 const String SP_AUTO_SAVE = "auto_save";
 const String SP_HIDE_NSFW = "hide_nsfw";

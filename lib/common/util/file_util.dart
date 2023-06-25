@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 import 'package:exif/exif.dart';
-import 'package:png_chunks_extract/png_chunks_extract.dart' as pngExtract;
 import 'package:sd/common/util/string_util.dart';
-import 'package:sd/sd/bean/options.dart';
+import 'package:sd/sd/bean/Optional.dart';
 import 'package:sd/sd/db_controler.dart';
 
 import '../../sd/bean/PromptStyle.dart';
 import '../../sd/http_service.dart';
+import '../../sd/widget/file_prompt_reader.dart';
 
 const TAG = "file util";
 
@@ -51,6 +50,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
   int limitIndex = colums.indexOf(PromptStyle.LIMIT_AGE);
   int promptIndex = colums.indexOf(PromptStyle.PROMPT);
   int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
+  int weightIndex = colums.indexOf(PromptStyle.WEIGHT);
 
   return csvTable.where((element) {
     return element.length >= 3 && //过滤空行
@@ -61,17 +61,27 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
                 ? 0
                 : element[limitIndex]);
   }).map((e) {
-    logt(TAG,e.toString());
+    logt(TAG, e.toString());
 
     String group = groupIndex >= 0 ? e[groupIndex] : '';
     late PromptStyle item;
     try {
-      String name = nameIndex >= 0 ? e[nameIndex] : '';
-      int limitAge = limitIndex >= 0 ? toInt(e[limitIndex], 0) : 0;
-      String? prompt = promptIndex >= 0 ? e[promptIndex] : null;
-      String? negPrompt = negPromptIndex >= 0 ? e[negPromptIndex] : null;
-      int step = stepIndex >= 0 ? toInt(e[stepIndex], 0) : 0;
-      String? type = typeIndex >= 0 ? e[typeIndex].toString() : '';
+      String name = nameIndex >= 0 && nameIndex < e.length ? e[nameIndex] : '';
+      int limitAge = limitIndex >= 0 && limitIndex < e.length
+          ? toInt(e[limitIndex], 0)
+          : 0;
+      String? prompt =
+          promptIndex >= 0 && promptIndex < e.length ? e[promptIndex] : null;
+      String? negPrompt = negPromptIndex >= 0 && negPromptIndex < e.length
+          ? e[negPromptIndex]
+          : null;
+      int step =
+          stepIndex >= 0 && stepIndex < e.length ? toInt(e[stepIndex], 0) : 0;
+      String? type =
+          typeIndex >= 0 && typeIndex < e.length ? e[typeIndex].toString() : '';
+      int weight = weightIndex >= 0 && weightIndex < e.length
+          ? toInt(e[weightIndex], 1)
+          : 1;
 
       item = extend
           ? Optional(name,
@@ -80,20 +90,22 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               negativePrompt: negPrompt,
               group: group,
               step: step,
-              type: type)
+              type: type,
+              weight: weight)
           : PromptStyle(name,
               limitAge: limitAge,
               prompt: prompt,
               negativePrompt: negPrompt,
               group: group,
               step: step,
-              type: type);
+              type: type,
+              weight: weight);
     } catch (err) {
       logt("loadPromptStyleFromString", e.toString());
     }
     if (null != groupRecord) {
       if (groupRecord.keys.contains(group)) {
-        groupRecord[group]??=[];
+        groupRecord[group] ??= [];
         groupRecord[group]?.add(item);
       } else {
         groupRecord.putIfAbsent(group, () => [item]);
@@ -142,19 +154,6 @@ Future<String?> getPngExt(File image, File prompt) async {
       return Future.error(e.toString());
     }
   }
-}
-
-String? getPNGExtData(Uint8List bytes) {
-  var chunks = pngExtract.extractChunks(bytes);
-  var scanChunkName = "tEXt";
-  for (Map chunk in chunks) {
-    for (String key in chunk.keys) {
-      if (chunk[key].toString() == scanChunkName) {
-        return String.fromCharCodes(chunk['data']);
-      }
-    }
-  }
-  return null;
 }
 
 bool createDirIfNotExit(String dirPath) {

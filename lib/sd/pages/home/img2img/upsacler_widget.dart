@@ -119,7 +119,7 @@ class UpScalerWidget extends StatelessWidget {
                       re.map((e) => UpScaler.fromJson(e)).toList();
                   // samplers = ;
                   return DropdownButton(
-                      value: Provider.of<AIPainterModel>(context).selectedUpScale,
+                      value: Provider.of<AIPainterModel>(context,listen: false).selectedUpScale,
                       // hint: Text(selectedSampler != null
                       //     ? "${selectedSampler!.name}"
                       //     : "请选择模型"),

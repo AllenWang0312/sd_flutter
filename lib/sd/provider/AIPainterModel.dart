@@ -131,6 +131,10 @@ class AIPainterModel extends ConfigModel
     }
   }
 
+  void updateBgWeight(double value) {
+    txt2img.bgWeight = value;
+    notifyListeners();
+  }
   void updateWeight(double value) {
     txt2img.weight = value;
     notifyListeners();
@@ -145,6 +149,7 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
+  //2560 1440 1280 720
   //3840*2160 1/2 1920*1080 1/3 1280*720 雷鸟s515c
   //2688*1242 1/2 1344*621 iphone xs max
   //2400x1080 1/2 1200*540 一加8
@@ -158,18 +163,29 @@ class AIPainterModel extends ConfigModel
     [1280, 720]
   ];
 
-  void randomHW() {
-    int vertical = Random().nextInt(2); //0 横 1 竖 2 等边
-    int size = Random().nextInt(5);
-    if (vertical == 2) {
-      txt2img.width = 768;
-      txt2img.height = 768;
-    } else if (vertical == 1) {
-      txt2img.width = sizes[size][1];
-      txt2img.height = sizes[size][0];
-    } else if (vertical == 0) {
-      txt2img.width = sizes[size][0];
-      txt2img.height = sizes[size][1];
+  void randomSizeIfNeed() {
+    if (!hwLocked) {
+      int vertical;
+      if(hwSwitchLock){
+        vertical = isVertical?1:0;
+      }else{
+        vertical = Random().nextInt(2);//0 横 1 竖 2 等边
+        hwSwitchLock = vertical==1;
+      }
+
+      int size = Random().nextInt(4);
+      if (vertical == 2) {
+        txt2img.width = 768;
+        txt2img.height = 768;
+      } else if (vertical == 1) {
+        txt2img.width = sizes[size][1];
+        txt2img.height = sizes[size][0];
+      } else if (vertical == 0) {
+        txt2img.width = sizes[size][0];
+        txt2img.height = sizes[size][1];
+      }
+      isVertical = txt2img.height>txt2img.width;
+      notifyListeners();
     }
   }
 
@@ -188,6 +204,16 @@ class AIPainterModel extends ConfigModel
     int width = txt2img.width;
     txt2img.width = txt2img.height;
     txt2img.height = width;
+    isVertical = txt2img.height>txt2img.width;
+    notifyListeners();
+  }
+
+  void updateHWLocked(bool value) {
+    this.hwLocked = value;
+    notifyListeners();
+  }
+  void updateHWSwitchLocked(bool value) {
+    this.hwSwitchLock = value;
     notifyListeners();
   }
 }

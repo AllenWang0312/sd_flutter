@@ -9,6 +9,8 @@ const SEED_KEY = 'Seed:';
 const SIZE_KEY = 'Size:';
 const MODEL_HASH_KEY = 'Model hash:';
 const MODEL_KEY = 'Model:';
+const SEED_RESIZE_FROM_KEY = 'Seed resize from:';
+
 const CLIP_SKIP_KEY = 'Clip skip:';
 const DENOISING_STRENGTH_KEY = 'Denoising strength:';
 const ENSD_KEY = 'ENSD:';
@@ -26,6 +28,7 @@ const HASHES_KEY = 'Hashes:';
   SIZE_KEY,
   MODEL_HASH_KEY,
   MODEL_KEY,
+  SEED_RESIZE_FROM_KEY,
   CLIP_SKIP_KEY,
   DENOISING_STRENGTH_KEY,
   ENSD_KEY,

@@ -18,6 +18,7 @@ import '../../const/config.dart';
 import '../../http_service.dart';
 import '../../mocker.dart';
 import '../../widget/AgeLevelCover.dart';
+import '../../widget/file_prompt_reader.dart';
 import '../home/txt2img/tagger_widget.dart';
 import 'ImagesModel.dart';
 
@@ -114,7 +115,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
     return Stack(
       children: [
         _pageView(controller),
-        _appBar(context, controller),
+        SafeArea(child: _appBar(context, controller)),
         // Positioned(
         //   left: 0,
         //   right: 0,

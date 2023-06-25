@@ -25,7 +25,7 @@ class SamplerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AIPainterModel provider = Provider.of<AIPainterModel>(context);
+    AIPainterModel provider = Provider.of<AIPainterModel>(context,listen: false);
 
     return Column(
       children: [

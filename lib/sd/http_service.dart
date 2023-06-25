@@ -128,7 +128,7 @@ Future<Response?> post(url,
     return catchError(response, exceptionCallback, provider: provider);
   } catch (e) {
     logt(TAG, "post err:$e");
-    provider?.updateNetworkState(OFFLINE);
+    provider?.updateNetworkState(REQUEST_ERROR);
     if (null != exceptionCallback) {
       exceptionCallback(e);
     }
@@ -142,7 +142,7 @@ Future<Response?> catchError(Response response, Function? callback,
     provider?.updateNetworkState(ONLINE);
     return response;
   } else {
-    provider?.updateNetworkState(OFFLINE);
+    provider?.updateNetworkState(REQUEST_ERROR);
     dynamic err = {
       'code': response.statusCode,
       'errMsg': response.statusMessage

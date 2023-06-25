@@ -15,6 +15,7 @@ class PromptStyle {
   static var LIMIT_AGE = 'limit_age';
   static var PROMPT = 'prompt';
   static var NEG_PROMPT = 'negative_prompt';
+  static var WEIGHT = 'weight';
 
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
@@ -44,6 +45,9 @@ class PromptStyle {
   String? prompt = "";
   String? negativePrompt = "";
 
+  int weight = 1;
+
+
   int promptLen = 0;
   int negativeLen = 0;
 
@@ -55,6 +59,7 @@ class PromptStyle {
     this.limitAge,
     this.prompt,
     this.negativePrompt,
+        this.weight = 1,
   }) {
     promptLen = wordsCount(prompt);
     negativeLen = wordsCount(negativePrompt);
@@ -71,6 +76,7 @@ class PromptStyle {
     type = json['type'];
     prompt = json['prompt'];
     negativePrompt = json['negative_prompt'];
+    weight = json['weight'];
   }
 
   bool get isEmpty {
@@ -87,6 +93,7 @@ class PromptStyle {
     map['type'] = type;
     map['prompt'] = prompt;
     map['negative_prompt'] = negativePrompt;
+    map['weight'] = weight;
     return map;
   }
 

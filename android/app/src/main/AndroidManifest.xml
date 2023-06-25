@@ -8,8 +8,8 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:name="edu.tjrac.swant.flutter.SingleFlutterEngineApp"
-        android:icon="@mipmap/ic_launcher_round"
         android:label="SDFantasy"
+        android:icon="@mipmap/ic_launcher_round_2_0"
         android:requestLegacyExternalStorage="true">
         <!--            android:theme="@style/LaunchTheme"-->
         <activity

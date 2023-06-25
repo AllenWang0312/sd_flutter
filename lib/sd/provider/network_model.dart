@@ -10,7 +10,7 @@ import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/Cmd.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/bean/UserInfo.dart';
-import 'package:sd/sd/bean/options.dart';
+import 'package:sd/sd/bean/Optional.dart';
 import 'package:sd/sd/const/config.dart';
 import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/http_service.dart';
@@ -122,8 +122,8 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
           if (item.isEmpty) {
             if (item != head) {
               if (group.length > 0) {
-                publicStyles?.putIfAbsent(head!.name, () => group);
-                await File("${getStylesPath()}/${head!.name}.csv")
+                publicStyles.putIfAbsent(head!.name, () => group);
+                await File("${getStylesPath()}/${head.name}.csv")
                     .writeAsString(const ListToCsvConverter()
                         .convert(PromptStyle.convertPromptStyle(group)));
               }

@@ -72,10 +72,9 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
             physics: physics,
             controller: scroller,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, childAspectRatio:
-            1
-            // 512 / 768
-            ),
+                crossAxisCount: 2, childAspectRatio: 1
+                // 512 / 768
+                ),
             itemCount: history.length,
             itemBuilder: _itemBuilder,
           );
@@ -98,8 +97,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
       history.clear();
     }
     DBController.instance
-        .queryHistorys(pageNum, pageSize,
-            asc: asc)
+        .queryHistorys(pageNum, pageSize, asc: asc)
         .then((value) {
       // setState(() {
       if (null != value) {
@@ -111,7 +109,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
               !File(element.localPath!).existsSync());
         }
         setState(() {
-          logt(TAG,list.map((e) => e.getFileLocation()).toList().toString());
+          logt(TAG, list.map((e) => e.getFileLocation()).toList().toString());
 
           history.addAll(list);
         });
@@ -144,14 +142,13 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
             "isFavourite": true,
           });
         },
-        child:
-        AgeLevelCover(item)
-    // return file.existsSync()?InkWell(
+        child: AgeLevelCover(item)
+        // return file.existsSync()?InkWell(
 
-    //   // child: AgeLevelCover(item),
-    //   child:
-    //   Image.file(File(item.localPath!))
-    );
+        //   // child: AgeLevelCover(item),
+        //   child:
+        //   Image.file(File(item.localPath!))
+        );
     //
     // ):CachedNetworkImage(imageUrl: placeHolderUrl(width:256,height:256));
   }
