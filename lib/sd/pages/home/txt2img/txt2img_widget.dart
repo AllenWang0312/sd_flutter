@@ -484,54 +484,6 @@ class TXT2IMGWidget extends StatelessWidget {
   Widget _basic(AIPainterModel provider, Widget sampler, Widget upScaler) {
     return Column(
       children: [
-        if (provider.styleFrom == 3)
-          Row(
-            children: [
-              const Text('环境'),
-              Expanded(
-                child: Selector<AIPainterModel, double>(
-                  selector: (_, model) => model.txt2img.bgWeight,
-                  builder: (_, newValue, child) {
-                    return Slider(
-                      value: newValue,
-                      min: 1,
-                      max: 3,
-                      divisions: 8,
-                      onChanged: (double value) {
-                        provider.updateBgWeight(value);
-                        // samplerStepsController.text = samplerSteps.toString();
-                      },
-                    );
-                  },
-                ),
-              ),
-              const Text('主体')
-            ],
-          ),
-        if (provider.styleFrom == 3)
-          Row(
-            children: [
-              const Text('主体'),
-              Expanded(
-                child: Selector<AIPainterModel, double>(
-                  selector: (_, model) => model.txt2img.weight,
-                  builder: (_, newValue, child) {
-                    return Slider(
-                      value: newValue,
-                      min: 1,
-                      max: 9,
-                      divisions: 8,
-                      onChanged: (double value) {
-                        provider.updateWeight(value);
-                        // samplerStepsController.text = samplerSteps.toString();
-                      },
-                    );
-                  },
-                ),
-              ),
-              const Text('装饰物')
-            ],
-          ),
         Row(
           children: [
             Selector<AIPainterModel, bool>(
@@ -736,6 +688,54 @@ class TXT2IMGWidget extends StatelessWidget {
                 ],
               );
             }),
+        if (provider.styleFrom == 3)
+          Row(
+            children: [
+              const Text('环境'),
+              Expanded(
+                child: Selector<AIPainterModel, double>(
+                  selector: (_, model) => model.txt2img.bgWeight,
+                  builder: (_, newValue, child) {
+                    return Slider(
+                      value: newValue,
+                      min: 1,
+                      max: 3,
+                      divisions: 8,
+                      onChanged: (double value) {
+                        provider.updateBgWeight(value);
+                        // samplerStepsController.text = samplerSteps.toString();
+                      },
+                    );
+                  },
+                ),
+              ),
+              const Text('主体')
+            ],
+          ),
+        if (provider.styleFrom == 3)
+          Row(
+            children: [
+              const Text('主体'),
+              Expanded(
+                child: Selector<AIPainterModel, double>(
+                  selector: (_, model) => model.txt2img.weight,
+                  builder: (_, newValue, child) {
+                    return Slider(
+                      value: newValue,
+                      min: 1,
+                      max: 9,
+                      divisions: 8,
+                      onChanged: (double value) {
+                        provider.updateWeight(value);
+                        // samplerStepsController.text = samplerSteps.toString();
+                      },
+                    );
+                  },
+                ),
+              ),
+              const Text('装饰物')
+            ],
+          ),
         if (xyz)
           FutureBuilder(
               future: post("$sdHttpService$RUN_PREDICT",
