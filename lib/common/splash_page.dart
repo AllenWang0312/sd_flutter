@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
@@ -117,6 +118,13 @@ class _SplashPageState extends State<SplashPage> {
         exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) async {
+      if(await Permission.manageExternalStorage.request().isGranted){
+        debugPrint("permission mange external storage");
+      }
+
+      if(await Permission.mediaLibrary.request().isGranted){
+        debugPrint("permission media library");
+      }
       if (null != value && null != value.data) {
         // logt(TAG, "get options${value?.data.toString() ?? ""}");
         // Options op = Options.fromJson(value.data);

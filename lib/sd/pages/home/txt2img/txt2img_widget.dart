@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/common/my_checkbox.dart';
 import 'package:sd/common/third_util.dart';
@@ -84,9 +85,9 @@ class TXT2IMGWidget extends StatelessWidget {
     actions.putIfAbsent(
         Icons.settings,
         () => () async {
-              if (await checkStoragePermission()) {
+              // if (await checkStoragePermission()) {
                 Navigator.pushNamed(context, ROUTE_SETTING);
-              }
+              // }
               // HistoryWidget(dbController),
             });
     if (null != appBar) {
@@ -154,7 +155,7 @@ class TXT2IMGWidget extends StatelessWidget {
                                   backgroundColor: getStateColor(value),
                                 );
                               }),
-                        )),
+                        ))
                   ],
                 ),
               ),
@@ -210,175 +211,198 @@ class TXT2IMGWidget extends StatelessWidget {
   txt2img(
       BuildContext context, TXT2IMGModel model, AIPainterModel provider) async {
     if (provider.netWorkState <= REQUEST_ERROR) {
-      if (await checkStoragePermission()) {
-        //todo autosave 在要求权限
-        var from = {
-          "steps":
-              // provider.promptType == 3
-              //     ? provider.txt2img.steps * 2
-              //     :
+      //todo autosave 在要求权限
+      var from = {
+        "steps":
+        // provider.promptType == 3
+        //     ? provider.txt2img.steps * 2
+        //     :
+        provider.txt2img.steps,
+        "denoising_strength": 0.3,
+        "firstphase_width": provider.txt2img.width,
+        "firstphase_height": provider.txt2img.height,
+        "enable_hr": provider.hiresFix,
+        "hr_scale": provider.upscale,
+        "hr_upscaler": provider.selectedUpScale,
+        "hr_resize_x": provider.scalerWidth,
+        "hr_resize_y": provider.scalerHeight,
+        "batch_count": provider.batchCount,
+        "batch_size": provider.batchSize,
+        // "hr_second_pass_steps": 10,
+        // "width": 1024,
+        // "height": 1440,
+        "restore_faces": provider.faceFix,
+        "tiling": provider.tiling,
+        "sampler_name": provider.txt2img.sampler,
+        // "sampler_index": provider.selectedSampler,
+        // "script_name": sdModelManager.getModel(provider.selectedSDModel),
+        "save_images": kDebugMode,
+        "seed": -1, //provider.config.seed,
+      };
+      // if (true) {
+
+      String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
+          (provider.styleFrom == 3
+              ? promptStylePicker.getStylePromptV3(
+              provider.txt2img.height,
+              provider.txt2img.width,
               provider.txt2img.steps,
-          "denoising_strength": 0.3,
-          "firstphase_width": provider.txt2img.width,
-          "firstphase_height": provider.txt2img.height,
-          "enable_hr": provider.hiresFix,
-          "hr_scale": provider.upscale,
-          "hr_upscaler": provider.selectedUpScale,
-          "hr_resize_x": provider.scalerWidth,
-          "hr_resize_y": provider.scalerHeight,
-          "batch_count": provider.batchCount,
-          "batch_size": provider.batchSize,
-          // "hr_second_pass_steps": 10,
-          // "width": 1024,
-          // "height": 1440,
-          "restore_faces": provider.faceFix,
-          "tiling": provider.tiling,
-          "sampler_name": provider.txt2img.sampler,
-          // "sampler_index": provider.selectedSampler,
-          // "script_name": sdModelManager.getModel(provider.selectedSDModel),
-          "save_images": kDebugMode,
-          "seed": -1, //provider.config.seed,
-        };
-        // if (true) {
+              provider.txt2img.weight,
+              provider.txt2img.weight)
+              : promptStylePicker.getStylePrompt());
 
-        String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-            (provider.styleFrom == 3
-                ? promptStylePicker.getStylePromptV3(
-                    provider.txt2img.height,
-                    provider.txt2img.width,
-                    provider.txt2img.steps,
-                provider.txt2img.weight,provider.txt2img.weight)
-                : promptStylePicker.getStylePrompt());
+      logt(TAG, prompt);
+      String negativePrompt =
+          appendCommaIfNotExist(provider.txt2img.negativePrompt) +
+              promptStylePicker.getStyleNegPrompt();
+      from['prompt'] = prompt + provider.getCheckedPluginsString();
+      from['negative_prompt'] = negativePrompt;
 
-        logt(TAG, prompt);
-        String negativePrompt =
-            appendCommaIfNotExist(provider.txt2img.negativePrompt) +
-                promptStylePicker.getStyleNegPrompt();
-        from['prompt'] = prompt + provider.getCheckedPluginsString();
-        from['negative_prompt'] = negativePrompt;
-
-        if (sdShare! || provider.generateType == 0) {
-          post("$sdHttpService$TXT_2_IMG", formData: from,
-                  exceptionCallback: (e) {
-            Fluttertoast.showToast(
-                msg: e.toString(),
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.CENTER);
-          }, provider: provider)
-              .then((value) async {
-            if (value != null) {
-              logt(TAG, value.data.toString());
-              // saveBytes(context,value?.data["images"],provider.batchSize);
-              List<Uint8List> datas = [];
-              for (String item in value.data["images"]) {
-                Uint8List? bytes = base64Decode(item);
-                datas.add(bytes);
-                // prefs.then((sp) => {});
-                if (provider.autoSave) {
-                  String now = DateTime.now().toString();
-                  logt(TAG, now.substring(0, 10));
-                  String fileName =
-                      "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
-                  // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
-                  String result = await saveBytesToLocal(
-                      bytes, fileName, provider.selectWorkspace!.absPath);
-                  int? insert = await DBController.instance.insertHistory(
-                    History(
-                        prompt: prompt,
-                        negativePrompt: negativePrompt,
-                        width: provider.txt2img.width,
-                        height: provider.txt2img.height,
-                        imgPath: result,
-                        date: now.substring(0, 10),
-                        time: now.substring(10),
-                        workspace: provider.selectWorkspace?.name),
-                  );
-                }
-
-                //todo 自动保存之后 是不是不该显示下载按钮 或者 下载到Download
-                Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-                  "datas": datas,
-                  "savePath": provider.autoSave
-                      ? null
-                      : provider.selectWorkspace!.dirPath,
-                  "scanAvailable": provider.netWorkState >= ONLINE,
-                  "autoCancel": provider.autoGenerate ? 3 : null
-                });
-              }
-              if (provider.vibrate
-                  // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
-                  ) {
-                Vibrate.vibrateWithPauses([
-                  const Duration(minutes: 200),
-                  const Duration(minutes: 300),
-                  const Duration(minutes: 500)
-                ]);
-              }
-
-              provider.savePromptsToSP();
-              if (provider.autoGenerate) {
-                if (provider.autoRandom) {
-                  provider.randomSizeIfNeed();
-                  provider.optional.randomChild(provider);
-                }
-                txt2img(context, model, provider);
-              }
-            }
-          });
-        } else {
-          // from['styles'] = provider.checkedStyles;
-
-          post("$sdHttpService$RUN_PREDICT",
-                  formData: multiGenerateBody(
-                      cmd.generate,
-                      from,
-                      provider.batchCount,
-                      provider.batchSize), exceptionCallback: (e) {
-            logt(TAG, e.toString());
-            Fluttertoast.showToast(
-                msg: e.toString(),
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.CENTER);
-          }, provider: provider)
-              .then((value) async {
-            logt(TAG, value?.data?.toString() ?? "null");
-            List? fileProt = value?.data['data'][0];
-            if (null != fileProt) {
+      if (sdShare! || provider.generateType == 0) {
+        post("$sdHttpService$TXT_2_IMG", formData: from,
+            exceptionCallback: (e) {
+              Fluttertoast.showToast(
+                  msg: e.toString(),
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.CENTER);
+            }, provider: provider)
+            .then((value) async {
+          if (value != null) {
+            logt(TAG, value.data.toString());
+            // saveBytes(context,value?.data["images"],provider.batchSize);
+            List<Uint8List> datas = [];
+            for (String item in value.data["images"]) {
+              Uint8List? bytes = base64Decode(item);
+              datas.add(bytes);
+              // prefs.then((sp) => {});
               if (provider.autoSave) {
-                for (int i = 1; i < fileProt.length; i++) {
-                  //tode 默认不保存grid
-                  dynamic item = fileProt[i];
-                  String fileName = dbString("${DateTime.now()}.png");
-                  String path = await saveUrlToLocal(nameToUrl(item['name']),
-                      fileName, provider.selectWorkspace!.dirPath);
-
-                  // provider.lastGenerate = value.data['data'][0][0]['name'];
-                  // Fluttertoast.showToast(
-                  //     msg: '生成成功:远端地址 ${provider.lastGenerate}');
-
-                  // int insert = await DBController.instance.insertHistory(History(
-                  //     prompt: provider.config.prompt,
-                  //     negativePrompt: negativePrompt,
-                  //     width: provider.config.width,
-                  //     height: provider.config.height,
-                  //     imgPath: path,
-                  //     workspace: provider.selectWorkspace?.name));
-                  // print('insert:$insert');
-                }
+                String now = DateTime.now().toString();
+                logt(TAG, now.substring(0, 10));
+                String fileName =
+                    "${dbString(now)}_${provider.txt2img.width}x${provider.txt2img.height}.png";
+                // createFileIfNotExit(File(provider.selectWorkspace!.dirPath+"/"+fileName));
+                String result = await saveBytesToLocal(
+                    bytes, fileName, provider.selectWorkspace!.absPath);
+                int? insert = await DBController.instance.insertHistory(
+                  History(
+                      prompt: prompt,
+                      negativePrompt: negativePrompt,
+                      width: provider.txt2img.width,
+                      height: provider.txt2img.height,
+                      imgPath: result,
+                      date: now.substring(0, 10),
+                      time: now.substring(10),
+                      workspace: provider.selectWorkspace?.name),
+                );
               }
+
+              //todo 自动保存之后 是不是不该显示下载按钮 或者 下载到Download
               Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-                "urls": fileProt
-                    .map((e) => GenerateResultItem.fromJson(e))
-                    .toList(),
-                "savePath": provider.selectWorkspace!.dirPath,
-                "scanAvailable": provider.netWorkState >= ONLINE
+                "datas": datas,
+                "savePath": provider.autoSave
+                    ? null
+                    : provider.selectWorkspace!.dirPath,
+                "scanAvailable": provider.netWorkState >= ONLINE,
+                "autoCancel": provider.autoGenerate ? 3 : null
               });
-            } else {
-              Fluttertoast.showToast(msg: '接口错误');
             }
-          });
-        }
+            if (provider.vibrate
+            // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
+            ) {
+              Vibrate.vibrateWithPauses([
+                const Duration(minutes: 200),
+                const Duration(minutes: 300),
+                const Duration(minutes: 500)
+              ]);
+            }
+
+            provider.savePromptsToSP();
+            if (provider.autoGenerate) {
+              if (provider.autoRandom) {
+                provider.randomSizeIfNeed();
+                provider.optional.randomChild(provider);
+              }
+              txt2img(context, model, provider);
+            }
+          }
+        });
       } else {
+        // from['styles'] = provider.checkedStyles;
+
+        post("$sdHttpService$RUN_PREDICT",
+            formData: multiGenerateBody(
+                cmd.generate,
+                from,
+                provider.batchCount,
+                provider.batchSize), exceptionCallback: (e) {
+              logt(TAG, e.toString());
+              Fluttertoast.showToast(
+                  msg: e.toString(),
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.CENTER);
+            }, provider: provider)
+            .then((value) async {
+          logt(TAG, value?.data?.toString() ?? "null");
+          List? fileProt = value?.data['data'][0];
+          if (null != fileProt) {
+            if (provider.autoSave) {
+              for (int i = 1; i < fileProt.length; i++) {
+                //tode 默认不保存grid
+                dynamic item = fileProt[i];
+                String fileName = dbString("${DateTime.now()}.png");
+                String path = await saveUrlToLocal(nameToUrl(item['name']),
+                    fileName, provider.selectWorkspace!.dirPath);
+
+                // provider.lastGenerate = value.data['data'][0][0]['name'];
+                // Fluttertoast.showToast(
+                //     msg: '生成成功:远端地址 ${provider.lastGenerate}');
+
+                // int insert = await DBController.instance.insertHistory(History(
+                //     prompt: provider.config.prompt,
+                //     negativePrompt: negativePrompt,
+                //     width: provider.config.width,
+                //     height: provider.config.height,
+                //     imgPath: path,
+                //     workspace: provider.selectWorkspace?.name));
+                // print('insert:$insert');
+              }
+            }
+            Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
+              "urls": fileProt
+                  .map((e) => GenerateResultItem.fromJson(e))
+                  .toList(),
+              "savePath": provider.selectWorkspace!.dirPath,
+              "scanAvailable": provider.netWorkState >= ONLINE
+            });
+          } else {
+            Fluttertoast.showToast(msg: '接口错误');
+          }
+        });
+      }
+      if (await checkStoragePermission()) {
+
+      } else {
+
+        await Permission.storage
+            .onDeniedCallback(() {
+          // Your code
+        })
+            .onGrantedCallback(() {
+          // Your code
+        })
+            .onPermanentlyDeniedCallback(() {
+          // Your code
+        })
+            .onRestrictedCallback(() {
+          // Your code
+        })
+            .onLimitedCallback(() {
+          // Your code
+        })
+            .onProvisionalCallback(() {
+          // Your code
+        })
+            .request();
         Fluttertoast.showToast(
             msg: AppLocalizations.of(context).storagePromissionMsg,
             gravity: ToastGravity.CENTER);

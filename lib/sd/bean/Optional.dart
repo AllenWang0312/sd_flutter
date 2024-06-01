@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ bool isSingle(String element) {
 }
 
 class Optional extends PromptStyle {
-  int _radioCount = 0;
+
   bool? _isRaido;
 
   bool get isRadio {
@@ -35,18 +36,20 @@ class Optional extends PromptStyle {
       super.limitAge,
       super.type,
       super.prompt,
+        super.repet,
       super.negativePrompt,
-      super.weight});
+      super.weight}){
+    currentRepet = repet;
 
-  Map<String, Optional>? options;
+  }
+  late int currentRepet;
+  HashMap<String, Optional>? options;
   bool? _expand;
 
+
   void addOption(String name, Optional item) {
-    options ??= {};
+    options ??= HashMap();
     item.parent = this;
-    if (isRadio) {
-      _radioCount += 1;
-    }
     options!.putIfAbsent(item.name, () => item);
     if ((name.isNotEmpty || group.isNotEmpty) && item.group.isEmpty) {
       item.group = groupName(group, name);
@@ -57,7 +60,7 @@ class Optional extends PromptStyle {
   }
 
   Optional createIfNotExit(List<String> names, int i) {
-    options ??= {};
+    options ??= HashMap();
     Optional option;
 
     String name = names[i];
@@ -144,28 +147,39 @@ class Optional extends PromptStyle {
           .toList();
       final Random random = Random();
 
+      //本层没被锁
       if (!provider.lockedRadioGroup.contains(groupName(group, name))) {
-        logt(TAG, "random Child $group $name $step");
 
         bool radioChecked =
             provider.checkedRadioGroup.contains(groupName(group, name));
 
         if (radioChecked) {
-          logt(TAG,
-              "random exit radio $group ${provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))]}");
+          String checkedName =provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))];
+          logt(TAG, "random Child $group $checkedName $step");
 
-          List<Optional> radios =
-              all.where((element) => autoSingle(element.name)).toList();
-          logt(TAG, "random radios ${radios.toString()}");
+          Optional? checkedItem = options![checkedName];
+          checkedItem!.currentRepet -=1;
+          if(checkedItem.currentRepet>0){
 
-          if (radios.isNotEmpty) {
-            int weights = weightCount(radios);
-            int weightIndex = random.nextInt(weights);
-            logt(TAG, "random radio $weightIndex");
-            int index = offsetIndex(radios,weights, weightIndex);
-            provider.updateCheckRadio(
-                groupName(group, name), radios[index].name);
+          }else{
+            checkedItem.currentRepet = checkedItem.repet;
+            logt(TAG, "random exit radio $group $checkedName ${checkedItem.currentRepet}");
+
+            List<Optional> radios =
+            all.where((element) => autoSingle(element.name)).toList();
+            logt(TAG, "random radios ${radios.toString()}");
+
+            if (radios.isNotEmpty) {
+              int weights = weightCount(radios);
+              int weightIndex = random.nextInt(weights);
+              logt(TAG, "random radio $weightIndex");
+              int index = offsetIndex(radios,weights, weightIndex);
+              provider.updateCheckRadio(
+                  groupName(group, name), radios[index].name);
+            }
           }
+
+
         }
       }
 

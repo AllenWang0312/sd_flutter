@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/sp_key.dart';
@@ -19,22 +18,20 @@ import '../http_service.dart';
 
 const TAG = 'ConfigModel';
 
-void asyncDecodeTranslateAndSaveToDB(String data)  {
-  List<List<dynamic>> csvTable =
-  const CsvToListConverter().convert(data);
-  logt(TAG,"asyncDecodeTranslateAndSaveToDB ${csvTable.length}");
+void asyncDecodeTranslateAndSaveToDB(String data) {
+  List<List<dynamic>> csvTable = const CsvToListConverter().convert(data);
+  logt(TAG, "asyncDecodeTranslateAndSaveToDB ${csvTable.length}");
   int year = 0;
   logt(TAG, "insert translate.start ${DateTime.now().toString()}");
-
 
   for (List<dynamic> item in csvTable) {
     if (item[0] is int && item[0] == item[2]) {
       year = item[0];
     } else {
       // todo 第二次全量插入 第一条就直接报错了 所以不能根据远端配置动态升级
-      try{
+      try {
         DBController.instance.insertTranslate(item, year);
-      }catch(e){
+      } catch (e) {
         // logt(TAG,"insert translate error $e");
       }
     }
@@ -112,7 +109,7 @@ class ConfigModel extends SPModel {
   }
 
   Future<void> initPromptStyleIfServiceActive({int userAge = 12}) async {
-    logt(TAG,"initPromptStyleIfServiceActive $styleFrom");
+    logt(TAG, "initPromptStyleIfServiceActive $styleFrom");
 
     if (null != selectWorkspace?.id) {
       if (styleFrom == 1) {
@@ -120,22 +117,20 @@ class ConfigModel extends SPModel {
       } else if (styleFrom == 2) {
         styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
         initPublicStyle(styleConfigs, userAge);
-      } else if (styleFrom == 3) {
-
+      } else if (styleFrom == 3) {}
+      for (int i = 0; i <= 6; i++) {
+        loadOptionalMapFromService(
+            userAge, "$sdHttpService$TAG_MY_TAGS/$i.csv"); //todo 更具用户id 读取不同配置
       }
-      for(int i = 0;i<6;i++){
-        loadOptionalMapFromService(userAge,
-            "$sdHttpService$TAG_MY_TAGS/$i.csv"); //todo 更具用户id 读取不同配置
-      }
-      logt(TAG,"loadOptionalMapFromService $optional");
+      logt(TAG, "loadOptionalMapFromService $optional");
     }
   }
 
   void initTranslatesIfServiceActive() {
     int? localVersion = sp.getInt(SP_SERVICE_VERSION);
-    logt(TAG,"initTranlatesIfServiceActive $localVersion $serviceVersion");
+    logt(TAG, "initTranlatesIfServiceActive $localVersion $serviceVersion");
 
-    if (localVersion==null||localVersion < serviceVersion) {
+    if (localVersion == null || localVersion < serviceVersion) {
       get("$sdHttpService$TAG_COMPUTE_CN", timeOutSecond: 60)
           .then((value) async {
         if (null != value) {
@@ -146,7 +141,6 @@ class ConfigModel extends SPModel {
           sp.setInt(SP_SERVICE_VERSION, serviceVersion);
         }
       });
-
     }
   }
 

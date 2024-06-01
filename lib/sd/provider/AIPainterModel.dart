@@ -159,8 +159,8 @@ class AIPainterModel extends ConfigModel
     [768, 512],
     [800, 480],
     [1200, 540],
+    [1280, 720],
     [1344, 621],
-    [1280, 720]
   ];
 
   void randomSizeIfNeed() {

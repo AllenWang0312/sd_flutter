@@ -40,6 +40,7 @@ class PromptStylePicker extends StatelessWidget {
 
     int bgStep = steps * bgWeight ~/ 10;
     int mainStep = (steps - bgStep) * weight ~/ 10;
+    //todo 过长的图用天空填充背景
     if (provider.txt2img.height > provider.txt2img.width * 1.7||provider.txt2img.width > provider.txt2img.height * 1.5) {
       return "${prompt[0]}"
           "[{beautiful detailed sky,${prompt[1]}}:{"
@@ -51,16 +52,17 @@ class PromptStylePicker extends StatelessWidget {
     } else {
       int poseStep = steps * weight ~/ 10;
       return "${prompt[0]}"
-          "${sfw ? "((sfw))," : ""}"
+          "${sfw ? "SFW," : ""}"
           "${prompt[1]}${prompt[9]}${prompt[2]}"
-          "[(${prompt[3]}):(${prompt[4]}):$poseStep] "
+          "[(${prompt[3]}):(${prompt[4]}):$poseStep]\n"
           "{${prompt[6]}"
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]}${prompt[5]}";
+          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n"
+          "${prompt[5]}";
     }
   }
 
   String getStyleNegPrompt() {
-    String prompt = sfw ? "((nsfw))," : "";
+    String prompt = sfw ? "NSFW," : "";
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
         if (null != style.negativePrompt && style.negativePrompt!.isNotEmpty) {

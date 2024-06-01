@@ -1,17 +1,17 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sd/sd/const/config.dart';
+import 'package:sd/sd/pages/home/chat/chat_page.dart';
 import 'package:sd/sd/pages/home/img2img/IMG2IMGModel.dart';
-import 'package:sd/sd/pages/home/img2img/img2img_widget.dart';
 import 'package:sd/sd/pages/home/txt2img/TXT2IMGModel.dart';
 import 'package:sd/sd/pages/home/txt2img/txt2img_widget.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
+
 import '../../history/records_widget.dart';
 import '../../http_service.dart';
+import 'img2img/img2img_widget.dart';
 
 const TAG = 'HomePage';
 
@@ -20,11 +20,10 @@ class HomePage extends StatelessWidget {
 
   HomePage({super.key, this.index});
 
-
   GlobalKey<RecordsWidgetState> sonKey = GlobalKey();
 
   late AIPainterModel provider;
-  
+
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
@@ -47,6 +46,7 @@ class HomePage extends StatelessWidget {
               ChangeNotifierProvider(
                 create: (_) => IMG2IMGModel(),
                 child: IMG2IMGWidget(),
+                // child: ChatPage(),
               ),
               ChangeNotifierProvider(
                 create: (_) => RecordsModel(),
@@ -89,9 +89,8 @@ class HomePage extends StatelessWidget {
                   //     label: AppLocalizations.of(context).mine),
                 ],
                 onTap: (index) {
-                    Provider.of<AIPainterModel>(context, listen: false)
-                        .updateIndex(index);
-
+                  Provider.of<AIPainterModel>(context, listen: false)
+                      .updateIndex(index);
                 },
               );
               // return BottomAppBar(

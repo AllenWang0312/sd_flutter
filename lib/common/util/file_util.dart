@@ -40,6 +40,8 @@ Future<List<PromptStyle>> loadPromptStyleFromCSVFile(
 
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
     {Map<String, List<PromptStyle>>? groupRecord, bool extend = false}) {
+  logt(TAG, "loadPromptStyleFromString");
+
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
   List colums = csvTable.removeAt(0);
 
@@ -51,6 +53,8 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
   int promptIndex = colums.indexOf(PromptStyle.PROMPT);
   int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
   int weightIndex = colums.indexOf(PromptStyle.WEIGHT);
+  int repetIndex = colums.indexOf(PromptStyle.REPET);
+
 
   return csvTable.where((element) {
     return element.length >= 3 && //过滤空行
@@ -61,8 +65,6 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
                 ? 0
                 : element[limitIndex]);
   }).map((e) {
-    logt(TAG, e.toString());
-
     String group = groupIndex >= 0 ? e[groupIndex] : '';
     late PromptStyle item;
     try {
@@ -77,6 +79,9 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
           : null;
       int step =
           stepIndex >= 0 && stepIndex < e.length ? toInt(e[stepIndex], 0) : 0;
+
+      int repet =
+      repetIndex >= 0 && repetIndex < e.length ? toInt(e[repetIndex], 1) : 1;
       String? type =
           typeIndex >= 0 && typeIndex < e.length ? e[typeIndex].toString() : '';
       int weight = weightIndex >= 0 && weightIndex < e.length
@@ -91,6 +96,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               group: group,
               step: step,
               type: type,
+              repet:repet,
               weight: weight)
           : PromptStyle(name,
               limitAge: limitAge,
@@ -99,7 +105,10 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               group: group,
               step: step,
               type: type,
+              repet: repet,
               weight: weight);
+      // logt("loadPromptStyleFromString", item.toString());
+
     } catch (err) {
       logt("loadPromptStyleFromString", e.toString());
     }

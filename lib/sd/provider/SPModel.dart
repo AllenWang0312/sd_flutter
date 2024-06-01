@@ -33,8 +33,10 @@ class SPModel extends DBModel {
   // String host =
   bool autoGenerate = true;
   bool vibrate = false;
-  bool hwLocked = false;
+
+  bool hwLocked = true;
   bool hwSwitchLock = false;
+
   bool isVertical = true;
 
   bool autoSave = true;
@@ -47,10 +49,16 @@ class SPModel extends DBModel {
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
 
+  //锁定的单选项group
   List<String> lockedRadioGroup = [];
+  //选择的单选项group
   List<String> checkedRadioGroup = [];
+  //选择的单选项
   List<String> checkedRadio = [];
+
+  //选择的多选项
   List<String> checkedStyles = [];
+  //锁定的多选项
   List<String> lockedStyles = [];
 
   void lockSelector(String name) {

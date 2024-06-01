@@ -1,12 +1,11 @@
 import 'package:sd/common/util/string_util.dart';
-import 'package:sd/sd/http_service.dart';
 
 const TAG = "PromptStyle";
 
 class PromptStyle {
-
   static var GROUP = 'group';
-  static var STEP = 'step'; //0镜头 1 场景环境 2女主体 特征  3女主体整体(动作关系等) 4女主体细节  5环境道具 6男主体特征 [7 8] 9多主体之间关系
+  static var STEP =
+      'step'; //0镜头 1 场景环境 2女主体 特征  3女主体整体(动作关系等) 4女主体细节  5环境道具 6男主体特征 [7 8] 9多主体之间关系
 
   static var TYPES = ['词组', 'n', 'adj.', 'v', '副词.'];
 
@@ -16,7 +15,7 @@ class PromptStyle {
   static var PROMPT = 'prompt';
   static var NEG_PROMPT = 'negative_prompt';
   static var WEIGHT = 'weight';
-
+  static var REPET = 'repet';
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
       "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT";
@@ -47,7 +46,7 @@ class PromptStyle {
 
   int weight = 1;
 
-
+  int repet = 1;
   int promptLen = 0;
   int negativeLen = 0;
 
@@ -59,7 +58,8 @@ class PromptStyle {
     this.limitAge,
     this.prompt,
     this.negativePrompt,
-        this.weight = 1,
+    this.weight = 1,
+        this.repet = 1,
   }) {
     promptLen = wordsCount(prompt);
     negativeLen = wordsCount(negativePrompt);
@@ -77,6 +77,7 @@ class PromptStyle {
     prompt = json['prompt'];
     negativePrompt = json['negative_prompt'];
     weight = json['weight'];
+    repet = json['repet'];
   }
 
   bool get isEmpty {
@@ -94,6 +95,7 @@ class PromptStyle {
     map['prompt'] = prompt;
     map['negative_prompt'] = negativePrompt;
     map['weight'] = weight;
+    map['repet'] = repet;
     return map;
   }
 
@@ -132,6 +134,7 @@ class PromptStyle {
       item['limit_age'],
       item['prompt'],
       item['negative_prompt'],
+      item['repet'],
     ];
   }
 
@@ -139,17 +142,20 @@ class PromptStyle {
     return [
       item.group,
       item.name,
-      item.limitAge,
-      item.type,
       item.step,
+      item.type,
+      item.limitAge,
       item.prompt,
       item.negativePrompt,
+      item.repet,
     ];
   }
 
   @override
   String toString() {
-    return 'group: $group, step: $step, limitAge: $limitAge, promptLen: $promptLen, negativeLen: $negativeLen, checked: $checked, name: $name, prompt: $prompt, negativePrompt: $negativePrompt';
+    return 'group: $group, checked: $checked,'
+        ' name: $name, prompt: $prompt, negativePrompt: $negativePrompt,'
+        'step: $step, repet:$repet limitAge: $limitAge, promptLen: $promptLen, negativeLen: $negativeLen';
   }
 
   @override
