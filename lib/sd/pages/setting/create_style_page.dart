@@ -48,14 +48,14 @@ Future<File> saveRemoteStylesToLocalFile(String styleConfigPath) {
 
 final String TAG = "CreateStyleWidget";
 
-class CreateStyleWidget extends StatelessWidget {
+class SDCreateStyleWidget extends StatelessWidget {
 
   late bool _existPublicStylesFiles;
   List<FileSystemEntity> publicStylesFiles; // todo 从上个页面传过来
   FileSystemEntity? style;
   String autoSaveAbsPath;
 
-  CreateStyleWidget(this.style, this.autoSaveAbsPath, this.publicStylesFiles) {
+  SDCreateStyleWidget(this.style, this.autoSaveAbsPath, this.publicStylesFiles) {
     _existPublicStylesFiles = publicStylesFiles.isNotEmpty;
   }
 

@@ -33,14 +33,14 @@ import 'common/third_util.dart';
 
 Map<String, Function> PUBLIC_ROUTES = {
   ROUTE_AUTO_COMPLETE: (context, {arguments}) => _swipeBack(context,
-      AutoCompleteStatelessPage(arguments['title'], arguments['prompt'])),
+      SDAutoCompleteStatelessPage(arguments['title'], arguments['prompt'])),
   ROUTE_DRAG_PROMPT: (context, {arguments}) => _swipeBack(context,
-      TranslateDragPromptWidget(arguments['title'], arguments['prompt'])),
+      SDTranslateDragPromptWidget(arguments['title'], arguments['prompt'])),
 
   ROUTE_SETTING: (_) => SettingPage(),
 
   ROUTE_PLUGINS: (context, {arguments}) =>
-      _swipeBack(context, const PluginsWidget()),
+      _swipeBack(context, const SDPluginsWidget()),
   ROUTE_WEBVIEW: (_, {arguments}) => WebViewStatefulPage(
         arguments['title'],
         arguments['url'],
@@ -48,7 +48,7 @@ Map<String, Function> PUBLIC_ROUTES = {
       ),
   ROUTE_CREATE_WORKSPACE: (_, {arguments}) => ChangeNotifierProvider(
       create: (_) => CreateWSModel(),
-      child: CreateWorkspaceWidget(
+      child: SDCreateWorkspaceWidget(
         arguments['imgSavePath'], arguments['styleSavePath'],
 // publicPath:arguments['publicPath'],openHidePath: arguments['openHidePath'],
         workspace: arguments['workspace'],
@@ -57,9 +57,9 @@ Map<String, Function> PUBLIC_ROUTES = {
       )),
   ROUTE_CREATE_STYLE: (_, {arguments}) => ChangeNotifierProvider(
       create: (_) => CreateStyleModel(),
-      child: CreateStyleWidget(arguments['style'], arguments['autoSaveAbsPath'],
+      child: SDCreateStyleWidget(arguments['style'], arguments['autoSaveAbsPath'],
           arguments['files'])),
-  ROUTE_STYLE_EDITTING: (_, {arguments}) => StyleEditPage(
+  ROUTE_STYLE_EDITTING: (_, {arguments}) => SDStyleEditPage(
         arguments['cmd'],
         title: arguments['title'],
         styleName: arguments['styleName'],
@@ -67,7 +67,7 @@ Map<String, Function> PUBLIC_ROUTES = {
         negPrompt: arguments['negPrompt'],
       ),
   ROUTE_EDIT_STYLE: (_, {arguments}) =>
-      StyleConfigPage(arguments['filePath'], arguments['userAge']),
+      SDStyleConfigPage(arguments['filePath'], arguments['userAge']),
 // ROUTE_IMAGE_VIEWER: (_, {arguments}) => ImageViewer(
 //       url: arguments['url'],
 //       filePath: arguments['filePath'],
@@ -78,7 +78,7 @@ Map<String, Function> PUBLIC_ROUTES = {
         create: (_) => ImagesModel(),
         child: _swipeBack(
             context,
-            ImagesViewer(
+            SDImagesViewer(
                 autoCancel: arguments['autoCancel'],
                 urls: arguments['urls'],
                 index: arguments['index'],
@@ -116,7 +116,7 @@ Map<String, Function> getMobileRoutes() {
 //   child:
         BiologicalAuthenticaionInterceptor(
             needCheckUserIdentity: true,
-            child: WaitNetworkInterceptor(HomePage(index: arguments?['index']))),
+            child: WaitNetworkInterceptor(SDHomePage(index: arguments?['index']))),
 // ),
 
     ROUTE_FILE_MANAGER: (_) => AndroidDownloadWidget(),
@@ -130,7 +130,7 @@ Map<String, Function> getWebRoutes() {
             ChangeNotifierProvider(create: (_) => WebHomeModel()),
             ChangeNotifierProvider(create: (_) => AppBarProvider())
           ],
-          child: WebHomePage(index: arguments?['index']),
+          child: SDWebHomePage(index: arguments?['index']),
         ),
   });
 }

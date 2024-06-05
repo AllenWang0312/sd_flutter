@@ -7,7 +7,7 @@ import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
-import 'package:sd/sd/widget/AgeLevelCover.dart';
+import 'package:sd/sd/widget/age_level_cover.dart';
 
 import '../common/third_util.dart';
 import '../common/ui_util.dart';
@@ -214,7 +214,7 @@ class _AndroidDownloadWidgetState extends State<AndroidDownloadWidget> {
                   });
                 }
               },
-              child: AgeLevelCover(info)),
+              child: SDAgeLevelCover(info)),
         ),
         // Positioned(
         //   bottom: 0,
@@ -279,7 +279,7 @@ class _AndroidDownloadWidgetState extends State<AndroidDownloadWidget> {
         fit: StackFit.expand,
         children: [
           info.cover != null
-              ? AgeLevelCover(info.cover!, needInfoLogo: false)
+              ? SDAgeLevelCover(info.cover!, needInfoLogo: false)
               : Container(),
           Positioned(
             bottom: 12,

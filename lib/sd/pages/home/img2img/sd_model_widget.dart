@@ -40,7 +40,7 @@ class SDModelWidget extends StatelessWidget {
                 if (snapshot.hasData) {
                   List re = snapshot.data?.data as List;
                   models = re.map((e) => SdModel.fromJson(e)).toList();
-                  // logt(TAG,snapshot.data?.data);
+                  logt(TAG,snapshot.data?.data);
                   //
                   // List re = snapshot.data?.data['data'][0]['choices'] as List;
                   // models = re.map((e) => SdModel.fromString(e.toString())).toList();
@@ -54,8 +54,8 @@ class SDModelWidget extends StatelessWidget {
                         return models.contains(next); //todo 总是说没有项目 过滤一下
                       },
                       builder: (context, sdModel, child) {
-                        TXT2IMGModel roll =
-                            Provider.of<TXT2IMGModel>(context, listen: false);
+                        // TXT2IMGModel roll =
+                        //     Provider.of<TXT2IMGModel>(context, listen: false);
                         return DropdownButton(
                             value: sdModel,
                             // hint: Text(selectedUpScale != null

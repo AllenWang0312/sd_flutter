@@ -9,16 +9,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const TAG = "IPConfigWidget";
 
-class IPConfigWidget extends StatefulWidget {
+class SDIPConfigWidget extends StatefulWidget {
   bool? share;
 
-  IPConfigWidget(this.share);
+  SDIPConfigWidget(this.share);
 
   @override
   State<StatefulWidget> createState() => IPConfigState();
 }
 
-class IPConfigState extends State<IPConfigWidget> {
+class IPConfigState extends State<SDIPConfigWidget> {
   late SharedPreferences sp;
 
   @override

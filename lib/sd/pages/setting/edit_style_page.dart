@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 
-class StyleConfigPage extends StatelessWidget {
+class SDStyleConfigPage extends StatelessWidget {
   late String fileName;
   String styleAbsPath;
   int userAge;
   bool hasChange = false;
 
-  StyleConfigPage(this.styleAbsPath, this.userAge) {
+  SDStyleConfigPage(this.styleAbsPath, this.userAge) {
     fileName = styleAbsPath.substring(styleAbsPath.lastIndexOf('/') + 1);
   }
 

@@ -15,12 +15,12 @@ import 'img2img/img2img_widget.dart';
 
 const TAG = 'HomePage';
 
-class HomePage extends StatelessWidget {
+class SDHomePage extends StatelessWidget {
   int? index;
 
-  HomePage({super.key, this.index});
+  SDHomePage({super.key, this.index});
 
-  GlobalKey<RecordsWidgetState> sonKey = GlobalKey();
+  GlobalKey<SDRecordsWidgetState> sonKey = GlobalKey();
 
   late AIPainterModel provider;
 
@@ -41,16 +41,16 @@ class HomePage extends StatelessWidget {
               // LoraWidget(),
               ChangeNotifierProvider(
                 create: (_) => TXT2IMGModel(),
-                child: TXT2IMGWidget(),
+                child: SDTXT2IMGWidget(),
               ),
               ChangeNotifierProvider(
                 create: (_) => IMG2IMGModel(),
-                child: IMG2IMGWidget(),
+                child: SDimg2imgWidget(),
                 // child: ChatPage(),
               ),
               ChangeNotifierProvider(
                 create: (_) => RecordsModel(),
-                child: RecordsWidget(key: sonKey),
+                child: SDRecordsWidget(key: sonKey),
               ),
               // MineWidget(),
             ],

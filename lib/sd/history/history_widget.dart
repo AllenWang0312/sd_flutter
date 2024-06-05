@@ -6,7 +6,7 @@ import 'package:sd/sd/bean/db/History.dart';
 import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/history/PageListState.dart';
-import 'package:sd/sd/widget/AgeLevelCover.dart';
+import 'package:sd/sd/widget/age_level_cover.dart';
 
 import '../http_service.dart';
 import '../widget/PageListViewer.dart';
@@ -142,7 +142,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
             "isFavourite": true,
           });
         },
-        child: AgeLevelCover(item)
+        child: SDAgeLevelCover(item)
         // return file.existsSync()?InkWell(
 
         //   // child: AgeLevelCover(item),

@@ -18,6 +18,8 @@ class AIPainterModel extends ConfigModel
   int countdownNum = SPLASH_WATTING_TIME; // todo 连同timer 封装到组件  闪屏页倒计时
 
   String? selectedSDModel;
+
+
   String selectedInterrogator = DEFAULT_INTERROGATOR;
   List<UpScaler> upScalers = [];
   String lastGenerate = '';

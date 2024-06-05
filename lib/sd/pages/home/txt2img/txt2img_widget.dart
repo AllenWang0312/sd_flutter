@@ -22,7 +22,6 @@ import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/mocker.dart';
 import 'package:sd/sd/pages/home/img2img/prompt_style_picker.dart';
-import 'package:sd/sd/pages/home/img2img/prompt_widget.dart';
 import 'package:sd/sd/pages/home/img2img/sampler_widget.dart';
 import 'package:sd/sd/pages/home/img2img/sd_model_widget.dart';
 import 'package:sd/sd/pages/home/img2img/upsacler_widget.dart';
@@ -40,14 +39,14 @@ import '../../../widget/restartable_widget.dart';
 
 const TAG = "TXT2IMGWidget";
 
-class TXT2IMGWidget extends StatelessWidget {
-  final PromptStylePicker promptStylePicker = PromptStylePicker();
+class SDTXT2IMGWidget extends StatelessWidget {
+  final SDPromptStylePicker promptStylePicker = SDPromptStylePicker();
 
   final Map<IconData, Function()> actions = {};
 
   late AppBarProvider? appBar;
 
-  TXT2IMGWidget();
+  SDTXT2IMGWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +85,7 @@ class TXT2IMGWidget extends StatelessWidget {
         Icons.settings,
         () => () async {
               // if (await checkStoragePermission()) {
-                Navigator.pushNamed(context, ROUTE_SETTING);
+              Navigator.pushNamed(context, ROUTE_SETTING);
               // }
               // HistoryWidget(dbController),
             });
@@ -178,11 +177,10 @@ class TXT2IMGWidget extends StatelessWidget {
               child: Column(
                 children: [
                   SDModelWidget(),
-                  PromptWidget(),
                   promptStylePicker,
                   // TextButton(onPressed: getSamplers, child: Text("生成")),
                   _segments(model),
-                  _stack(provider, SamplerWidget(), UpScalerWidget()),
+                  _stack(provider, SDSamplerWidget(), SDUpScalerWidget()),
                 ],
               ),
             ),
@@ -208,16 +206,16 @@ class TXT2IMGWidget extends StatelessWidget {
   @override
   void dispose() {}
 
-  txt2img(
+  void txt2img(
       BuildContext context, TXT2IMGModel model, AIPainterModel provider) async {
     if (provider.netWorkState <= REQUEST_ERROR) {
       //todo autosave 在要求权限
       var from = {
         "steps":
-        // provider.promptType == 3
-        //     ? provider.txt2img.steps * 2
-        //     :
-        provider.txt2img.steps,
+            // provider.promptType == 3
+            //     ? provider.txt2img.steps * 2
+            //     :
+            provider.txt2img.steps,
         "denoising_strength": 0.3,
         "firstphase_width": provider.txt2img.width,
         "firstphase_height": provider.txt2img.height,
@@ -244,14 +242,13 @@ class TXT2IMGWidget extends StatelessWidget {
       String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
           (provider.styleFrom == 3
               ? promptStylePicker.getStylePromptV3(
-              provider.txt2img.height,
-              provider.txt2img.width,
-              provider.txt2img.steps,
-              provider.txt2img.weight,
-              provider.txt2img.weight)
+                  provider.txt2img.height,
+                  provider.txt2img.width,
+                  provider.txt2img.steps,
+                  provider.txt2img.bgWeight,
+                  provider.txt2img.weight)
               : promptStylePicker.getStylePrompt());
 
-      logt(TAG, prompt);
       String negativePrompt =
           appendCommaIfNotExist(provider.txt2img.negativePrompt) +
               promptStylePicker.getStyleNegPrompt();
@@ -260,12 +257,12 @@ class TXT2IMGWidget extends StatelessWidget {
 
       if (sdShare! || provider.generateType == 0) {
         post("$sdHttpService$TXT_2_IMG", formData: from,
-            exceptionCallback: (e) {
-              Fluttertoast.showToast(
-                  msg: e.toString(),
-                  toastLength: Toast.LENGTH_LONG,
-                  gravity: ToastGravity.CENTER);
-            }, provider: provider)
+                exceptionCallback: (e) {
+          Fluttertoast.showToast(
+              msg: e.toString(),
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.CENTER);
+        }, provider: provider)
             .then((value) async {
           if (value != null) {
             logt(TAG, value.data.toString());
@@ -307,8 +304,8 @@ class TXT2IMGWidget extends StatelessWidget {
               });
             }
             if (provider.vibrate
-            // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
-            ) {
+                // provider.txt2img.steps>=40&&provider.selectedStyleLen()>30
+                ) {
               Vibrate.vibrateWithPauses([
                 const Duration(minutes: 200),
                 const Duration(minutes: 300),
@@ -330,17 +327,17 @@ class TXT2IMGWidget extends StatelessWidget {
         // from['styles'] = provider.checkedStyles;
 
         post("$sdHttpService$RUN_PREDICT",
-            formData: multiGenerateBody(
-                cmd.generate,
-                from,
-                provider.batchCount,
-                provider.batchSize), exceptionCallback: (e) {
-              logt(TAG, e.toString());
-              Fluttertoast.showToast(
-                  msg: e.toString(),
-                  toastLength: Toast.LENGTH_LONG,
-                  gravity: ToastGravity.CENTER);
-            }, provider: provider)
+                formData: multiGenerateBody(
+                    cmd.generate,
+                    from,
+                    provider.batchCount,
+                    provider.batchSize), exceptionCallback: (e) {
+          logt(TAG, e.toString());
+          Fluttertoast.showToast(
+              msg: e.toString(),
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.CENTER);
+        }, provider: provider)
             .then((value) async {
           logt(TAG, value?.data?.toString() ?? "null");
           List? fileProt = value?.data['data'][0];
@@ -368,9 +365,8 @@ class TXT2IMGWidget extends StatelessWidget {
               }
             }
             Navigator.pushNamed(context, ROUTE_IMAGES_VIEWER, arguments: {
-              "urls": fileProt
-                  .map((e) => GenerateResultItem.fromJson(e))
-                  .toList(),
+              "urls":
+                  fileProt.map((e) => GenerateResultItem.fromJson(e)).toList(),
               "savePath": provider.selectWorkspace!.dirPath,
               "scanAvailable": provider.netWorkState >= ONLINE
             });
@@ -380,29 +376,20 @@ class TXT2IMGWidget extends StatelessWidget {
         });
       }
       if (await checkStoragePermission()) {
-
       } else {
-
-        await Permission.storage
-            .onDeniedCallback(() {
+        await Permission.storage.onDeniedCallback(() {
           // Your code
-        })
-            .onGrantedCallback(() {
+        }).onGrantedCallback(() {
           // Your code
-        })
-            .onPermanentlyDeniedCallback(() {
+        }).onPermanentlyDeniedCallback(() {
           // Your code
-        })
-            .onRestrictedCallback(() {
+        }).onRestrictedCallback(() {
           // Your code
-        })
-            .onLimitedCallback(() {
+        }).onLimitedCallback(() {
           // Your code
-        })
-            .onProvisionalCallback(() {
+        }).onProvisionalCallback(() {
           // Your code
-        })
-            .request();
+        }).request();
         Fluttertoast.showToast(
             msg: AppLocalizations.of(context).storagePromissionMsg,
             gravity: ToastGravity.CENTER);
@@ -437,7 +424,7 @@ class TXT2IMGWidget extends StatelessWidget {
                     showBottomSheet(
                         context: context,
                         builder: (context) {
-                          return const PluginsWidget();
+                          return const SDPluginsWidget();
                         });
                   }
                 } else if (value != null) {
@@ -527,6 +514,29 @@ class TXT2IMGWidget extends StatelessWidget {
                         .setTiling(newValue!);
                   }, AppLocalizations.of(context).tiling);
                 }),
+            SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Selector<AIPainterModel, bool>(
+                    selector: (_, model) => model.autoGenerate,
+                    shouldRebuild: (pre, next) => pre != next,
+                    builder: (_, newValue, child) {
+                      return CupertinoSwitch(
+                          value: newValue,
+                          onChanged: (value) {
+                            // sp.setBool(SP_AUTO_GENERATE, value);
+                            provider.updateAutoGenerate(value);
+                          });
+                    },
+                  ),
+                  const Text(
+                    "无限出图",
+                  ),
+                ],
+              ),
+            ),
             // Selector<AIPainterModel, int>(
             //     selector: (_, model) => model.config.seed,
             //     shouldRebuild: (pre, next) => pre != next,

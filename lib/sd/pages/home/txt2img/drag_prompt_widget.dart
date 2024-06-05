@@ -5,10 +5,10 @@ import '../../../http_service.dart';
 
 const TAG = "DragPromptWidget";
 
-class DragPromptWidget extends StatefulWidget {
+class SDDragPromptWidget extends StatefulWidget {
   List<Translate> split;
 
-  DragPromptWidget(this.split);
+  SDDragPromptWidget(this.split);
 
   DragPromptState state =  DragPromptState();
   @override
@@ -19,7 +19,7 @@ class DragPromptWidget extends StatefulWidget {
   }
 }
 
-class DragPromptState extends State<DragPromptWidget> {
+class DragPromptState extends State<SDDragPromptWidget> {
 
   bool showTrans = false;
 

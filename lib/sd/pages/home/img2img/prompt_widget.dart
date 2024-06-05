@@ -12,10 +12,10 @@ import '../../../const/config.dart';
 import '../../../http_service.dart';
 import '../txt2img/tagger_widget.dart';
 
-class PromptWidget extends StatelessWidget {
+class SDPromptWidget extends StatelessWidget {
   static const String TAG = "PromptWidget";
 
-  PromptWidget();
+  SDPromptWidget();
 
   late AIPainterModel provider;
   late TextEditingController promptController;
@@ -35,7 +35,9 @@ class PromptWidget extends StatelessWidget {
     });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
+        //正向描述
         Text("${AppLocalizations.of(context).prompt}:"),
         Row(
           children: [
@@ -109,6 +111,7 @@ class PromptWidget extends StatelessWidget {
             )
           ],
         ),
+        //反向描述
         Text(AppLocalizations.of(context).negativePrompt + ":"),
         Row(
           children: [

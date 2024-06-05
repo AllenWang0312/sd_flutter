@@ -60,6 +60,9 @@ const GET_HYP_NAMES = '$FILE_TEMP_PATH/hyp.txt';
 // const GET_WC_NAMES = '$FILE_TEMP_PATH/wc.txt';
 // const GET_WCE_NAMES = '$FILE_TEMP_PATH/wce.txt';
 
+const TAG_PREFIX_ENDPOINTS = '主模';
+const TAG_MODELTYPE_ENDPOINTS = 'Stable-diffusion';
+
 const TAG_PREFIX_LORA = 'lora';
 const TAG_MODELTYPE_LORA = 'Lora';
 

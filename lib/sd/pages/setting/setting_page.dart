@@ -37,7 +37,7 @@ class _SettingPageState extends State<SettingPage> {
   TextStyle settingTitle =
   const TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
   late SharedPreferences sp;
-  late IPConfigWidget ipConfigWidget;
+  late SDIPConfigWidget ipConfigWidget;
 
   @override
   void initState() {
@@ -51,7 +51,7 @@ class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context, listen: false);
-    ipConfigWidget = IPConfigWidget(sdShare);
+    ipConfigWidget = SDIPConfigWidget(sdShare);
 
     return Scaffold(
       appBar: AppBar(
@@ -246,29 +246,7 @@ class _SettingPageState extends State<SettingPage> {
                 ],
               ),
             ),
-            SizedBox(
-              height: 48,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "无限出图",
-                  ),
-                  Selector<AIPainterModel, bool>(
-                    selector: (_, model) => model.autoGenerate,
-                    shouldRebuild: (pre, next) => pre != next,
-                    builder: (_, newValue, child) {
-                      return CupertinoSwitch(
-                          value: newValue,
-                          onChanged: (value) {
-                            sp.setBool(SP_AUTO_GENERATE, value);
-                            provider.updateAutoGenerate(value);
-                          });
-                    },
-                  )
-                ],
-              ),
-            ),
+
             Selector<AIPainterModel, bool>(
               selector: (_, model) => model.hwLocked,
               shouldRebuild: (pre, next) => pre != next,

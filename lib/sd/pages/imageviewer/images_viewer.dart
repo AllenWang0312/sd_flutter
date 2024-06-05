@@ -17,7 +17,7 @@ import '../../bean/file/UniqueSign.dart';
 import '../../const/config.dart';
 import '../../http_service.dart';
 import '../../mocker.dart';
-import '../../widget/AgeLevelCover.dart';
+import '../../widget/age_level_cover.dart';
 import '../../widget/file_prompt_reader.dart';
 import '../home/txt2img/tagger_widget.dart';
 import 'ImagesModel.dart';
@@ -36,7 +36,7 @@ enum ImagesType {
   files,
 }
 
-class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
+class SDImagesViewer<T extends UniqueSign> extends StatelessWidget {
   int? pageSize;
   int? pageNum;
   int? index;
@@ -56,7 +56,7 @@ class ImagesViewer<T extends UniqueSign> extends StatelessWidget {
 
   late ImagesType dataType;
 
-  ImagesViewer(
+  SDImagesViewer(
       {this.autoCancel,
       this.urls,
       this.index,

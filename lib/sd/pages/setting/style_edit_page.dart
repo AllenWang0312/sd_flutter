@@ -7,14 +7,14 @@ import 'package:sd/sd/http_service.dart';
 import '../../bean4json/PostPredictResult.dart';
 import '../../mocker.dart';
 
-class StyleEditPage extends StatelessWidget {
+class SDStyleEditPage extends StatelessWidget {
   String? title;
 
   String? styleName;
   String? prompt;
   String? negPrompt;
 
-  StyleEditPage(int cmd,{this.title,this.styleName,this.prompt,this.negPrompt});
+  SDStyleEditPage(int cmd,{this.title,this.styleName,this.prompt,this.negPrompt});
 
 
   @override

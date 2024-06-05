@@ -9,7 +9,7 @@ import '../../../bean4json/UpScaler.dart';
 import '../../../const/config.dart';
 import '../../../http_service.dart';
 
-class UpScalerWidget extends StatelessWidget {
+class SDUpScalerWidget extends StatelessWidget {
   var getUpScalers = get("$sdHttpService$GET_UPSCALERS");
 
   @override

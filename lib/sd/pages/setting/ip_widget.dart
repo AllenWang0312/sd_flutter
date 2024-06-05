@@ -7,15 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../const/config.dart';
 import '../../http_service.dart';
 
-class IpWidget extends StatefulWidget {
+class SDIpWidget extends StatefulWidget {
   Future<SharedPreferences> prefs;
 
-  IpWidget(this.prefs, {super.key});
+  SDIpWidget(this.prefs, {super.key});
 
   @override
-  _IpWidgetState createState() => _IpWidgetState();
+  _SDIpWidgetState createState() => _SDIpWidgetState();
 }
-class _IpWidgetState extends State<IpWidget>{
+class _SDIpWidgetState extends State<SDIpWidget>{
 
   TextEditingController ipController =
   TextEditingController(text: sdHost);

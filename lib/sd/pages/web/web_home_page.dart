@@ -19,21 +19,21 @@ import 'package:sd/sd/pages/web/web_home_model.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 
-class WebHomePage extends StatefulWidget {
+class SDWebHomePage extends StatefulWidget {
   int? index;
 
-  WebHomePage({super.key, this.index});
+  SDWebHomePage({super.key, this.index});
 
   @override
-  State<WebHomePage> createState() => _WebHomePageState();
+  State<SDWebHomePage> createState() => _SDWebHomePageState();
 }
 
-class _WebHomePageState extends State<WebHomePage> // with macOSFileDragger
+class _SDWebHomePageState extends State<SDWebHomePage> // with macOSFileDragger
     {
   static const TAG = 'WebHomePageState';
 
   @override
-  void didUpdateWidget(WebHomePage oldWidget) {
+  void didUpdateWidget(SDWebHomePage oldWidget) {
     logt(TAG, 'didUpdateWidget');
   }
 
@@ -41,7 +41,7 @@ class _WebHomePageState extends State<WebHomePage> // with macOSFileDragger
     // LoraWidget(),
     ChangeNotifierProvider(
       create: (_) => TXT2IMGModel(),
-      child: TXT2IMGWidget(),
+      child: SDTXT2IMGWidget(),
     ),
     HistoryWidget(),
     RemoteHistoryWidget(
@@ -60,7 +60,7 @@ class _WebHomePageState extends State<WebHomePage> // with macOSFileDragger
 
     // MineWidget(),
   ];
-  GlobalKey<RecordsWidgetState> sonKey = GlobalKey();
+  GlobalKey<SDRecordsWidgetState> sonKey = GlobalKey();
 
   // GlobalKey<AppBarState> appbarKey = GlobalKey();
 

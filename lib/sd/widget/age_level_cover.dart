@@ -13,11 +13,11 @@ import '../provider/AIPainterModel.dart';
 
 const TAG = 'AgeLevelCover';
 
-class AgeLevelCover extends StatelessWidget with FilePromptReader {
+class SDAgeLevelCover extends StatelessWidget with FilePromptReader {
   UniqueSign info;
   bool? needInfoLogo;
 
-  AgeLevelCover(this.info, {super.key, this.needInfoLogo = true});
+  SDAgeLevelCover(this.info, {super.key, this.needInfoLogo = true});
 
   late AIPainterModel provider;
 

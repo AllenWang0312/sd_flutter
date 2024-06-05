@@ -7,11 +7,11 @@ import '../../../http_service.dart';
 
 const TAG = "AutoCompletePage";
 
-class AutoCompleteStatelessPage extends StatelessWidget {
+class SDAutoCompleteStatelessPage extends StatelessWidget {
   String? title = '';
   String? prompt = '';
 
-  AutoCompleteStatelessPage(this.title, this.prompt, {super.key}) {
+  SDAutoCompleteStatelessPage(this.title, this.prompt, {super.key}) {
     promptController = TextEditingController(text: prompt ?? "");
   }
 

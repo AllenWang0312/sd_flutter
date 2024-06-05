@@ -24,14 +24,14 @@ class RecordsModel with ChangeNotifier, DiagnosticableTreeMixin {
 
 const String TAG = "RecordsWidget";
 
-class RecordsWidget extends StatefulWidget {
-  RecordsWidget({super.key});
+class SDRecordsWidget extends StatefulWidget {
+  SDRecordsWidget({super.key});
 
   @override
-  State<RecordsWidget> createState() => RecordsWidgetState();
+  State<SDRecordsWidget> createState() => SDRecordsWidgetState();
 }
 
-class RecordsWidgetState extends State<RecordsWidget>
+class SDRecordsWidgetState extends State<SDRecordsWidget>
     with TickerProviderStateMixin {
   List<PageListViewer> children = [
     HistoryWidget(),
@@ -70,32 +70,30 @@ class RecordsWidgetState extends State<RecordsWidget>
     // RecordsModel model =
     //     Provider.of<RecordsModel>(context, listen: false);
     return Scaffold(
-      appBar: AppBar(
-        bottom: TabBar(
-          isScrollable: true,
-          indicatorColor: Colors.transparent,
-          // unselectedLabelColor: ,
-          labelStyle: TextStyle(fontSize: 28),
-          unselectedLabelStyle: TextStyle(fontSize: 16),
-          controller: controller,
-          tabs: [
-            Tab(text: AppLocalizations
-                .of(context)
-                .local),
-            Tab(text: AppLocalizations
-                .of(context)
-                .favourite),
+      appBar: TabBar(
+        isScrollable: true,
+        indicatorColor: Colors.transparent,
+        // unselectedLabelColor: ,
+        // labelStyle: TextStyle(fontSize: 28),
+        // unselectedLabelStyle: TextStyle(fontSize: 16),
+        controller: controller,
+        tabs: [
+          Tab(text: AppLocalizations
+              .of(context)
+              .local),
+          Tab(text: AppLocalizations
+              .of(context)
+              .favourite),
 
-            Tab(text: AppLocalizations
-                .of(context)
-                .remoteTxt2Img),
-            // Tab(text: AppLocalizations.of(context).remoteImg2Img),
-            Tab(text: AppLocalizations
-                .of(context)
-                .extras),
-          ],
-          dividerColor: Colors.transparent,
-        ),
+          Tab(text: AppLocalizations
+              .of(context)
+              .remoteTxt2Img),
+          // Tab(text: AppLocalizations.of(context).remoteImg2Img),
+          Tab(text: AppLocalizations
+              .of(context)
+              .extras),
+        ],
+        dividerColor: Colors.transparent,
       ),
       body: TabBarView(
         children: children,

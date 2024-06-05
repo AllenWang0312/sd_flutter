@@ -9,7 +9,7 @@ import '../../../../common/ui_util.dart';
 import '../../../const/config.dart';
 import '../../../http_service.dart';
 
-class SamplerWidget extends StatelessWidget {
+class SDSamplerWidget extends StatelessWidget {
   // get selectedSampler {
   //   if (samplers.isEmpty) {
   //     return null;

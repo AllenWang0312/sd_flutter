@@ -18,7 +18,7 @@ import 'create_style_page.dart';
 
 final String TAG = "CreateWorkspaceWidget";
 
-class CreateWorkspaceWidget extends StatefulWidget {
+class SDCreateWorkspaceWidget extends StatefulWidget {
   late String imgSavePath;
   late String styleSavePath;
 
@@ -29,7 +29,7 @@ class CreateWorkspaceWidget extends StatefulWidget {
   List<PromptStyleFileConfig>? configs;
   List<FileSystemEntity>? publicStyleConfigs;
 
-  CreateWorkspaceWidget(this.imgSavePath, this.styleSavePath,
+  SDCreateWorkspaceWidget(this.imgSavePath, this.styleSavePath,
       {this.publicPath,
       this.openHidePath,
       this.workspace,
@@ -37,10 +37,10 @@ class CreateWorkspaceWidget extends StatefulWidget {
       this.publicStyleConfigs});
 
   @override
-  State<CreateWorkspaceWidget> createState() => _CreateWorkspaceWidgetState();
+  State<SDCreateWorkspaceWidget> createState() => _SDCreateWorkspaceWidgetState();
 }
 
-class _CreateWorkspaceWidgetState extends State<CreateWorkspaceWidget> {
+class _SDCreateWorkspaceWidgetState extends State<SDCreateWorkspaceWidget> {
   String getStoragePath(StorageType? value) {
     if (value == StorageType.Public) {
       return widget.publicPath??"";

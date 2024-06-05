@@ -4,7 +4,7 @@ import 'package:sd/common/util/string_util.dart';
 import '../../../bean/db/Translate.dart';
 import 'drag_prompt_widget.dart';
 
-class TranslateDragPromptWidget extends StatelessWidget {
+class SDTranslateDragPromptWidget extends StatelessWidget {
   // late List<dynamic> split;
   // List<String>? translate;
   // List<int>? colors;
@@ -13,7 +13,7 @@ class TranslateDragPromptWidget extends StatelessWidget {
   String? prompt = '';
   late List<Translate> split;
 
-  TranslateDragPromptWidget(this.title, this.prompt, {super.key}) {
+  SDTranslateDragPromptWidget(this.title, this.prompt, {super.key}) {
     if (null != prompt) {
       split = [];
       List prompts = prompt!.split(',');
@@ -28,7 +28,7 @@ class TranslateDragPromptWidget extends StatelessWidget {
   }
 
   late TextEditingController editting;
-  late DragPromptWidget dragPromptWidget;
+  late SDDragPromptWidget dragPromptWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class TranslateDragPromptWidget extends StatelessWidget {
     });
 
 
-    dragPromptWidget = DragPromptWidget(split);
+    dragPromptWidget = SDDragPromptWidget(split);
 
     return Scaffold(
       appBar: AppBar(

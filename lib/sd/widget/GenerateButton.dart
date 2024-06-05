@@ -40,9 +40,10 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
   bool backgroundProgress =
       true; //todo 接口错误 暂时关闭 状态同步 后台10s 检查progress 或者请求时 主动1s检查 progress
   late TXT2IMGModel model;
+
   @override
   Widget build(BuildContext context) {
-      model = Provider.of<TXT2IMGModel>(context, listen: false);
+    model = Provider.of<TXT2IMGModel>(context, listen: false);
     provider = Provider.of<AIPainterModel>(context, listen: false);
     if (_countdownTimer != null) {
       _countdownTimer!.cancel();
@@ -91,28 +92,30 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
     return Stack(children: [
       FloatingActionButton(
         onPressed: () {
-          if(provider.netWorkState==BUSY){
-            post("$sdHttpService$GET_PROGRESS",formData: getPreview(id_live_preview,taskId), exceptionCallback: (e) {
+          if (provider.netWorkState == BUSY) {
+            post("$sdHttpService$GET_PROGRESS",
+                formData: getPreview(id_live_preview, taskId),
+                exceptionCallback: (e) {
               countDown = 0;
             }).then((value) {
               if (null != value) {
-                GenerateProgress progress = GenerateProgress.fromJson(value.data);
-                logt(TAG,"background progress $progress");
-                forgroundProgressCheck(progress,model,refresh: true);
+                GenerateProgress progress =
+                    GenerateProgress.fromJson(value.data);
+                logt(TAG, "background progress $progress");
+                forgroundProgressCheck(progress, model, refresh: true);
               }
             });
-          }else{
+          } else {
             backgroundProgress = false;
             id_live_preview = 0;
             widget.onPressed!();
-
           }
         },
         child: Text(AppLocalizations.of(context).generate),
       ),
       SizedBox(
         width: 56,
-        height:56,
+        height: 56,
         child: Selector<AIPainterModel, int>(
             selector: (_, model) => model.netWorkState,
             shouldRebuild: (pre, next) => pre != next,
@@ -135,7 +138,8 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
     isActive = state == AppLifecycleState.resumed;
   }
 
-  void forgroundProgressCheck(GenerateProgress progress, TXT2IMGModel model,{refresh = false}) {
+  void forgroundProgressCheck(GenerateProgress progress, TXT2IMGModel model,
+      {refresh = false}) {
     id_live_preview = progress.idLivePreview!;
     model.updateProgress(progress.progress);
     if (progress.livePreview != null) {
@@ -145,7 +149,7 @@ class _GenerateButtonState extends LifecycleState<GenerateButton> {
     if (
         // progress.progress==null
         progress.completed == true) {
-      if(refresh)provider.updateNetworkState(ONLINE);
+      if (refresh) provider.updateNetworkState(ONLINE);
       logd("timer cancel");
       // _countdownTimer?.cancel();
       backgroundProgress = true;
