@@ -54,7 +54,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
   int negPromptIndex = colums.indexOf(PromptStyle.NEG_PROMPT);
   int weightIndex = colums.indexOf(PromptStyle.WEIGHT);
   int repetIndex = colums.indexOf(PromptStyle.REPET);
-
+  int bListIndex = colums.indexOf(PromptStyle.BLIST);
 
   return csvTable.where((element) {
     return element.length >= 3 && //过滤空行
@@ -80,13 +80,17 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       int step =
           stepIndex >= 0 && stepIndex < e.length ? toInt(e[stepIndex], 0) : 0;
 
-      int repet =
-      repetIndex >= 0 && repetIndex < e.length ? toInt(e[repetIndex], 1) : 1;
+      int repet = repetIndex >= 0 && repetIndex < e.length
+          ? toInt(e[repetIndex], 1)
+          : 1;
       String? type =
           typeIndex >= 0 && typeIndex < e.length ? e[typeIndex].toString() : '';
       int weight = weightIndex >= 0 && weightIndex < e.length
           ? toInt(e[weightIndex], 1)
           : 1;
+
+      String? bList =
+          bListIndex >= 0 && bListIndex < e.length ? e[bListIndex] : null;
 
       item = extend
           ? Optional(name,
@@ -96,8 +100,9 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               group: group,
               step: step,
               type: type,
-              repet:repet,
-              weight: weight)
+              repet: repet,
+              weight: weight,
+      bList:bList)
           : PromptStyle(name,
               limitAge: limitAge,
               prompt: prompt,
@@ -106,9 +111,9 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               step: step,
               type: type,
               repet: repet,
-              weight: weight);
+              weight: weight,
+          bList:bList);
       // logt("loadPromptStyleFromString", item.toString());
-
     } catch (err) {
       logt("loadPromptStyleFromString", e.toString());
     }

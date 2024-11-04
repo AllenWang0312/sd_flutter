@@ -30,7 +30,7 @@ class DBModel extends NetWorkProvider {
 
   late Map<String, int> limit = {};
 
-  int styleFrom = 3;
+  int styleFrom = 4;
 
   void updatePromptType(int newValue) {
     styleFrom = newValue;

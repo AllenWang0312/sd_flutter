@@ -1,8 +1,14 @@
+import 'dart:collection';
+
 import 'package:sd/common/util/string_util.dart';
 
 const TAG = "PromptStyle";
+String groupName(String group, String name) {
+return (group.isEmpty ? "" : "$group|") + name;
+}
 
 class PromptStyle {
+
   static var GROUP = 'group';
   static var STEP =
       'step'; //0镜头 1 场景环境 2女主体 特征  3女主体整体(动作关系等) 4女主体细节  5环境道具 6男主体特征 [7 8] 9多主体之间关系
@@ -16,9 +22,13 @@ class PromptStyle {
   static var NEG_PROMPT = 'negative_prompt';
   static var WEIGHT = 'weight';
   static var REPET = 'repet';
+  static var BLIST = 'blist';
+
+  static Map<String,String> bListMap=HashMap();
+
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
-      "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT";
+      "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT,blist TEXT";
 
   String? _readableType;
 
@@ -44,12 +54,15 @@ class PromptStyle {
   String? prompt = "";
   String? negativePrompt = "";
 
+  String? bList;
+
   int weight = 1;
 
   int repet = 1;
   int promptLen = 0;
   int negativeLen = 0;
 
+  bool isLora = false;
   PromptStyle(
     this.name, {
     this.group = '',
@@ -60,8 +73,13 @@ class PromptStyle {
     this.negativePrompt,
     this.weight = 1,
         this.repet = 1,
+        this.bList
   }) {
+    if(null!=bList){
+      bListMap.putIfAbsent(name, () => bList!);
+    }
     promptLen = wordsCount(prompt);
+    isLora = prompt?.contains("<lora:")==true;
     negativeLen = wordsCount(negativePrompt);
     // logt(TAG,"prompt $promptLen negative $negativeLen");
   }

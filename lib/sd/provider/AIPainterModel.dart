@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:sd/common/splash_page.dart';
+import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/bean4json/UpScaler.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
@@ -18,7 +19,6 @@ class AIPainterModel extends ConfigModel
   int countdownNum = SPLASH_WATTING_TIME; // todo 连同timer 封装到组件  闪屏页倒计时
 
   String? selectedSDModel;
-
 
   String selectedInterrogator = DEFAULT_INTERROGATOR;
   List<UpScaler> upScalers = [];
@@ -110,33 +110,39 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  void unCheckRadio(String name) {
+  void unCheckRadio(String name,String? bList) {
     int index = checkedRadio.indexOf(name);
     if (index >= 0) {
       checkedRadio.remove(name);
+      if(null!=bList) unRegBList(toList(bList));
       checkedRadioGroup.removeAt(index);
       notifyListeners();
     }
   }
 
-  void removeCheckedStyles(String item, {refresh = false}) {
+  void removeCheckedStyles(String item, {String? bList,bool refresh = false}) {
     checkedStyles.remove(item);
+    if(null!=bList) unRegBList(toList(bList));
     if (refresh) {
       notifyListeners();
     }
   }
 
-  void addCheckedStyles(String other, {refresh = false}) {
+  void addCheckedStyles(String other, {String? bList, bool refresh = false}) {
     checkedStyles.add(other);
+    if(null!=bList) regBList(toList(bList));
     if (refresh) {
       notifyListeners();
     }
   }
+
+
 
   void updateBgWeight(double value) {
     txt2img.bgWeight = value;
     notifyListeners();
   }
+
   void updateWeight(double value) {
     txt2img.weight = value;
     notifyListeners();
@@ -168,11 +174,11 @@ class AIPainterModel extends ConfigModel
   void randomSizeIfNeed() {
     if (!hwLocked) {
       int vertical;
-      if(hwSwitchLock){
-        vertical = isVertical?1:0;
-      }else{
-        vertical = Random().nextInt(2);//0 横 1 竖 2 等边
-        hwSwitchLock = vertical==1;
+      if (hwSwitchLock) {
+        vertical = isVertical ? 1 : 0;
+      } else {
+        vertical = Random().nextInt(2); //0 横 1 竖 2 等边
+        hwSwitchLock = vertical == 1;
       }
 
       int size = Random().nextInt(4);
@@ -186,7 +192,7 @@ class AIPainterModel extends ConfigModel
         txt2img.width = sizes[size][0];
         txt2img.height = sizes[size][1];
       }
-      isVertical = txt2img.height>txt2img.width;
+      isVertical = txt2img.height > txt2img.width;
       notifyListeners();
     }
   }
@@ -206,7 +212,7 @@ class AIPainterModel extends ConfigModel
     int width = txt2img.width;
     txt2img.width = txt2img.height;
     txt2img.height = width;
-    isVertical = txt2img.height>txt2img.width;
+    isVertical = txt2img.height > txt2img.width;
     notifyListeners();
   }
 
@@ -214,8 +220,14 @@ class AIPainterModel extends ConfigModel
     this.hwLocked = value;
     notifyListeners();
   }
+
   void updateHWSwitchLocked(bool value) {
     this.hwSwitchLock = value;
     notifyListeners();
+  }
+
+  bool inBList(String group,String name) {
+    var gName = groupName(group,name);
+    return null!=blistCount[gName]&&blistCount[gName]!>0;
   }
 }

@@ -40,7 +40,7 @@ class SDModelWidget extends StatelessWidget {
                 if (snapshot.hasData) {
                   List re = snapshot.data?.data as List;
                   models = re.map((e) => SdModel.fromJson(e)).toList();
-                  logt(TAG,snapshot.data?.data);
+                  // logt(TAG,snapshot.data?.data);
                   //
                   // List re = snapshot.data?.data['data'][0]['choices'] as List;
                   // models = re.map((e) => SdModel.fromString(e.toString())).toList();

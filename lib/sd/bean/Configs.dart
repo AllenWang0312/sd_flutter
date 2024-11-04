@@ -78,7 +78,7 @@ class Configs {
 
   int steps = DEFAULT_SAMPLER_STEPS;
 
-  double bgWeight = 2.0; //环境/主体 比重0-10  图片长变>短边*1.5时生效
+  double bgWeight = 2.0; //环境比重 比重0-5  图片长变>短边*1.5时生效
 
   double weight = 6.0; //主体/装饰物 比重0-10
 

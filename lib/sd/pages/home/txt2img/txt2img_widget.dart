@@ -240,14 +240,16 @@ class SDTXT2IMGWidget extends StatelessWidget {
       // if (true) {
 
       String prompt = appendCommaIfNotExist(provider.txt2img.prompt) +
-          (provider.styleFrom == 3
-              ? promptStylePicker.getStylePromptV3(
+          // (provider.styleFrom == 3
+          //     ?
+          promptStylePicker.getStylePromptV3(
                   provider.txt2img.height,
                   provider.txt2img.width,
                   provider.txt2img.steps,
                   provider.txt2img.bgWeight,
-                  provider.txt2img.weight)
-              : promptStylePicker.getStylePrompt());
+                  provider.txt2img.weight);
+              // : promptStylePicker.getStylePrompt()
+    // );
 
       String negativePrompt =
           appendCommaIfNotExist(provider.txt2img.negativePrompt) +
@@ -255,7 +257,8 @@ class SDTXT2IMGWidget extends StatelessWidget {
       from['prompt'] = prompt + provider.getCheckedPluginsString();
       from['negative_prompt'] = negativePrompt;
 
-      if (sdShare! || provider.generateType == 0) {
+      //sdShare! ||
+      if (provider.generateType == 0) {
         post("$sdHttpService$TXT_2_IMG", formData: from,
                 exceptionCallback: (e) {
           Fluttertoast.showToast(
@@ -722,34 +725,29 @@ class SDTXT2IMGWidget extends StatelessWidget {
                 ],
               );
             }),
-        if (provider.styleFrom == 3)
+        if (provider.styleFrom == 4)
           Row(
             children: [
-              const Text('环境'),
+              const Text('抢跑'),
               Expanded(
                 child: Selector<AIPainterModel, double>(
                   selector: (_, model) => model.txt2img.bgWeight,
                   builder: (_, newValue, child) {
                     return Slider(
                       value: newValue,
-                      min: 1,
-                      max: 3,
-                      divisions: 8,
+                      min: 0,
+                      max: 5,
+                      divisions: 5,
                       onChanged: (double value) {
                         provider.updateBgWeight(value);
                         // samplerStepsController.text = samplerSteps.toString();
                       },
+
                     );
                   },
                 ),
               ),
-              const Text('主体')
-            ],
-          ),
-        if (provider.styleFrom == 3)
-          Row(
-            children: [
-              const Text('主体'),
+              const Text('服装'),
               Expanded(
                 child: Selector<AIPainterModel, double>(
                   selector: (_, model) => model.txt2img.weight,

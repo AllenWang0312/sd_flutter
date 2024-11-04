@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:fluttertoast/fluttertoast.dart';
@@ -54,19 +55,22 @@ class SPModel extends DBModel {
   //选择的单选项group
   List<String> checkedRadioGroup = [];
   //选择的单选项
-  List<String> checkedRadio = [];
+  List<String> checkedRadio = [];//
 
   //选择的多选项
   List<String> checkedStyles = [];
   //锁定的多选项
   List<String> lockedStyles = [];
 
-  void lockSelector(String name) {
-    if(isSingle(name)){
-      if (checkedRadio.contains(name)) {
+  Map<String,int> blistCount = HashMap();
+
+
+  void lockSelector(String name) {//锁定、取消锁定 某一项
+    if(isSingle(name)){//单选项
+      if (checkedRadio.contains(name)) {//已选的包含
         String target = checkedRadioGroup[checkedRadio.indexOf(name)];
         if (lockedRadioGroup.contains(target)) {
-          lockedRadioGroup.remove(target);
+          lockedRadioGroup.remove(target); //加入锁定
           logt(TAG,'$target unlocked $lockedRadioGroup $checkedRadioGroup');
         } else {
           lockedRadioGroup.add(target);
@@ -99,7 +103,7 @@ class SPModel extends DBModel {
     return false;
   }
 
-  void updateCheckRadio(String group, String? name) {
+  void updateCheckRadio(String group, String? name,{String? bList}) {
     if (null != name) {
       bool exit = checkedRadioGroup.contains(group);
       if (exit) {
@@ -108,21 +112,52 @@ class SPModel extends DBModel {
         checkedRadioGroup.add(group);
         checkedRadio.add(name);
       }
+      if(null!=bList) regBList(toList(bList));
     } else {
       int index = checkedRadioGroup.indexOf(group);
       checkedRadio.removeAt(index);
       checkedRadioGroup.removeAt(index);
+      if(null!=bList) unRegBList(toList(bList));
     }
-    logt(TAG, "${checkedRadioGroup.toString()} ${checkedRadio.toString()}");
+    logt(TAG, "${checkedRadioGroup.toString()}\n"
+        " ${checkedRadio.toString()}");
     notifyListeners();
   }
+  void regBList(List<String> blis,{bool refresh=false}) {
+    blis.forEach((element) {
+      if (blistCount.containsKey(element) != null) {
+        blistCount.update(element, (value) => blistCount[element]! + 1);
+      } else {
+        blistCount.putIfAbsent(element, () => 1);
+      }
+    });
+    if(refresh)notifyListeners();
+  }
 
+  List<String> toList(String bList) {
+    if (bList.contains(",")) {
+      return bList.split(",");
+    } else {
+      return [bList];
+    }
+  }
+
+  void unRegBList(List<String> blis, {bool refresh = false}) {
+    blis.forEach((element) {
+      if (blistCount[element]! > 1) {
+        blistCount.update(element, (value) => blistCount[element]! - 1);
+      } else {
+        blistCount.remove(element);
+      }
+    });
+    if(refresh)notifyListeners();
+  }
   void loadFromSP(SharedPreferences sp) {
     // share = sp.getBool(SP_SHARE)??false;
     // if(sdShare!){
     //   styleFrom = -1;
     // }else{
-    styleFrom = sp.getInt(SP_PROMPT_TYPE) ?? 3;
+    styleFrom = sp.getInt(SP_PROMPT_TYPE) ?? 4;
     // }
     generateType = sp.getInt(SP_GENERATE_TYPE) ?? 0;
 
@@ -292,13 +327,15 @@ class SPModel extends DBModel {
   //   }
   // }
 
-  void switchChecked(bool checked, String name) {
+  void switchChecked(bool checked, String name,String? bList) {
     if (checked
     //txt2img.checkedStyles.contains(name)
     ) {
       checkedStyles.add(name);
+      if(null!=bList) regBList(toList(bList));
     } else {
       checkedStyles.remove(name);
+      if(null!=bList) unRegBList(toList(bList));
     }
     notifyListeners();
   }
@@ -347,8 +384,10 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  unCheckStyles(String style) {
+  unCheckStyles(String style,String? bList) {
     checkedStyles.remove(style);
+    if(null!=bList) unRegBList(toList(bList));
+
     checkedRadio.remove(styles);
     notifyListeners();
   }
@@ -375,9 +414,10 @@ class SPModel extends DBModel {
               style.negativePrompt!.isEmpty ||
               negPrompt.contains("${style.negativePrompt},"))) {
         if (isSingle(style.name)) {
-          updateCheckRadio(style.group, style.name);
+          updateCheckRadio(style.group, style.name,bList: style.bList);
         } else {
           checkedStyles.add(style.name);
+          if(null!=style.bList) regBList(toList(style.bList!),refresh: true);
         }
         result.prompt?.replaceAll("\{${style.prompt}\}\,", "");
         result.negativePrompt?.replaceAll("${style.negativePrompt}\,", "");

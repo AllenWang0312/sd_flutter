@@ -20,202 +20,7 @@ bool isSingle(String element) {
 }
 
 class Optional extends PromptStyle {
-  bool? _isRaido;
-
-  bool get isRadio {
-    _isRaido ??= name.endsWith("*") || name.endsWith("^");
-    return _isRaido!;
-  }
-
-  Optional? parent;
-
-  Optional(super.name,
-      {super.group,
-      super.step,
-      super.limitAge,
-      super.type,
-      super.prompt,
-      super.repet,
-      super.negativePrompt,
-      super.weight}) {
-    currentRepet = repet;
-  }
-
-  late int currentRepet;
-  HashMap<String, Optional>? options;
-  bool? _expand;
-
-  void addOption(String name, Optional item) {
-    options ??= HashMap();
-    item.parent = this;
-    options!.putIfAbsent(item.name, () => item);
-    if ((name.isNotEmpty || group.isNotEmpty) && item.group.isEmpty) {
-      item.group = groupName(group, name);
-    }
-    if (this.step == null && item.step != null) {
-      step = item.step;
-    }
-  }
-
-  Optional createIfNotExit(List<String> names, int i) {
-    options ??= HashMap();
-    Optional option;
-
-    String name = names[i];
-    if (options!.keys.contains(name)) {
-      option = options![name]!;
-    } else {
-      option = Optional(name);
-      addOption(name, option);
-    }
-
-    if (i != names.length - 1) {
-      return option.createIfNotExit(names, i + 1);
-    } else {
-      return option;
-    }
-  }
-
-  Widget generate(AIPainterModel provider, int deep) {
-    if (null != options && options!.keys.isNotEmpty) {
-      // initExpand(provider);
-      if (deep == 0) {
-        return content(provider, options, deep);
-      } else {
-        return Expandable(
-            // _expand!
-            true,
-            Row(
-              children: [
-                (isRadio ||
-                        (null != prompt && prompt!.isNotEmpty) ||
-                        (null != negativePrompt && negativePrompt!.isNotEmpty))
-                    ? Selector<AIPainterModel, List<String>>(
-                        selector: (_, model) =>
-                            isRadio ? model.checkedRadio : model.checkedStyles,
-                        builder: (_, newValue, child) {
-                          return ChoiceChip(
-                              avatar:
-                                  (provider.selectorLocked("$group|$name") ||
-                                          provider.lockedStyles.contains(name))
-                                      ? CircleAvatar(
-                                          radius: 6,
-                                          child: Container(
-                                            color: Colors.red,
-                                          ),
-                                        )
-                                      : null,
-                              selectedColor: Colors.grey,
-                              label: Text(name),
-                              labelPadding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              selected: newValue.contains(name),
-                              onSelected: (newValue) {
-                                if (isRadio) {
-                                  if (newValue) {
-                                    //勾选
-                                    provider.updateCheckRadio(group, name);
-                                  } else {
-                                    //取消
-                                    provider.updateCheckRadio(group, null);
-                                  }
-                                } else {
-                                  provider.switchChecked(newValue, name);
-                                }
-                              });
-                        })
-                    : Text(name),
-                IconButton(
-                    onPressed: () {
-                      randomChild(provider);
-                    },
-                    icon: Icon(Icons.refresh))
-              ],
-            ),
-            content(provider, options, deep));
-      }
-    } else {
-      return Text(name);
-    }
-  }
-
-  void randomChild(AIPainterModel provider) {
-    if (
-        // step != 0 && //todo 过滤还有缺陷
-        null != options) {
-      Iterable<Optional> all = options!.values;
-      List<Optional> others = all
-          .where((element) =>
-              !isSingle(element.name) &&
-              !provider.lockedStyles.contains(element.name) &&
-              (element.prompt != null || element.negativePrompt != null))
-          .toList();
-      final Random random = Random();
-
-      //本层没被锁
-      if (!provider.lockedRadioGroup.contains(groupName(group, name))) {
-        bool radioChecked =
-            provider.checkedRadioGroup.contains(groupName(group, name));
-
-        if (radioChecked) {
-          String checkedName = provider.checkedRadio[
-              provider.checkedRadioGroup.indexOf(groupName(group, name))];
-          logt(TAG, "random Child $group $checkedName $step");
-
-          Optional? checkedItem = options![checkedName];
-          checkedItem!.currentRepet -= 1;
-          if (checkedItem.currentRepet > 0) {
-          } else {
-            checkedItem.currentRepet = checkedItem.repet;
-            logt(TAG,
-                "random exit radio $group $checkedName ${checkedItem.currentRepet}");
-
-            List<Optional> radios =
-                all.where((element) => autoSingle(element.name)).toList();
-            logt(TAG, "random radios ${radios.toString()}");
-
-            if (radios.isNotEmpty) {
-              int weights = weightCount(radios);
-              int weightIndex = random.nextInt(weights);
-              logt(TAG, "random radio $weightIndex");
-              int index = offsetIndex(radios, weights, weightIndex);
-              provider.updateCheckRadio(
-                  groupName(group, name), radios[index].name);
-            }
-          }
-        }
-      }
-
-      int checkCount = 0;
-      for (Optional item in others) {
-        if (provider.checkedStyles.contains(item.name)) {
-          provider.removeCheckedStyles(item.name);
-          logt(TAG, "random remove items$item");
-          checkCount++;
-        }
-      }
-      if (checkCount > 0 && checkCount != others.length) {
-        for (int i = 0; i < checkCount; i++) {
-          int ran = random.nextInt(others.length);
-          logt(TAG, "random items$ran");
-          provider.addCheckedStyles(others[ran].name, refresh: true);
-          others.removeAt(ran);
-        }
-      }
-    }
-    if (null != options) {
-      for (Optional item in options!.values) {
-        item.randomChild(provider);
-      }
-    }
-  }
-
-  @override
-  String toString() {
-    return 'Optional{$name $group $isRadio $options}';
-  }
-
-  Widget content(
+  static Widget content(
       AIPainterModel provider, Map<String, Optional>? options, int deep) {
     List<Optional> ops = options!.values.toList();
     // bool noChild = true;
@@ -240,10 +45,11 @@ class Optional extends PromptStyle {
                         TAG, "radio onSelected ${e.group} ${e.name} $newValue");
                     if (newValue != null && newValue) {
                       //勾选
-                      provider.updateCheckRadio(e.group, e.name);
+                      provider.updateCheckRadio(e.group, e.name,
+                          bList: e.bList);
                     } else {
                       //取消
-                      provider.updateCheckRadio(e.group, null);
+                      provider.updateCheckRadio(e.group, null, bList: e.bList);
                     }
                     // provider.switchChecked(newValue ?? false, e.name);
                   });
@@ -261,7 +67,7 @@ class Optional extends PromptStyle {
                       TAG,
                       "onSelected $selected ${e.name}",
                     );
-                    provider.switchChecked(selected, e.name);
+                    provider.switchChecked(selected, e.name, e.bList);
                   },
                   label: Text(e.name));
             });
@@ -304,7 +110,7 @@ class Optional extends PromptStyle {
     );
   }
 
-  List<List<Optional>> splitOptional(List<Optional> ops) {
+  static List<List<Optional>> splitOptional(List<Optional> ops) {
     List<Optional> noChild = [];
     List<Optional> withChild = [];
     for (Optional item in ops) {
@@ -317,8 +123,200 @@ class Optional extends PromptStyle {
     return [noChild, withChild];
   }
 
-  String groupName(String group, String name) {
-    return (group.isEmpty ? "" : "$group|") + this.name;
+  bool? _isRaido;
+
+  bool get isRadio {
+    _isRaido ??= name.endsWith("*") || name.endsWith("^");
+    return _isRaido!;
+  }
+
+  Optional? parent;
+
+  Optional(super.name,
+      {super.group,
+      super.step,
+      super.limitAge,
+      super.type,
+      super.prompt,
+      super.repet,
+      super.negativePrompt,
+      super.weight,
+      super.bList}) {
+    currentRepet = repet;
+  }
+
+  int currentRepet = 1;
+  HashMap<String, Optional>? options;
+  bool? _expand;
+
+  void addOption(String name, Optional item) {
+    options ??= HashMap();
+    item.parent = this;
+    options!.putIfAbsent(item.name, () => item);
+    if ((name.isNotEmpty || group.isNotEmpty) && item.group.isEmpty) {
+      item.group = groupName(group, name);
+    }
+    if (this.step == null && item.step != null) {
+      step = item.step;
+    }
+  }
+
+  Optional createIfNotExit(List<String> names, int i) {
+    options ??= HashMap();
+    Optional option;
+
+    String name = names[i];
+    if (options!.keys.contains(name)) {
+      option = options![name]!;
+    } else {
+      option = Optional(name);
+      addOption(name, option);
+    }
+
+    if (i != names.length - 1) {
+      return option.createIfNotExit(names, i + 1);
+    } else {
+      return option;
+    }
+  }
+
+  Widget generate(AIPainterModel provider, int deep) {
+    if (null != options && options!.keys.isNotEmpty) {
+      // initExpand(provider);
+      return Expandable(
+          // _expand!
+          true,
+          Row(
+            children: [
+              (isRadio ||
+                      (null != prompt && prompt!.isNotEmpty) ||
+                      (null != negativePrompt && negativePrompt!.isNotEmpty))
+                  ? Selector<AIPainterModel, List<String>>(
+                      selector: (_, model) =>
+                          isRadio ? model.checkedRadio : model.checkedStyles,
+                      builder: (_, newValue, child) {
+                        return ChoiceChip(
+                            avatar: (provider.selectorLocked("$group|$name") ||
+                                    provider.lockedStyles.contains(name))
+                                ? CircleAvatar(
+                                    radius: 6,
+                                    child: Container(
+                                      color: Colors.red,
+                                    ),
+                                  )
+                                : null,
+                            selectedColor: Colors.grey,
+                            label: Text(name),
+                            labelPadding:
+                                const EdgeInsets.symmetric(horizontal: 2),
+                            selected: newValue.contains(name),
+                            onSelected: (newValue) {
+                              if (isRadio) {
+                                if (newValue) {
+                                  //勾选
+                                  provider.updateCheckRadio(group, name,
+                                      bList: bList);
+                                } else {
+                                  //取消
+                                  provider.updateCheckRadio(group, null,
+                                      bList: bList);
+                                }
+                              } else {
+                                provider.switchChecked(newValue, name, bList);
+                              }
+                            });
+                      })
+                  : Text(name),
+              IconButton(
+                  onPressed: () {
+                    randomChild(provider);
+                  },
+                  icon: Icon(Icons.refresh))
+            ],
+          ),
+          content(provider, options, deep));
+    } else {
+      return Text(name);
+    }
+  }
+
+  void randomChild(AIPainterModel provider) {
+
+    if (
+    // step != 0 && //todo 过滤还有缺陷
+    null != options) {
+      final Random random = Random();
+
+    // Iterable<Optional> all = options!.values;
+    List<Optional> others = options!.values
+        .where((element) =>
+            !isSingle(element.name) &&
+            !provider.lockedStyles.contains(element.name) &&
+            (element.prompt != null || element.negativePrompt != null))
+        .toList();
+
+
+
+    int checkCount = 0;
+    for (Optional item in others) {
+      if (provider.checkedStyles.contains(item.name)) {
+        provider.removeCheckedStyles(item.name);
+        logt(TAG, "random remove items$item");
+        checkCount++;
+      }
+    }
+    if (checkCount > 0 && checkCount != others.length) {
+      for (int i = 0; i < checkCount; i++) {
+        int ran = random.nextInt(others.length);
+        logt(TAG, "random items$ran");
+        provider.addCheckedStyles(others[ran].name, refresh: true);
+        others.removeAt(ran);
+      }
+    }
+    //本层没被锁
+    // if (!provider.lockedRadioGroup.contains(group)) {
+    bool radioChecked = provider.checkedRadioGroup.contains(groupName(group, name));
+    if (radioChecked) {
+      String checkedName =
+      provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))];
+      logt(TAG, "random Child $group $checkedName $step");
+
+      Optional? checkedItem = options?[checkedName];
+      if (null != checkedItem) {
+        if (checkedItem.currentRepet > 0) {
+          checkedItem.currentRepet -= 1;
+
+        } else {
+          checkedItem.currentRepet = checkedItem.repet;
+          logt(TAG,
+              "random exit radio $group $checkedName ${checkedItem.currentRepet}");
+
+          List<Optional> radios =
+          options!.values.where((element) => autoSingle(element.name)).toList();
+          logt(TAG, "random radios ${radios.toString()}");
+
+          if (radios.isNotEmpty) {
+            int weights = weightCount(radios);
+            int weightIndex = random.nextInt(weights);
+            logt(TAG, "random radio $weightIndex");
+            int index = offsetIndex(radios, weights, weightIndex);
+            provider.updateCheckRadio(groupName(group, name), radios[index].name,
+                bList: radios[index].bList);
+          }
+          // }
+        }
+      }
+    }
+    for (Optional item in options!.values) {
+        item.randomChild(provider);
+      }
+    }
+
+  }
+
+  @override
+  String toString() {
+    return 'Optional{$name $group $isRadio $options}';
   }
 
   exist(List<String> checkedStyles, Iterable<String> keys) {

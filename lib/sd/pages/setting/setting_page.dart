@@ -238,9 +238,9 @@ class _SettingPageState extends State<SettingPage> {
                       shouldRebuild: (pre, next) => pre != next,
                       builder: (_, newValue, child) {
                         return CupertinoSwitch(
-                            value: newValue == 3,
+                            value: newValue == 4,
                             onChanged: (value) {
-                              _switchPromptType(value ? 3 : 1);
+                              _switchPromptType(value ? 4 : 1);
                             });
                       }),
                 ],

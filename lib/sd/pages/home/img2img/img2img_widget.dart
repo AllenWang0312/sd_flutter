@@ -4,6 +4,8 @@ import 'package:sd/sd/pages/home/img2img/prompt_style_picker.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
 import 'package:sd/sd/provider/AppBarProvider.dart';
 
+import '../../../bean/Optional.dart';
+
 class SDimg2imgWidget extends StatefulWidget {
   SDimg2imgWidget({super.key});
 
@@ -29,7 +31,8 @@ class _SDimg2imgWidgetState extends State<SDimg2imgWidget> {
     List<Widget> children = provider.optional.options!.values.map((value) => SingleChildScrollView(
         child:
         // provider.styleFrom == 3 ?
-        value.generate(provider,0)
+        // value.generate(provider,0)
+        Optional.content(provider, value.options, 1)
       // : generateStyles(provider.publicStyles)
     )).toList();
 

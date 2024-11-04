@@ -22,7 +22,7 @@ const int WS_COUNT = 3;
 const String APP_DIR_NAME = 'sdf';
 const KEY_HOST = "host";
 const SD_WIN_HOST = "127.0.0.1";
-const SD_CLINET_HOST = "192.168.0.1";
+const SD_CLINET_HOST = "192.168.0.2";
 
 const SD_PORT = 7860;
 
@@ -92,12 +92,20 @@ String nameToUrl(String name) {
   return "$sdHttpService/file=${urlEncode}";
 }
 
+
+//http://127.0.0.1:7860/sd_extra_networks/thumb?filename=E%3A/stable-diffusion-webui_23-02-27/models/Stable-diffusion/0%200%20majicMIX_realistic%EF%BC%88V4%E5%8F%8A%E4%BB%A5%E4%B8%8B%E7%89%88%E6%9C%AC%EF%BC%89_Majic_nwsj.png&mtime=1716471383.5418935
 getModelImageUrl(String modelType, String name, {bool preview = false}) {
   return sdHttpService! +
       '/file=models/$modelType/' +
       name +
       (preview ? ".preview" : "") +
       ".png";
+
+  // return sdHttpService! +
+  //     '/file=models/$modelType/' +
+  //     name +
+  //     (preview ? ".preview" : "") +
+  //     ".png";
 }
 
 const GET_DEFAULT_SCRIPTS =
