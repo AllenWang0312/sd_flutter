@@ -27,15 +27,28 @@ class SDPromptStylePicker extends StatelessWidget {
   String getStylePromptV3(
       int width, int height, int steps, double bgWeight, double weight) {
     List<String> prompt = List.generate(10, (index) => "");
+
+    //槽位 0环境 1场景 2脸模 9互动动作 3动作体态 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰
+
+    //todo blist有点重  先用排他控制
+    //循环所有已选择的style  按槽位拼接 lora排他
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(style.name)&&!provider.inBList(style.group,style.name)) {
+      if (provider.checkedStyles.contains(style.name) &&
+          !provider.inBList(style.group, style.name)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
-          prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
+          var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
+              appendCommaIfNotExist("{${style.prompt}}"));
+          prompt[style.step ?? 0] = search['result'];
+          if (search['exist'] == true) break;
         }
       }
-      if (provider.checkedRadio.contains(style.name)&&!provider.inBList(style.group,style.name)) {
+      if (provider.checkedRadio.contains(style.name) &&
+          !provider.inBList(style.group, style.name)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
-          prompt[style.step ?? 0] += appendCommaIfNotExist("{${style.prompt}}");
+          var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
+              appendCommaIfNotExist("{${style.prompt}}"));
+          prompt[style.step ?? 0] = search['result'];
+          if (search['exist'] == true) break;
         }
       }
     }
@@ -49,19 +62,18 @@ class SDPromptStylePicker extends StatelessWidget {
     //       "${prompt[5]}";
     // }
 
-
     int bgStep = steps * bgWeight ~/ 10;
     int mainStep = (steps - bgStep) * weight ~/ 10;
     int poseStep = steps * weight ~/ 10;
 
-    if(provider.styleFrom ==4){
-      return "${prompt[0]}"//环境
+    if (provider.styleFrom == 4) {
+      return "${prompt[0]}" //环境
           "${sfw ? "SFW," : ""}"
-          "${prompt[2]},${prompt[9]}"//主角 主特征 关联动作  场景1
-          "[(${prompt[3]},${prompt[1]}):(${prompt[4]}):$poseStep]\n"//主角 pose 主角衣服
-          "{${prompt[6]}"//辅助身材
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n"//辅助特征 辅助装饰
-          "${prompt[5]}";//主角 装饰
+          "${prompt[2]},${prompt[9]}" //主角 主特征 关联动作  场景1
+          "[(${prompt[3]},${prompt[1]}):(${prompt[4]}):$poseStep]\n" //主角 pose 主角衣服
+          "{${prompt[6]}" //辅助身材
+          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n" //辅助特征 辅助装饰
+          "${prompt[5]}"; //主角 装饰
     }
 
     //todo 过长的图用天空填充背景
@@ -75,14 +87,17 @@ class SDPromptStylePicker extends StatelessWidget {
           "[(${prompt[7]}):(${prompt[8]}):$mainStep]}${prompt[5]}"
           "}:$bgStep]";
     } else {
-      return "${prompt[0]}"//环境
+      return "${prompt[0]}" //环境
           "${sfw ? "SFW," : ""}"
-          "${prompt[2]}${prompt[9]}${prompt[1]}"//主角 主特征 关联动作  场景1
-          "[(${prompt[3]}):(${prompt[4]}):$poseStep]\n"//主角 pose 主角衣服
-          "{${prompt[6]}"//辅助身材
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n"//辅助特征 辅助装饰
-          "${prompt[5]}";//主角 装饰
+          "${prompt[2]}${prompt[9]}${prompt[1]}" //主角 主特征 关联动作  场景1
+          "[(${prompt[3]}):(${prompt[4]}):$poseStep]\n" //主角 pose 主角衣服
+          "{${prompt[6]}" //辅助身材
+          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n" //辅助特征 辅助装饰
+          "${prompt[5]}"; //主角 装饰
     }
+
+    // defaultSelect bool  defaultCount 2
+    //环境，细节，道具，立足点$foothold 手部道具$handProps
   }
 
   String getStyleNegPrompt() {
@@ -108,51 +123,55 @@ class SDPromptStylePicker extends StatelessWidget {
         direction: Axis.horizontal,
         alignment: WrapAlignment.center,
         children: ([]
-          ..addAll(provider.checkedStyles)
-          ..addAll(provider.checkedRadio))
+              ..addAll(provider.checkedStyles)
+              ..addAll(provider.checkedRadio))
             .map((e) => Selector<AIPainterModel, int>(
-          selector: (_, model) =>
-          model.lockedRadioGroup.length + model.lockedStyles.length,
-          builder: (_, value, child) {
-            return Selector<AIPainterModel, bool>(
-              selector: (_,model)=>model.blistCount[e]!=null&&model.blistCount[e]!>0,
-              builder: (_,inBList,child){
-
-                Function()? delete;
-                Color? bListColor;
-                if(!inBList){
-                  delete = () {
-                    provider.unCheckStyles(e,PromptStyle.bListMap[e]);
-                    provider.unCheckRadio(e,PromptStyle.bListMap[e]);
-                  };
-                }else{
-                  bListColor = Colors.grey;
-                }
-                return GestureDetector(
-                    onTap: () {
-                      provider.lockSelector(e);
-                    },
-                    child: RawChip(
-                      avatar: (provider.selectorLocked(e) ||
-                          provider.lockedStyles.contains(e))
-                          ? CircleAvatar(
-                        radius: 6,
-                        child: Container(
-                          color: Colors.red,
-                        ),
-                      )
-                          : null,
-                      label: Text(e,style: TextStyle(color:bListColor),),
-                      labelPadding:
-                      const EdgeInsets.symmetric(horizontal: 2),
-                      onDeleted: delete,
-                    ));
-              },
-            ) ;
-          },
-        ))
+                  selector: (_, model) =>
+                      model.lockedRadioGroup.length + model.lockedStyles.length,
+                  builder: (_, value, child) {
+                    return Selector<AIPainterModel, bool>(
+                      selector: (_, model) =>
+                          model.blistCount[e] != null &&
+                          model.blistCount[e]! > 0,
+                      builder: (_, inBList, child) {
+                        Function()? delete;
+                        Color? bListColor;
+                        if (!inBList) {
+                          delete = () {
+                            provider.unCheckStyles(e, PromptStyle.bListMap[e]);
+                            provider.unCheckRadio(e, PromptStyle.bListMap[e]);
+                          };
+                        } else {
+                          bListColor = Colors.grey;
+                        }
+                        return GestureDetector(
+                            onTap: () {
+                              provider.lockSelector(e);
+                            },
+                            child: RawChip(
+                              avatar: (provider.selectorLocked(e) ||
+                                      provider.lockedStyles.contains(e))
+                                  ? CircleAvatar(
+                                      radius: 6,
+                                      child: Container(
+                                        color: Colors.red,
+                                      ),
+                                    )
+                                  : null,
+                              label: Text(
+                                e,
+                                style: TextStyle(color: bListColor),
+                              ),
+                              labelPadding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              onDeleted: delete,
+                            ));
+                      },
+                    );
+                  },
+                ))
             .toList(),
-      ) ,
+      ),
       Selector<AIPainterModel, bool>(
         selector: (_, model) =>
             model.checkedStyles.isEmpty && model.checkedRadio.isEmpty,
@@ -161,15 +180,16 @@ class SDPromptStylePicker extends StatelessWidget {
             offstage: newValue,
             child: Row(
               children: [
-                TextButton(onPressed: (){
-                  showDialog(
-                      context: context,
-                      builder: (_) {
-                        return AlertDialog(
-                            content:   SDPromptWidget()
-                        );
-                      });
-                }, child: Text("prompt"),),
+                TextButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (_) {
+                          return AlertDialog(content: SDPromptWidget());
+                        });
+                  },
+                  child: Text("prompt"),
+                ),
                 Spacer(),
                 IconButton(
                     onPressed: () {
@@ -260,7 +280,7 @@ class SDPromptStylePicker extends StatelessWidget {
                     label: Text(e.name + (e.readableType ?? "")),
                     selected: provider.checkedStyles.contains(e.name),
                     onSelected: (bool selected) {
-                      provider.switchChecked(selected, e.name,e.bList);
+                      provider.switchChecked(selected, e.name, e.bList);
                     },
                   ))
               .toList(),
@@ -270,6 +290,18 @@ class SDPromptStylePicker extends StatelessWidget {
     return Column(
       children: result,
     );
+  }
+
+  //严格排他lora(存在lora则丢弃其他描述)的槽位 1 2 9 4 6 8
+  dynamic mixPrompt(int step, String prompt, String newPrompt) {
+    if (STATIC_PART.contains(step)) {
+      if (prompt.contains("<lora:")) {
+        return {"exist": true, "result": prompt};
+      } else if (newPrompt.contains("<lora:>")) {
+        return {"exist": true, "result": newPrompt};
+      }
+    }
+    return {"exist": false, "result": prompt + newPrompt};
   }
 
 // refreshStyles(BuildContext context) {
@@ -288,3 +320,12 @@ class SDPromptStylePicker extends StatelessWidget {
 //   });
 // }
 }
+
+const STATIC_PART = [
+  1,
+  2,
+  9,
+  4,
+  6,
+  8,
+];

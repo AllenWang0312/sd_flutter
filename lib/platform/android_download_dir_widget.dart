@@ -30,6 +30,8 @@ List<LocalFileInfo> downloadRoot = [
   LocalFileInfo(name: 'lexica.art', isDir: true, url: 'https://lexica.art'),
   LocalFileInfo(
       name: 'search.krea.ai', isDir: true, url: 'https://search.krea.ai'),
+  LocalFileInfo(
+      name: 'liblib.art', isDir: true, url: 'https://liblib.art'),
 ];
 List<String> promptHelper = [
   'http://wolfchen.top/tag/',

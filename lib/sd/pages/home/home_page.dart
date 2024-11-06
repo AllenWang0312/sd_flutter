@@ -14,6 +14,8 @@ import '../../http_service.dart';
 import 'img2img/img2img_widget.dart';
 
 const TAG = 'HomePage';
+Size? screenSize;
+
 
 class SDHomePage extends StatelessWidget {
   int? index;
@@ -26,6 +28,8 @@ class SDHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    screenSize = MediaQuery.of(context).size;
+
     provider = Provider.of<AIPainterModel>(context, listen: false);
     if (null != index) provider.index = index!;
     // home = Provider.of<HomeModel>(context, listen: false);

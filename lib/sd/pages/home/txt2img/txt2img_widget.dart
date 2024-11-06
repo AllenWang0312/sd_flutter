@@ -21,6 +21,7 @@ import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/db_controler.dart';
 import 'package:sd/sd/http_service.dart';
 import 'package:sd/sd/mocker.dart';
+import 'package:sd/sd/pages/home/home_page.dart';
 import 'package:sd/sd/pages/home/img2img/prompt_style_picker.dart';
 import 'package:sd/sd/pages/home/img2img/sampler_widget.dart';
 import 'package:sd/sd/pages/home/img2img/sd_model_widget.dart';
@@ -568,6 +569,8 @@ class SDTXT2IMGWidget extends StatelessWidget {
         sampler,
         Row(
           children: [
+            Text("设备尺寸"+screenSize!.width.toString()+"x"+screenSize!.height.toString()),
+
             Column(
               children: [
                 Selector<AIPainterModel, int>(

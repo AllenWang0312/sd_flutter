@@ -55,7 +55,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
   void loadOptionalMapFromService(int userAge,String path){
     logt(TAG,"loadOptionalMapFromService $path");
     String? csv;
-    get(path,timeOutSecond: 60,exceptionCallback: (e){
+    get(path,timeOutSecond: 10,exceptionCallback: (e){
       logt(TAG,e.toString());
     }).then((value) {
       if (null != value && null != value.data) {
