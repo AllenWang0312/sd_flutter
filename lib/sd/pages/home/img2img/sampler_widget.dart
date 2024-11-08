@@ -25,7 +25,8 @@ class SDSamplerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AIPainterModel provider = Provider.of<AIPainterModel>(context,listen: false);
+    AIPainterModel provider =
+        Provider.of<AIPainterModel>(context, listen: false);
 
     return Column(
       children: [
@@ -33,25 +34,6 @@ class SDSamplerWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(AppLocalizations.of(context).sampler),
-            Text(AppLocalizations.of(context).samplerSteps),
-            SizedBox(
-                width: 40,
-                child: Selector<AIPainterModel, int>(
-                  selector: (context, model) => model.txt2img.steps,
-                  shouldRebuild: (pre, next) => pre != next,
-                  builder: (context, steps, child) {
-                    TextEditingController samplerStepsController =
-                        TextEditingController(text: steps.toString());
-
-                    return TextFormField(
-                        // initialValue: provider.samplerSteps.toString(),
-                        controller: samplerStepsController);
-                  },
-                ))
-          ],
-        ),
-        Row(
-          children: [
             FutureBuilder(
                 future: getSamplers,
                 builder: (context, snapshot) {
@@ -73,9 +55,28 @@ class SDSamplerWidget extends StatelessWidget {
                           }),
                     );
                   } else {
-                    return myPlaceholder(100,20);
+                    return myPlaceholder(100, 20);
                   }
-                }),
+                })
+          ],
+        ),
+        Row(
+          children: [
+            Text(AppLocalizations.of(context).samplerSteps),
+            SizedBox(
+                width: 40,
+                child: Selector<AIPainterModel, int>(
+                  selector: (context, model) => model.txt2img.steps,
+                  shouldRebuild: (pre, next) => pre != next,
+                  builder: (context, steps, child) {
+                    TextEditingController samplerStepsController =
+                        TextEditingController(text: steps.toString());
+
+                    return TextFormField(
+                        // initialValue: provider.samplerSteps.toString(),
+                        controller: samplerStepsController);
+                  },
+                )),
             Expanded(
               child: Selector<AIPainterModel, int>(
                 selector: (context, model) => model.txt2img.steps,
@@ -92,6 +93,70 @@ class SDSamplerWidget extends StatelessWidget {
                   },
                 ),
               ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Text("厚涂"),
+
+            Expanded(
+              child: Selector<AIPainterModel, int>(
+                  selector: (context, model) => model.txt2img.steps,
+                  builder: (context, steps, child) {
+                    return Selector<AIPainterModel, int>(
+                      selector: (context, model) => model.txt2img.shapSteps,
+                      shouldRebuild: (pre, next) => pre != next,
+                      builder: (context, shapSteps, child) => Slider(
+                        value: shapSteps.toDouble(),
+                        min: 30,
+                        max: steps.toDouble(),
+                        divisions: (steps - 30) ~/ 5,
+                        onChanged: (double value) {
+                          // print("steps seek$value");
+                          provider.updateShapeSteps(value);
+                          // samplerStepsController.text = samplerSteps.toString();
+                        },
+                      ),
+                    );
+                  }),
+            ),
+            Selector<AIPainterModel, int>(
+              selector: (context, model) => model.txt2img.shapSteps,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (context, shapSteps, child) => Text(shapSteps.toString()),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Text("细节"),
+
+            Expanded(
+              child: Selector<AIPainterModel, int>(
+                  selector: (context, model) => model.txt2img.steps,
+                  builder: (context, steps, child) {
+                    return Selector<AIPainterModel, int>(
+                      selector: (context, model) => model.txt2img.detailSteps,
+                      shouldRebuild: (pre, next) => pre != next,
+                      builder: (context, detailSteps, child) => Slider(
+                        value: detailSteps.toDouble(),
+                        min: 30,
+                        max: steps.toDouble(),
+                        divisions: (steps - 30) ~/ 5,
+                        onChanged: (double value) {
+                          // print("steps seek$value");
+                          provider.updateDetailSteps(value);
+                          // samplerStepsController.text = samplerSteps.toString();
+                        },
+                      ),
+                    );
+                  }),
+            ),
+            Selector<AIPainterModel, int>(
+              selector: (context, model) => model.txt2img.detailSteps,
+              shouldRebuild: (pre, next) => pre != next,
+              builder: (context, detailSteps, child) => Text(detailSteps.toString()),
             ),
           ],
         )

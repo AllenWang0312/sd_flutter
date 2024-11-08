@@ -307,6 +307,15 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
+  void updateShapeSteps(double value) {
+    txt2img.shapSteps = value.toInt();
+    notifyListeners();
+  }
+  void updateDetailSteps(double value) {
+    txt2img.detailSteps = value.toInt();
+    notifyListeners();
+  }
+
   void selectSampler(String newValue) {
     txt2img.sampler = newValue;
     notifyListeners();

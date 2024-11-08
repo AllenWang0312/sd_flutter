@@ -64,16 +64,19 @@ class SDPromptStylePicker extends StatelessWidget {
 
     int bgStep = steps * bgWeight ~/ 10;
     int mainStep = (steps - bgStep) * weight ~/ 10;
-    int poseStep = steps * weight ~/ 10;
+    // int poseStep = steps * weight ~/ 10;
 
     if (provider.styleFrom == 4) {
       return "${prompt[0]}" //环境
           "${sfw ? "SFW," : ""}"
-          "${prompt[2]},${prompt[9]}" //主角 主特征 关联动作  场景1
-          "[(${prompt[3]},${prompt[1]}):(${prompt[4]}):$poseStep]\n" //主角 pose 主角衣服
-          "{${prompt[6]}" //辅助身材
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n" //辅助特征 辅助装饰
-          "${prompt[5]}"; //主角 装饰
+          "${prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
+          "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
+          "[(${prompt[4]}):${provider.txt2img.steps - provider.txt2img.detailSteps}]," //主角 pose 主角衣服
+          "[${prompt[1]}::10],"//前十部画大环境
+          "[(${prompt[5]},${prompt[1]}):${provider.txt2img.steps -10}]," //后十步 画道具 装饰
+          "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
+          "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
+          "${prompt[8]}"; //主角 装饰
     }
 
     //todo 过长的图用天空填充背景
@@ -294,6 +297,9 @@ class SDPromptStylePicker extends StatelessWidget {
 
   //严格排他lora(存在lora则丢弃其他描述)的槽位 1 2 9 4 6 8
   dynamic mixPrompt(int step, String prompt, String newPrompt) {
+    if(step==2){
+      return "($prompt) AND ($newPrompt)";
+    }
     if (STATIC_PART.contains(step)) {
       if (prompt.contains("<lora:")) {
         return {"exist": true, "result": prompt};
