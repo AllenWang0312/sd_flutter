@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/platform/platform.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -60,6 +62,10 @@ class Workspace {
     return "$_dynamicPath";
   }
   String get absPath{
+   if(Platform.isWindows){
+      return "G:/txt2img/$name";
+    }
+
     return "$_dynamicPath/$name";
   }
 

@@ -569,8 +569,7 @@ class SDTXT2IMGWidget extends StatelessWidget {
         sampler,
         Row(
           children: [
-            Text("设备尺寸"+screenSize!.width.toString()+"x"+screenSize!.height.toString()),
-
+            // Text("设备尺寸"+screenSize!.width.toString()+"x"+screenSize!.height.toString()),
             Column(
               children: [
                 Selector<AIPainterModel, int>(

@@ -63,7 +63,7 @@ class ConfigModel extends SPModel {
       syncPath =
           (await getExternalStorageDirectories())?.first.path.toString() ?? "";
       asyncPath = syncPath;
-    } else {
+    } else if(UniversalPlatform.isIOS){
       printDir(
           await getDownloadsDirectory()); //only for not android //Downloads
 
@@ -131,7 +131,7 @@ class ConfigModel extends SPModel {
     logt(TAG, "initTranlatesIfServiceActive $localVersion $serviceVersion");
 
     if (localVersion == null || localVersion < serviceVersion) {
-      get("$sdHttpService$TAG_COMPUTE_CN", timeOutSecond: 60)
+      get("$sdHttpService$TAG_COMPUTE_CN")
           .then((value) async {
         if (null != value) {
           asyncDecodeTranslateAndSaveToDB(value.data.toString());

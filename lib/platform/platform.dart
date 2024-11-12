@@ -40,8 +40,8 @@ String removeAndroidPrePathIfIsPublic(String path) {
 }
 
 
-String syncPath = '';
-String asyncPath = '';
+String syncPath = 'G:/txt2img';
+String asyncPath = 'G:/txt2img';
 
 const COLLECTIONS = "/Collections";
 

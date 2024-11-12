@@ -241,77 +241,74 @@ class Optional extends PromptStyle {
   }
 
   void randomChild(AIPainterModel provider) {
-
     if (
-    // step != 0 && //todo 过滤还有缺陷
-    null != options) {
+        // step != 0 && //todo 过滤还有缺陷
+        null != options) {
       final Random random = Random();
 
-    // Iterable<Optional> all = options!.values;
-    List<Optional> others = options!.values
-        .where((element) =>
-            !isSingle(element.name) &&
-            !provider.lockedStyles.contains(element.name) &&
-            (element.prompt != null || element.negativePrompt != null))
-        .toList();
+      // Iterable<Optional> all = options!.values;
+      List<Optional> others = options!.values
+          .where((element) =>
+              !isSingle(element.name) &&
+              !provider.lockedStyles.contains(element.name) &&
+              (element.prompt != null || element.negativePrompt != null))
+          .toList();
 
-
-
-    int checkCount = 0;
-    for (Optional item in others) {
-      if (provider.checkedStyles.contains(item.name)) {
-        provider.removeCheckedStyles(item.name);
-        logt(TAG, "random remove items$item");
-        checkCount++;
-      }
-    }
-    if (checkCount > 0 && checkCount != others.length) {
-      for (int i = 0; i < checkCount; i++) {
-        int ran = random.nextInt(others.length);
-        logt(TAG, "random items$ran");
-        provider.addCheckedStyles(others[ran].name, refresh: true);
-        others.removeAt(ran);
-      }
-    }
-    //本层没被锁
-    // if (!provider.lockedRadioGroup.contains(group)) {
-    bool radioChecked = provider.checkedRadioGroup.contains(groupName(group, name));
-    if (radioChecked) {
-      String checkedName =
-      provider.checkedRadio[provider.checkedRadioGroup.indexOf(groupName(group, name))];
-      logt(TAG, "random Child $group $checkedName $step");
-
-      Optional? checkedItem = options?[checkedName];
-      if (null != checkedItem) {
-        if (checkedItem.currentRepet > 0) {
-          checkedItem.currentRepet -= 1;
-
-        } else {
-          checkedItem.currentRepet = checkedItem.repet;
-          logt(TAG,
-              "random exit radio $group $checkedName ${checkedItem.currentRepet}");
-
-          List<Optional> radios =
-          options!.values.where((element) => autoSingle(element.name)).toList();
-          logt(TAG, "random radios ${radios.toString()}");
-
-          if (radios.isNotEmpty) {
-            int weights = weightCount(radios);
-            int weightIndex = random.nextInt(weights);
-            logt(TAG, "random radio $weightIndex");
-            int index = offsetIndex(radios, weights, weightIndex);
-            provider.updateCheckRadio(groupName(group, name), radios[index].name,
-                bList: radios[index].bList);
-          }
-          // }
+      int checkCount = 0;
+      for (Optional item in others) {
+        if (provider.checkedStyles.contains(item.name)) {
+          provider.removeCheckedStyles(item.name);
+          logt(TAG, "random remove items$item");
+          checkCount++;
         }
       }
-    }
-    for (Optional item in options!.values) {
+      if (checkCount > 0 && checkCount != others.length) {
+        for (int i = 0; i < checkCount; i++) {
+          int ran = random.nextInt(others.length);
+          logt(TAG, "random items$ran");
+          provider.addCheckedStyles(others[ran].name, refresh: true);
+          others.removeAt(ran);
+        }
+      }
+
+      bool radioChecked = provider.checkedRadioGroup.contains(group);
+
+      //本层没被锁
+      if (!provider.lockedRadioGroup.contains(group)) {
+        if (radioChecked) {
+          String checkedName =
+              provider.checkedRadio[provider.checkedRadioGroup.indexOf(group)];
+          logt(TAG, "random Child $group $checkedName $step");
+          Optional? checkedItem = options?[checkedName];
+          if (null != checkedItem) {
+            if (checkedItem.currentRepet > 0) {
+              checkedItem.currentRepet -= 1;
+            } else {
+              checkedItem.currentRepet = checkedItem.repet;
+              logt(TAG,
+                  "random exit radio $group $checkedName ${checkedItem.currentRepet}");
+
+              List<Optional> radios = options!.values
+                  .where((element) => autoSingle(element.name))
+                  .toList();
+              logt(TAG, "random radios ${radios.toString()}");
+
+              if (radios.isNotEmpty) {
+                int weights = weightCount(radios);
+                int weightIndex = random.nextInt(weights);
+                logt(TAG, "random radio $weightIndex");
+                int index = offsetIndex(radios, weights, weightIndex);
+                provider.updateCheckRadio(group, radios[index].name,
+                    bList: radios[index].bList);
+              }
+            }
+          }
+        }
+      }
+      for (Optional item in options!.values) {
         item.randomChild(provider);
       }
     }
-
   }
 
   @override

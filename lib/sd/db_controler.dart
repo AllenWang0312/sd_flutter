@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
@@ -34,9 +35,14 @@ class DBController {
     if (null != workspace) {
       this.workspace = workspace;
       if (null == database || !database!.isOpen) {
+        // databaseFactory = sqflite_common_ffi.databaseFactoryFfi;
         var databasePath = await getDatabasesPath();
         // String ext = workspace.isEmpty ? '' : '_$workspace';
         var dbpath = join(databasePath, 'ai_paint.db');
+        if(Platform.isWindows){
+          dbpath = await databaseFactory.getDatabasesPath();
+        }
+
         database = await openDatabase(dbpath, version: 3,
             onCreate: (Database db, int version) async {
           logt(TAG, "db create");

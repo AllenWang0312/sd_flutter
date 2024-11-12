@@ -109,9 +109,9 @@ class SDSamplerWidget extends StatelessWidget {
                       shouldRebuild: (pre, next) => pre != next,
                       builder: (context, shapSteps, child) => Slider(
                         value: shapSteps.toDouble(),
-                        min: 30,
+                        min: 10,
                         max: steps.toDouble(),
-                        divisions: (steps - 30) ~/ 5,
+                        divisions: (steps - 10) ~/ 5,
                         onChanged: (double value) {
                           // print("steps seek$value");
                           provider.updateShapeSteps(value);
@@ -141,9 +141,9 @@ class SDSamplerWidget extends StatelessWidget {
                       shouldRebuild: (pre, next) => pre != next,
                       builder: (context, detailSteps, child) => Slider(
                         value: detailSteps.toDouble(),
-                        min: 30,
+                        min: 10,
                         max: steps.toDouble(),
-                        divisions: (steps - 30) ~/ 5,
+                        divisions: (steps - 10) ~/ 5,
                         onChanged: (double value) {
                           // print("steps seek$value");
                           provider.updateDetailSteps(value);

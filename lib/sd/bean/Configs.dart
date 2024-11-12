@@ -77,8 +77,8 @@ class Configs {
   String negativePrompt = '';
 
   int steps = DEFAULT_SAMPLER_STEPS;
-  int shapSteps = DEFAULT_SAMPLER_STEPS;
-  int detailSteps = DEFAULT_SAMPLER_STEPS;
+  int shapSteps = 30;
+  int detailSteps = 30;
 
 
   double bgWeight = 2.0; //环境比重 比重0-5  图片长变>短边*1.5时生效

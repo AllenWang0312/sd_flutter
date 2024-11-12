@@ -28,7 +28,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
 
   FutureOr<int> initServiceConfigIfServiceActive()async{
     int result = 0;
-   await get("$sdHttpService$TAG_SERVICE_CONFIG",timeOutSecond: 60,).then((value) {
+   await get("$sdHttpService$TAG_SERVICE_CONFIG").then((value) {
       if (null != value && value.data != null) {
         cmd = Cmd.fromJson(value.data["cmd"]);
         result= toInt(value.data['serviceVersion'], 0);
@@ -55,7 +55,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
   void loadOptionalMapFromService(int userAge,String path){
     logt(TAG,"loadOptionalMapFromService $path");
     String? csv;
-    get(path,timeOutSecond: 10,exceptionCallback: (e){
+    get(path,exceptionCallback: (e){
       logt(TAG,e.toString());
     }).then((value) {
       if (null != value && null != value.data) {

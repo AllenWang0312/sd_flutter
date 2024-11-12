@@ -146,7 +146,11 @@ void main() async {
   _generateRoute(RouteSettings settings) {
     final String? name = settings.name;
     final Function pageContentBuilder =
-        (isMobile() ? getMobileRoutes() : getWebRoutes())[name!] as Function;
+        (
+            // isMobile() ?
+            getMobileRoutes()
+                // : getWebRoutes()
+        )[name!] as Function;
       if (settings.arguments != null) {
         final Route route = MaterialPageRoute(
             builder: (context) =>

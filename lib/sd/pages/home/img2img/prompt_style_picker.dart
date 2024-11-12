@@ -26,15 +26,15 @@ class SDPromptStylePicker extends StatelessWidget {
 
   String getStylePromptV3(
       int width, int height, int steps, double bgWeight, double weight) {
-    List<String> prompt = List.generate(10, (index) => "");
+    List<String> prompt = List.generate(15, (index) => "");
 
     //槽位 0环境 1场景 2脸模 9互动动作 3动作体态 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰
-
+//10脸模+衣服 11 12臀与衣服关系 13腰与衣服关系 14胸与衣服关系
     //todo blist有点重  先用排他控制
     //循环所有已选择的style  按槽位拼接 lora排他
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name) &&
-          !provider.inBList(style.group, style.name)) {
+          !provider.inBList(style.group)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
               appendCommaIfNotExist("{${style.prompt}}"));
@@ -43,7 +43,7 @@ class SDPromptStylePicker extends StatelessWidget {
         }
       }
       if (provider.checkedRadio.contains(style.name) &&
-          !provider.inBList(style.group, style.name)) {
+          !provider.inBList(style.group)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
               appendCommaIfNotExist("{${style.prompt}}"));
@@ -64,19 +64,32 @@ class SDPromptStylePicker extends StatelessWidget {
 
     int bgStep = steps * bgWeight ~/ 10;
     int mainStep = (steps - bgStep) * weight ~/ 10;
-    // int poseStep = steps * weight ~/ 10;
+    int poseStep = steps * weight ~/ 10;
 
     if (provider.styleFrom == 4) {
-      return "${prompt[0]}" //环境
-          "${sfw ? "SFW," : ""}"
-          "${prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
-          "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-          "[(${prompt[4]}):${provider.txt2img.steps - provider.txt2img.detailSteps}]," //主角 pose 主角衣服
-          "[${prompt[1]}::10],"//前十部画大环境
-          "[(${prompt[5]},${prompt[1]}):${provider.txt2img.steps -10}]," //后十步 画道具 装饰
-          "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
-          "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
-          "${prompt[8]}"; //主角 装饰
+      if(provider.txt2img.shapSteps==provider.txt2img.detailSteps){
+        return "${prompt[0]}" //环境
+            "${sfw ? "SFW," : ""}"
+            "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
+            "[(${prompt[3]})|(${prompt[4]},${prompt[14]},${prompt[13]})]," //主角 pose 主角衣服
+            "[(${prompt[1]})::${provider.txt2img.steps~/3}],"//前十部画大环境
+            "[(${prompt[5]}):${provider.txt2img.steps~/3}]," //后十步 画道具 装饰
+            "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
+            "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
+            "${prompt[8]}"; //主角 装饰
+      }else {
+        return "${prompt[0]}" //环境
+            "${sfw ? "SFW," : ""}"
+            "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
+            "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
+            "[(${prompt[4]},${prompt[14]},${prompt[13]}):${provider.txt2img.steps - provider.txt2img.detailSteps}]," //主角 pose 主角衣服
+            "[(${prompt[1]})::10],"//前十部画大环境
+            "[(${prompt[5]}):${provider.txt2img.steps -10}]," //后十步 画道具 装饰
+            "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
+            "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
+            "${prompt[8]}"; //主角 装饰
+      }
+
     }
 
     //todo 过长的图用天空填充背景
@@ -297,13 +310,13 @@ class SDPromptStylePicker extends StatelessWidget {
 
   //严格排他lora(存在lora则丢弃其他描述)的槽位 1 2 9 4 6 8
   dynamic mixPrompt(int step, String prompt, String newPrompt) {
-    if(step==2){
-      return "($prompt) AND ($newPrompt)";
-    }
+    // if(step==2){
+    //   return {"exist":false,"result":"($prompt),($newPrompt)"};
+    // }
     if (STATIC_PART.contains(step)) {
       if (prompt.contains("<lora:")) {
         return {"exist": true, "result": prompt};
-      } else if (newPrompt.contains("<lora:>")) {
+      } else if (newPrompt.contains("<lora:")) {
         return {"exist": true, "result": newPrompt};
       }
     }
@@ -329,7 +342,7 @@ class SDPromptStylePicker extends StatelessWidget {
 
 const STATIC_PART = [
   1,
-  2,
+  // 2,
   9,
   4,
   6,

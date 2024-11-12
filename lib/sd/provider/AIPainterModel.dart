@@ -226,8 +226,7 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  bool inBList(String group,String name) {
-    var gName = groupName(group,name);
-    return null!=blistCount[gName]&&blistCount[gName]!>0;
+  bool inBList(String group) {
+    return null!=blistCount[group]&&blistCount[group]!>0;
   }
 }
