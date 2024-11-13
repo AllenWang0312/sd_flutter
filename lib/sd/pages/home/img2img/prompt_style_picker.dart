@@ -28,8 +28,6 @@ class SDPromptStylePicker extends StatelessWidget {
       int width, int height, int steps, double bgWeight, double weight) {
     List<String> prompt = List.generate(15, (index) => "");
 
-    //槽位 0环境 1场景 2脸模 9互动动作 3动作体态 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰
-//10脸模+衣服 11 12臀与衣服关系 13腰与衣服关系 14胸与衣服关系
     //todo blist有点重  先用排他控制
     //循环所有已选择的style  按槽位拼接 lora排他
     for (PromptStyle style in provider.styles) {
@@ -67,29 +65,66 @@ class SDPromptStylePicker extends StatelessWidget {
     int poseStep = steps * weight ~/ 10;
 
     if (provider.styleFrom == 4) {
-      if(provider.txt2img.shapSteps==provider.txt2img.detailSteps){
-        return "${prompt[0]}" //环境
-            "${sfw ? "SFW," : ""}"
-            "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
-            "[(${prompt[3]})|(${prompt[4]},${prompt[14]},${prompt[13]})]," //主角 pose 主角衣服
-            "[(${prompt[1]})::${provider.txt2img.steps~/3}],"//前十部画大环境
-            "[(${prompt[5]}):${provider.txt2img.steps~/3}]," //后十步 画道具 装饰
-            "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
-            "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
-            "${prompt[8]}"; //主角 装饰
-      }else {
-        return "${prompt[0]}" //环境
-            "${sfw ? "SFW," : ""}"
-            "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
-            "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${prompt[4]},${prompt[14]},${prompt[13]}):${provider.txt2img.steps - provider.txt2img.detailSteps}]," //主角 pose 主角衣服
-            "[(${prompt[1]})::10],"//前十部画大环境
-            "[(${prompt[5]}):${provider.txt2img.steps -10}]," //后十步 画道具 装饰
-            "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
-            "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
-            "${prompt[8]}"; //主角 装饰
+// <<<<<<< Updated upstream
+//       if(provider.txt2img.shapSteps==provider.txt2img.detailSteps){
+//         return "${prompt[0]}" //环境
+//             "${sfw ? "SFW," : ""}"
+//             "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
+//             "[(${prompt[3]})|(${prompt[4]},${prompt[14]},${prompt[13]})]," //主角 pose 主角衣服
+//             "[(${prompt[1]})::${provider.txt2img.steps~/3}],"//前十部画大环境
+//             "[(${prompt[5]}):${provider.txt2img.steps~/3}]," //后十步 画道具 装饰
+//             "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
+//             "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
+//             "${prompt[8]}"; //主角 装饰
+//       }else {
+//         return "${prompt[0]}" //环境
+//             "${sfw ? "SFW," : ""}"
+//             "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
+//             "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
+//             "[(${prompt[4]},${prompt[14]},${prompt[13]}):${provider.txt2img.steps - provider.txt2img.detailSteps}]," //主角 pose 主角衣服
+//             "[(${prompt[1]})::10],"//前十部画大环境
+//             "[(${prompt[5]}):${provider.txt2img.steps -10}]," //后十步 画道具 装饰
+//             "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
+//             "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
+//             "${prompt[8]}"; //主角 装饰
+//       }
+//
+// =======
+
+      //槽位 0环境 1场景 2脸模 3体型 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
+      //10 11 12 脸模+衣服  13主体动作 14部位与衣物关系
+      //todo 1. 10->12 3->13
+      var result = //环境
+          "${sfw ? "SFW," : ""}";
+      if (prompt[1].isNotEmpty || prompt[5].isNotEmpty) {
+        result += "[(${prompt[1]},${prompt[5]})::0.3],"; //前30%部画 大环境
       }
 
+      result +=
+          "${prompt[10].contains("<lora:") ? prompt[10] : prompt[2]},"; // todo 是否挤掉脸模
+      if (provider.txt2img.shapSteps == provider.txt2img.detailSteps) {
+        result +=
+            // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
+            "[(${getMainShape(prompt)})|(${prompt[4]},${prompt[14]})]";
+      } else {
+        result +=
+            // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
+            "[(${getMainShape(prompt)})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
+            "[(${prompt[4]},${prompt[14]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
+      }
+
+      //主角 pose 主角衣服
+      result += prompt[0]; //todo 画质是否权重靠后
+      if (prompt[1].isNotEmpty || prompt[5].isNotEmpty) {
+        result += "[(${prompt[5]},${prompt[1]}):0.7],"; //后30% 画道具 装饰 +环境
+      }
+      result += "BREAK,"
+          "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
+          "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
+          "${prompt[8]}"; //配角 装饰
+
+      return result;
+// >>>>>>> Stashed changes
     }
 
     //todo 过长的图用天空填充背景
@@ -321,6 +356,14 @@ class SDPromptStylePicker extends StatelessWidget {
       }
     }
     return {"exist": false, "result": prompt + newPrompt};
+  }
+
+  getMainShape(List<String> prompt) {
+    if (prompt[9].isNotEmpty) {
+      return "[${prompt[3]}|${prompt[9]}]";
+    } else {
+      return prompt[3];
+    }
   }
 
 // refreshStyles(BuildContext context) {
