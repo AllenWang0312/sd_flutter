@@ -49,7 +49,7 @@ class PromptStyle {
 
   String group = '';
   int step = -1;
-  String? type = '';
+  String? type = '';//名词动词
   String name = "";
   String? prompt = "";
   String? negativePrompt = "";
