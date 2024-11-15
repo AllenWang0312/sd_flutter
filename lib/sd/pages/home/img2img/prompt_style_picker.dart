@@ -26,7 +26,7 @@ class SDPromptStylePicker extends StatelessWidget {
 
   String getStylePromptV3(
       int width, int height, int steps, double bgWeight, double weight) {
-    List<String> prompt = List.generate(15, (index) => "");
+    List<String> prompt = List.generate(20, (index) => "");
 
     //todo blist有点重  先用排他控制
     //循环所有已选择的style  按槽位拼接 lora排他
@@ -91,13 +91,15 @@ class SDPromptStylePicker extends StatelessWidget {
 //
 // =======
 
-      //槽位 0环境 1场景 2脸模 3体型 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
-      //10 11 12 脸模+衣服  13主体动作 14部位与衣物关系
+      //槽位 0环境 1场景 2脸模 3主体特征 包括动作 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
+      //10 cos 强脸  11 12 13lora 主体特征 包括动作 14部位与衣物关系 19 lora 互动特征
       //todo 1. 10->12 3->13
       var result = //环境
           "${sfw ? "SFW," : ""}";
-      if (prompt[1].isNotEmpty || prompt[5].isNotEmpty) {
-        result += "[(${prompt[1]},${prompt[5]})::0.3],"; //前30%部画 大环境
+      result += prompt[0]; //todo 画质是否权重靠后
+
+      if (prompt[1].isNotEmpty) {
+        result += "[(${prompt[1]})::0.3],"; //前30%部画 大环境
       }
 
       result +=
@@ -105,19 +107,22 @@ class SDPromptStylePicker extends StatelessWidget {
       if (provider.txt2img.shapSteps == provider.txt2img.detailSteps) {
         result +=
             // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${getMainShape(prompt)})|(${prompt[4]},${prompt[14]})]";
+            "[(${prompt[3]},${prompt[9]})|";
+        result +="(${prompt[4]},${prompt[14]})]";
       } else {
         result +=
             // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${getMainShape(prompt)})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
-            "[(${prompt[4]},${prompt[14]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
+            "[(${prompt[3]},${prompt[14]})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
+            "[(${prompt[4]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
       }
 
       //主角 pose 主角衣服
-      result += prompt[0]; //todo 画质是否权重靠后
       if (prompt[1].isNotEmpty || prompt[5].isNotEmpty) {
         result += "[(${prompt[5]},${prompt[1]}):0.7],"; //后30% 画道具 装饰 +环境
       }
+
+      if(prompt[19].isNotEmpty)result += prompt[19];
+      if(prompt[13].isNotEmpty)result += prompt[13];
       result += "BREAK,"
           "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
           "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
