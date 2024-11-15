@@ -93,6 +93,11 @@ class SDPromptStylePicker extends StatelessWidget {
 
       //槽位 0环境 1场景 2脸模 3主体特征 包括动作 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
       //10 cos 强脸  11 12 13lora 主体特征 包括动作 14部位与衣物关系 19 lora 互动特征
+    //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
+      
+      //A girl [3 sitting on] [1 a seat] [1 in a cafe], wearing a [gorgeous long dress]
+//Upper body support point  Lower body support point
+
       //todo 1. 10->12 3->13
       var result = //环境
           "${sfw ? "SFW," : ""}";

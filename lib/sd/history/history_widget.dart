@@ -72,7 +72,7 @@ class _HistoryWidgetState extends PageListState<HistoryWidget>
             physics: physics,
             controller: scroller,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, childAspectRatio: 1
+                crossAxisCount: 2, childAspectRatio: 512/768
                 // 512 / 768
                 ),
             itemCount: history.length,

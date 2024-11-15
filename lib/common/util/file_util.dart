@@ -38,6 +38,13 @@ Future<List<PromptStyle>> loadPromptStyleFromCSVFile(
   return loadPromptStyleFromString(myData, userAge);
 }
 
+String group = '';
+int limitAge = 0;
+int step = 0;
+int repet = 1;
+String? type = '';
+int weight = 1;
+
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
     {Map<String, List<PromptStyle>>? groupRecord, bool extend = false}) {
   logt(TAG, "loadPromptStyleFromString");
@@ -64,33 +71,29 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
                     (element[limitIndex] == ''))
                 ? 0
                 : element[limitIndex]);
-  }).map((e) {
-    String group = groupIndex >= 0 ? e[groupIndex] : '';
+  }).map((dynList) {
+    group = getValue(dynList, groupIndex, group);
     late PromptStyle item;
     try {
-      String name = nameIndex >= 0 && nameIndex < e.length ? e[nameIndex] : '';
-      int limitAge = limitIndex >= 0 && limitIndex < e.length
-          ? toInt(e[limitIndex], 0)
-          : 0;
-      String? prompt =
-          promptIndex >= 0 && promptIndex < e.length ? e[promptIndex] : null;
-      String? negPrompt = negPromptIndex >= 0 && negPromptIndex < e.length
-          ? e[negPromptIndex]
+      String name = getValue(dynList, nameIndex, 'default');
+      String? prompt = promptIndex >= 0 && promptIndex < dynList.length
+          ? dynList[promptIndex]
           : null;
-      int step =
-          stepIndex >= 0 && stepIndex < e.length ? toInt(e[stepIndex], 0) : 0;
+      String? negPrompt = negPromptIndex >= 0 && negPromptIndex < dynList.length
+          ? dynList[negPromptIndex]
+          : null;
+      String? bList = bListIndex >= 0 && bListIndex < dynList.length
+          ? dynList[bListIndex]
+          : null;
 
-      int repet = repetIndex >= 0 && repetIndex < e.length
-          ? toInt(e[repetIndex], 1)
-          : 1;
-      String? type =
-          typeIndex >= 0 && typeIndex < e.length ? e[typeIndex].toString() : '';
-      int weight = weightIndex >= 0 && weightIndex < e.length
-          ? toInt(e[weightIndex], 1)
-          : 1;
+      //todo 为空继承上一行的属性
+      limitAge = toInt(getValue(dynList, limitIndex, limitAge), 0);
+      step = toInt(getValue(dynList, stepIndex, step), 0);
+      repet = toInt(getValue(dynList, repetIndex, repet), 1);
+      type = getValue(dynList, typeIndex, type);
+      weight = toInt(getValue(dynList, weightIndex, weight), 1);
 
-      String? bList =
-          bListIndex >= 0 && bListIndex < e.length ? e[bListIndex] : null;
+
 
       item = extend
           ? Optional(name,
@@ -102,7 +105,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               type: type,
               repet: repet,
               weight: weight,
-      bList:bList)
+              bList: bList)
           : PromptStyle(name,
               limitAge: limitAge,
               prompt: prompt,
@@ -112,10 +115,10 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               type: type,
               repet: repet,
               weight: weight,
-          bList:bList);
+              bList: bList);
       // logt("loadPromptStyleFromString", item.toString());
     } catch (err) {
-      logt("loadPromptStyleFromString", e.toString());
+      logt("loadPromptStyleFromString", dynList.toString());
     }
     if (null != groupRecord) {
       if (groupRecord.keys.contains(group)) {
@@ -127,6 +130,10 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
     }
     return item;
   }).toList();
+}
+
+dynamic getValue(List<dynamic> dynList, int keyIndex, dynamic group) {
+  return keyIndex >= 0 && keyIndex < dynList.length ? dynList[keyIndex] : group;
 }
 
 Future<String?> getOtherExt(File image, File prompt) async {
