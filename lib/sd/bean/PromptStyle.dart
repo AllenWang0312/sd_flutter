@@ -23,8 +23,11 @@ class PromptStyle {
   static var WEIGHT = 'weight';
   static var REPET = 'repet';
   static var BLIST = 'blist';
+  static var WLIST = 'wlist';
 
-  static Map<String,String> bListMap=HashMap();
+  static Map<String,String> bListMap=HashMap();// name to blist;
+
+
 
   static String TABLE_NAME = "prompt_styles";
   static String TABLE_CREATE =
@@ -55,6 +58,7 @@ class PromptStyle {
   String? negativePrompt = "";
 
   String? bList;
+  String? wList;
 
   int weight = 1;
 
@@ -73,7 +77,8 @@ class PromptStyle {
     this.negativePrompt,
     this.weight = 1,
         this.repet = 1,
-        this.bList
+        this.bList,
+        this.wList,
   }) {
     if(null!=bList){
       bListMap.putIfAbsent(name, () => bList!);

@@ -52,46 +52,54 @@ class SPModel extends DBModel {
 
   //锁定的单选项group
   List<String> lockedRadioGroup = [];
+
   //选择的单选项group
   List<String> checkedRadioGroup = [];
+
   //选择的单选项
-  List<String> checkedRadio = [];//
+  List<String> checkedRadio = []; //
 
   //选择的多选项
   List<String> checkedStyles = [];
+
   //锁定的多选项
   List<String> lockedStyles = [];
 
-  Map<String,int> blistCount = HashMap();
+  Map<String, int> blistCount = HashMap();
+  Map<String, int> rangeValueIndex = HashMap();//todo 记到本地缓存
 
+  void updateRangeValue(String group, int newValue) {
+    // rangeValueIndex[group] = newValue;
+    rangeValueIndex.putIfAbsent(group, () => newValue);
+    notifyListeners();
+  }
 
-  void lockSelector(String name) {//锁定、取消锁定 某一项
-    if(isSingle(name)){//单选项
-      if (checkedRadio.contains(name)) {//已选的包含
+  void lockSelector(String name) {
+    //锁定、取消锁定 某一项
+    if (isSingle(name)) {
+      //单选项
+      if (checkedRadio.contains(name)) {
+        //已选的包含
         String target = checkedRadioGroup[checkedRadio.indexOf(name)];
         if (lockedRadioGroup.contains(target)) {
           lockedRadioGroup.remove(target); //加入锁定
-          logt(TAG,'$target unlocked $lockedRadioGroup $checkedRadioGroup');
+          logt(TAG, '$target unlocked $lockedRadioGroup $checkedRadioGroup');
         } else {
           lockedRadioGroup.add(target);
-          logt(TAG,'$target locked $lockedRadioGroup $checkedRadioGroup');
-
+          logt(TAG, '$target locked $lockedRadioGroup $checkedRadioGroup');
         }
         notifyListeners();
       }
-    }else{
-      if(lockedStyles.contains(name)){
+    } else {
+      if (lockedStyles.contains(name)) {
         lockedStyles.remove(name);
-        logt(TAG,'$name unlocked');
-
-      }else{
+        logt(TAG, '$name unlocked');
+      } else {
         lockedStyles.add(name);
-        logt(TAG,'$name locked');
-
+        logt(TAG, '$name locked');
       }
       notifyListeners();
     }
-
   }
 
   bool selectorLocked(String name) {
@@ -103,7 +111,7 @@ class SPModel extends DBModel {
     return false;
   }
 
-  void updateCheckRadio(String group, String? name,{String? bList}) {
+  void updateCheckRadio(String group, String? name, {String? bList}) {
     if (null != name) {
       bool exit = checkedRadioGroup.contains(group);
       if (exit) {
@@ -112,18 +120,21 @@ class SPModel extends DBModel {
         checkedRadioGroup.add(group);
         checkedRadio.add(name);
       }
-      if(null!=bList) regBList(toList(bList));
+      if (null != bList) regBList(toList(bList));
     } else {
       int index = checkedRadioGroup.indexOf(group);
       checkedRadio.removeAt(index);
       checkedRadioGroup.removeAt(index);
-      if(null!=bList) unRegBList(toList(bList));
+      if (null != bList) unRegBList(toList(bList));
     }
-    logt(TAG, "${checkedRadioGroup.toString()}\n"
+    logt(
+        TAG,
+        "${checkedRadioGroup.toString()}\n"
         " ${checkedRadio.toString()}");
     notifyListeners();
   }
-  void regBList(List<String> blis,{bool refresh=false}) {
+
+  void regBList(List<String> blis, {bool refresh = false}) {
     blis.forEach((element) {
       if (blistCount.containsKey(element) != null) {
         blistCount.update(element, (value) => blistCount[element]! + 1);
@@ -131,7 +142,7 @@ class SPModel extends DBModel {
         blistCount.putIfAbsent(element, () => 1);
       }
     });
-    if(refresh)notifyListeners();
+    if (refresh) notifyListeners();
   }
 
   List<String> toList(String bList) {
@@ -150,8 +161,9 @@ class SPModel extends DBModel {
         blistCount.remove(element);
       }
     });
-    if(refresh)notifyListeners();
+    if (refresh) notifyListeners();
   }
+
   void loadFromSP(SharedPreferences sp) {
     // share = sp.getBool(SP_SHARE)??false;
     // if(sdShare!){
@@ -179,7 +191,7 @@ class SPModel extends DBModel {
     checkedStyles = sp.getStringList(SP_CHECKED_STYLES) ?? [];
     checkedRadioGroup = sp.getStringList(SP_CHECKED_RADIO_GROUPS) ?? [];
     lockedRadioGroup = sp.getStringList(SP_LOCKED_RADIO_GROUPS) ?? [];
-    lockedStyles= sp.getStringList(SP_LOCKED_STYLES) ?? [];
+    lockedStyles = sp.getStringList(SP_LOCKED_STYLES) ?? [];
 
     checkedRadio = sp.getStringList(SP_CHECKED_RADIOS) ?? [];
 
@@ -193,7 +205,7 @@ class SPModel extends DBModel {
         sp.getBool(SP_CHECK_IDENTITY) ?? DEFAULT_CHECK_IDENTITY;
   }
 
-  savePromptsToSP({bool toast=false}) async {
+  savePromptsToSP({bool toast = false}) async {
     SharedPreferences sp = await SharedPreferences.getInstance();
 
     await sp.setString(SP_PROMPT, txt2img.prompt);
@@ -214,7 +226,7 @@ class SPModel extends DBModel {
     await sp.setBool(SP_HIRES_FIX, hiresFix);
     await sp.setInt(SP_BATCH_COUNT, batchCount);
     await sp.setInt(SP_BATCH_SIZE, batchSize);
-    if(toast){
+    if (toast) {
       Fluttertoast.showToast(msg: "保存成功");
     }
   }
@@ -311,6 +323,7 @@ class SPModel extends DBModel {
     txt2img.shapSteps = value.toInt();
     notifyListeners();
   }
+
   void updateDetailSteps(double value) {
     txt2img.detailSteps = value.toInt();
     notifyListeners();
@@ -336,15 +349,15 @@ class SPModel extends DBModel {
   //   }
   // }
 
-  void switchChecked(bool checked, String name,String? bList) {
+  void switchChecked(bool checked, String name, String? bList) {
     if (checked
-    //txt2img.checkedStyles.contains(name)
-    ) {
+        //txt2img.checkedStyles.contains(name)
+        ) {
       checkedStyles.add(name);
-      if(null!=bList) regBList(toList(bList));
+      if (null != bList) regBList(toList(bList));
     } else {
       checkedStyles.remove(name);
-      if(null!=bList) unRegBList(toList(bList));
+      if (null != bList) unRegBList(toList(bList));
     }
     notifyListeners();
   }
@@ -393,9 +406,9 @@ class SPModel extends DBModel {
     notifyListeners();
   }
 
-  unCheckStyles(String style,String? bList) {
+  unCheckStyles(String style, String? bList) {
     checkedStyles.remove(style);
-    if(null!=bList) unRegBList(toList(bList));
+    if (null != bList) unRegBList(toList(bList));
 
     checkedRadio.remove(styles);
     notifyListeners();
@@ -413,27 +426,27 @@ class SPModel extends DBModel {
 
   PromptStyle autoCheckStyle(String prompt, String negPrompt) {
     var result =
-    PromptStyle('result', prompt: prompt, negativePrompt: negPrompt);
+        PromptStyle('result', prompt: prompt, negativePrompt: negPrompt);
 
     for (PromptStyle style in styles) {
       if ((null == style.prompt ||
-          style.prompt!.isEmpty ||
-          prompt.contains("{${style.prompt}},")) &&
+              style.prompt!.isEmpty ||
+              prompt.contains("{${style.prompt}},")) &&
           (null == style.negativePrompt ||
               style.negativePrompt!.isEmpty ||
               negPrompt.contains("${style.negativePrompt},"))) {
         if (isSingle(style.name)) {
-          updateCheckRadio(style.group, style.name,bList: style.bList);
+          updateCheckRadio(style.group, style.name, bList: style.bList);
         } else {
           checkedStyles.add(style.name);
-          if(null!=style.bList) regBList(toList(style.bList!),refresh: true);
+          if (null != style.bList)
+            regBList(toList(style.bList!), refresh: true);
         }
         result.prompt?.replaceAll("\{${style.prompt}\}\,", "");
         result.negativePrompt?.replaceAll("${style.negativePrompt}\,", "");
 
         logt(TAG,
-            "after replace prompt:${style.prompt} neg: ${style
-                .negativePrompt}");
+            "after replace prompt:${style.prompt} neg: ${style.negativePrompt}");
         logt(TAG,
             "result prompt:${result.prompt} neg: ${result.negativePrompt} ");
       }

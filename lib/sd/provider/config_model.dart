@@ -112,12 +112,12 @@ class ConfigModel extends SPModel {
     logt(TAG, "initPromptStyleIfServiceActive $styleFrom");
 
     if (null != selectWorkspace?.id) {
-      if (styleFrom == 1) {
-        initPublicStyle(null, userAge);
-      } else if (styleFrom == 2) {
-        styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
-        initPublicStyle(styleConfigs, userAge);
-      } else if (styleFrom == 3) {}
+      // if (styleFrom == 1) {
+      //   initPublicStyle(null, userAge);
+      // } else if (styleFrom == 2) {
+      //   styleConfigs = await loadStylesFromDB(selectWorkspace!.id!, userAge);
+      //   initPublicStyle(styleConfigs, userAge);
+      // } else if (styleFrom == 3) {}
       for (int i = 0; i <= 6; i++) {
         loadOptionalMapFromService(
             userAge, "$sdHttpService$TAG_MY_TAGS/$i.csv"); //todo 更具用户id 读取不同配置

@@ -60,24 +60,33 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
     }).then((value) {
       if (null != value && null != value.data) {
         csv = value.data.toString();
-        List styles = loadPromptStyleFromString(csv!, userAge,groupRecord: publicStyles,extend: true);
+        List styles = loadPromptStyleFromString(csv!, userAge,
+            // groupRecord: publicStyles,
+            extend: true);
         String group='';
         Optional? target;
         for (PromptStyle item in styles) {
-          if(item.group!=group){
-            group = item.group;
-            target = optional.createIfNotExit(
-                group.contains("|") ? group.split('|'): [group],0);
-          }
-          // if (item.isEmpty) {
+
+          if(isRangeValue(item.name)){
+            Optional.addRangeValue(item.group,item.name);
+
+          }else{
+            if(item.group!=group){
+              group = item.group;
+              target = optional.createIfNotExit(
+                  group.contains("|") ? group.split('|'): [group],0);
+            }
+            // if (item.isEmpty) {
             // head = item;
             // logt(TAG," ${target?.name}");
 
-          // } else {
+            // } else {
             // logt(TAG," ${target?.name} ${item.name}");
-          if(item is Optional) {
-            target?.addOption(item.name, item);
+            if(item is Optional) {
+              target?.addOption(item.name, item);
+            }
           }
+
           // }
         }
       }
