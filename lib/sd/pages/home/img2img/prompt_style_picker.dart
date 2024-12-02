@@ -91,48 +91,51 @@ class SDPromptStylePicker extends StatelessWidget {
 //
 // =======
 
-      //槽位 0环境 1场景 2脸模 3主体特征 包括动作 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
-      //10 cos 强脸  11 12 13lora 主体特征 包括动作 14部位与衣物关系 19 lora 互动特征
-    //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
-      
+      //槽位 0环境 1场景 2脸模 3胸特征 包括动作 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
+      //10 cos 强脸  11 12 13胯特征 包括动作 14部位与衣物关系 19 互动特征
+      //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
+
       //A girl [3 sitting on] [1 a seat] [1 in a cafe], wearing a [gorgeous long dress]
 //Upper body support point  Lower body support point
 
-      //todo 1. 10->12 3->13
       var result = //环境
           "${sfw ? "SFW," : ""}";
       result += prompt[0]; //todo 画质是否权重靠后
+      // result += "[(${prompt[0]}):0.5],";
 
       if (prompt[1].isNotEmpty) {
-        result += "[(${prompt[1]})::0.3],"; //前30%部画 大环境
+        result += "[(${prompt[1]})::0.2],"; //前20%部画 大环境
       }
 
       result +=
           "${prompt[10].contains("<lora:") ? prompt[10] : prompt[2]},"; // todo 是否挤掉脸模
+
+      var hasActionLora = prompt[19].isNotEmpty;
+
+      if (hasActionLora) result += "[[${prompt[3]},${prompt[13]},${prompt[9]}]],";
       if (provider.txt2img.shapSteps == provider.txt2img.detailSteps) {
         result +=
             // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${prompt[3]},${prompt[9]})|";
-        result +="(${prompt[4]},${prompt[14]})]";
+            "[(${getMainLoop(hasActionLora, prompt)})|";
+        result += "(${prompt[4]},${prompt[14]})]";
       } else {
         result +=
             // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${prompt[3]},${prompt[14]})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
-            "[(${prompt[4]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
+            "[(${getMainLoop(hasActionLora, prompt)})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
+            "[(${prompt[4]},${prompt[14]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
       }
 
       //主角 pose 主角衣服
-      if (prompt[1].isNotEmpty || prompt[5].isNotEmpty) {
-        result += "[(${prompt[5]},${prompt[1]}):0.7],"; //后30% 画道具 装饰 +环境
-      }
+      // if (prompt[1].isNotEmpty || prompt[5].isNotEmpty) {
+      //   result += "[(${prompt[5]},${prompt[1]}):0.7],"; //后30% 画道具 装饰 +环境
+      // }
 
-      if(prompt[19].isNotEmpty)result += prompt[19];
-      if(prompt[13].isNotEmpty)result += prompt[13];
       result += "BREAK,"
           "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
           "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
           "${prompt[8]}"; //配角 装饰
 
+      logt("prompt:",result);
       return result;
 // >>>>>>> Stashed changes
     }
@@ -150,11 +153,10 @@ class SDPromptStylePicker extends StatelessWidget {
     } else {
       return "${prompt[0]}" //环境
           "${sfw ? "SFW," : ""}"
-          "${prompt[2]}${prompt[9]}${prompt[1]}" //主角 主特征 关联动作  场景1
-          "[(${prompt[3]}):(${prompt[4]}):$poseStep]\n" //主角 pose 主角衣服
+          "${prompt[3]},${prompt[4]},${prompt[2]},${prompt[13]},${prompt[9]},${prompt[19]},${prompt[14]},${prompt[1]},${prompt[5]}" //主角 主特征 关联动作  场景1
           "{${prompt[6]}" //辅助身材
-          "[(${prompt[7]}):(${prompt[8]}):$poseStep]\n" //辅助特征 辅助装饰
-          "${prompt[5]}"; //主角 装饰
+          "[(${prompt[7]}):(${prompt[8]}):$poseStep]"; //辅助特征 辅助装饰
+      // ; //主角 装饰
     }
 
     // defaultSelect bool  defaultCount 2
@@ -338,7 +340,9 @@ class SDPromptStylePicker extends StatelessWidget {
         result.add(Wrap(
           children: value
               .map((e) => RawChip(
-                    label: Text(e.name + (e.readableType ?? "")),
+                    label: Text(e.name
+                        // + (e.readableType ?? "")
+                        ),
                     selected: provider.checkedStyles.contains(e.name),
                     onSelected: (bool selected) {
                       provider.switchChecked(selected, e.name, e.bList);
@@ -376,6 +380,14 @@ class SDPromptStylePicker extends StatelessWidget {
     }
   }
 
+  getMainLoop(bool hasActionLora, List<String> prompt) {
+    if (hasActionLora) {
+      return "((${prompt[19]}))";
+    } else {
+      return "${prompt[3]},${prompt[13]},${prompt[9]}";
+    }
+  }
+
 // refreshStyles(BuildContext context) {
 //   post("$sdHttpService$RUN_PREDICT",
 //       formData: {"fn_index": CMD_REFRESH_STYLE}, exceptionCallback: (e) {
@@ -396,8 +408,10 @@ class SDPromptStylePicker extends StatelessWidget {
 const STATIC_PART = [
   1,
   // 2,
+  3,//看不见胸的体位
   9,
   4,
   6,
   8,
+  13,//看不见胯的体位
 ];

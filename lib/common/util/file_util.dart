@@ -42,7 +42,7 @@ String group = '';
 int limitAge = 0;
 int step = 0;
 int repet = 1;
-String? type = '';
+int type = 1;
 int weight = 1;
 
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
@@ -90,7 +90,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       limitAge = toInt(getValue(dynList, limitIndex, limitAge), 0);
       step = toInt(getValue(dynList, stepIndex, step), 0);
       repet = toInt(getValue(dynList, repetIndex, repet), 1);
-      type = getValue(dynList, typeIndex, type);
+      type = toInt(getValue(dynList, typeIndex, type), 1);
       weight = toInt(getValue(dynList, weightIndex, weight), 1);
 
 

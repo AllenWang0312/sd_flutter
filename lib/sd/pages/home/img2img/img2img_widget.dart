@@ -26,33 +26,38 @@ class _SDimg2imgWidgetState extends State<SDimg2imgWidget> {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<AIPainterModel>(context);
-    List<Tab> tabs = provider.optional.options!.keys.map((key) => Tab(text: key)).toList();
+    if(null!=provider.optional.options){
+      List<Tab> tabs = provider.optional.options!.keys.map((key) => Tab(text: key)).toList();
 
-    List<Widget> children = provider.optional.options!.values.map((value) => SingleChildScrollView(
-        child:
-        // provider.styleFrom == 3 ?
-        // value.generate(provider,0)
-        Optional.content(provider, value.options, 1)
-      // : generateStyles(provider.publicStyles)
-    )).toList();
+      List<Widget> children = provider.optional.options!.values.map((value) => SingleChildScrollView(
+          child:
+          // provider.styleFrom == 3 ?
+          // value.generate(provider,0)
+          Optional.content(provider, value.options, 1)
+        // : generateStyles(provider.publicStyles)
+      )).toList();
 
-    return DefaultTabController(
-      length: tabs.length,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: true,
-          centerTitle: true,
-          title: TabBar(
-            tabs: tabs,
-            isScrollable: true,
-            labelStyle: TextStyle(
-              fontSize: 16,
+      return DefaultTabController(
+        length: tabs.length,
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: true,
+            centerTitle: true,
+            title: TabBar(
+              tabs: tabs,
+              isScrollable: true,
+              labelStyle: TextStyle(
+                fontSize: 16,
+              ),
+              dividerColor: Colors.transparent,
             ),
-            dividerColor: Colors.transparent,
           ),
+          body: TabBarView(children: children),
         ),
-        body: TabBarView(children: children),
-      ),
-    );
+      );
+    }else{
+      return Placeholder();
+    }
+
   }
 }

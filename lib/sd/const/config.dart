@@ -21,7 +21,7 @@ const int WS_COUNT = 3;
 
 const String APP_DIR_NAME = 'sdf';
 const KEY_HOST = "host";
-const SD_WIN_HOST = "127.0.0.1";
+const SD_WIN_HOST = "127.0.0.2";
 const SD_CLINET_HOST = "192.168.0.2";
 
 const SD_PORT = 7860;

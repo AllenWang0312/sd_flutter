@@ -30,26 +30,26 @@ class PromptStyle {
   static String TABLE_CREATE =
       "id INTEGER PRIMARY KEY,group TEXT, name TEXT,step INTEGER,limitAge INTEGER,prompt TEXT,negativePrompt TEXT,blist TEXT";
 
-  String? _readableType;
-
-  String? get readableType {
-    if (_readableType == null) {
-      _readableType = '';
-      if (type != null && type!.isNotEmpty) {
-        List types = type!.split('');
-        for (String i in types) {
-          _readableType = '${_readableType!}${TYPES[toInt(i, 0)]} ';
-        }
-      }
-    }
-    return _readableType;
-  }
+  // String? _readableType;
+  //
+  // String? get readableType {
+  //   if (_readableType == null) {
+  //     _readableType = '';
+  //     if (type != null && type!.isNotEmpty) {
+  //       List types = type!.split('');
+  //       for (String i in types) {
+  //         _readableType = '${_readableType!}${TYPES[toInt(i, 0)]} ';
+  //       }
+  //     }
+  //   }
+  //   return _readableType;
+  // }
 
   int? limitAge = 0;
 
   String group = '';
   int step = -1;
-  String? type = '';//名词动词
+  int type = 1;//名词动词
   String name = "";
   String? prompt = "";
   String? negativePrompt = "";
@@ -67,7 +67,7 @@ class PromptStyle {
     this.name, {
     this.group = '',
     this.step = 0,
-    this.type,
+    this.type = 1,
     this.limitAge,
     this.prompt,
     this.negativePrompt,

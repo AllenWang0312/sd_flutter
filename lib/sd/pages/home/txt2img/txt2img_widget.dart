@@ -321,7 +321,7 @@ class SDTXT2IMGWidget extends StatelessWidget {
             if (provider.autoGenerate) {
               if (provider.autoRandom) {
                 provider.randomSizeIfNeed();
-                provider.optional.randomChild(provider);
+                provider.optional.refreshCheck(provider);
               }
               txt2img(context, model, provider);
             }

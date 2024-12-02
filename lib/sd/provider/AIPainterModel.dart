@@ -106,7 +106,7 @@ class AIPainterModel extends ConfigModel
   }
 
   void randomCheckedStyle() {
-    optional.randomChild(this);
+    optional.refreshCheck(this,random:true);
     notifyListeners();
   }
 

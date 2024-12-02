@@ -229,7 +229,7 @@ class Optional extends PromptStyle {
                   : Text(name),
               IconButton(
                   onPressed: () {
-                    randomChild(provider);
+                    refreshCheck(provider);
                   },
                   icon: Icon(Icons.refresh))
             ],
@@ -240,11 +240,11 @@ class Optional extends PromptStyle {
     }
   }
 
-  void randomChild(AIPainterModel provider) {
+  void refreshCheck(AIPainterModel provider, {bool random = false}) {
     if (
         // step != 0 && //todo 过滤还有缺陷
         null != options) {
-      final Random random = Random();
+      final Random rand = Random();
 
       // Iterable<Optional> all = options!.values;
       List<Optional> others = options!.values
@@ -258,14 +258,14 @@ class Optional extends PromptStyle {
       for (Optional item in others) {
         if (provider.checkedStyles.contains(item.name)) {
           provider.removeCheckedStyles(item.name);
-          logt(TAG, "random remove items$item");
+          logt(TAG, "r remove items$item");
           checkCount++;
         }
       }
       if (checkCount > 0 && checkCount != others.length) {
         for (int i = 0; i < checkCount; i++) {
-          int ran = random.nextInt(others.length);
-          logt(TAG, "random items$ran");
+          int ran = rand.nextInt(others.length);
+          logt(TAG, "r items$ran");
           provider.addCheckedStyles(others[ran].name, refresh: true);
           others.removeAt(ran);
         }
@@ -278,7 +278,7 @@ class Optional extends PromptStyle {
         if (radioChecked) {
           String checkedName =
               provider.checkedRadio[provider.checkedRadioGroup.indexOf(group)];
-          logt(TAG, "random Child $group $checkedName $step");
+          logt(TAG, "r Child $group $checkedName $step");
           Optional? checkedItem = options?[checkedName];
           if (null != checkedItem) {
             if (checkedItem.currentRepet > 0) {
@@ -286,27 +286,33 @@ class Optional extends PromptStyle {
             } else {
               checkedItem.currentRepet = checkedItem.repet;
               logt(TAG,
-                  "random exit radio $group $checkedName ${checkedItem.currentRepet}");
+                  "r exit radio $group $checkedName ${checkedItem.currentRepet}");
 
               List<Optional> radios = options!.values
                   .where((element) => autoSingle(element.name))
                   .toList();
-              logt(TAG, "random radios ${radios.toString()}");
+              logt(TAG, "r radios ${radios.toString()}");
 
               if (radios.isNotEmpty) {
-                int weights = weightCount(radios);
-                int weightIndex = random.nextInt(weights);
-                logt(TAG, "random radio $weightIndex");
-                int index = offsetIndex(radios, weights, weightIndex);
-                provider.updateCheckRadio(group, radios[index].name,
-                    bList: radios[index].bList);
+                if (random) {
+                  int weights = weightCount(radios);
+                  int weightIndex = rand.nextInt(weights);
+                  logt(TAG, "r radio $weightIndex");
+                  int index = offsetIndex(radios, weights, weightIndex);
+                  provider.updateCheckRadio(group, radios[index].name,
+                      bList: radios[index].bList);
+                } else {
+                  var next = findNext(radios, checkedName);
+                  provider.updateCheckRadio(group, next.name,
+                      bList: next.bList);
+                }
               }
             }
           }
         }
       }
       for (Optional item in options!.values) {
-        item.randomChild(provider);
+        item.refreshCheck(provider, random: random);
       }
     }
   }
@@ -363,5 +369,17 @@ class Optional extends PromptStyle {
       }
     }
     return 0;
+  }
+
+  findNext(List<Optional> radios, String checkedName) {
+    for (var i = 0; i < radios.length; i++) {
+      if (radios[i].name == checkedName) {
+        if (i < radios.length - 1) {
+          return radios[i + 1];
+        } else {
+          return radios[0];
+        }
+      }
+    }
   }
 }
