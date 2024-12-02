@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/sd/bean/Optional.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/pages/home/img2img/prompt_widget.dart';
 import 'package:sd/sd/provider/AIPainterModel.dart';
@@ -29,19 +30,37 @@ class SDPromptStylePicker extends StatelessWidget {
     List<String> prompt = List.generate(20, (index) => "");
 
     //todo blist有点重  先用排他控制
+    //todo wlist 不为空则当前主模包含其中之一才加入
+
     //循环所有已选择的style  按槽位拼接 lora排他
     for (PromptStyle style in provider.styles) {
-      if (provider.checkedStyles.contains(style.name) &&
-          !provider.inBList(style.group)) {
-        if (null != style.prompt && style.prompt!.isNotEmpty) {
-          var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
-              appendCommaIfNotExist("{${style.prompt}}"));
-          prompt[style.step ?? 0] = search['result'];
-          if (search['exist'] == true) break;
+      if (provider.checkedStyles.contains(style.name)) {
+        if (!provider.inBList(style.group) &&
+            provider.currentModelSupport(style.wList)) {
+          if (null != style.prompt && style.prompt!.isNotEmpty) {
+            var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
+                appendCommaIfNotExist("{${style.prompt}}"));
+            prompt[style.step ?? 0] = search['result'];
+            if (search['exist'] == true) break;
+          }
         }
       }
-      if (provider.checkedRadio.contains(style.name) &&
-          !provider.inBList(style.group)) {
+      if (provider.checkedRadio.contains(style.name)) {
+        if (!provider.inBList(style.group) &&
+            provider.currentModelSupport(style.wList)) {
+          if (null != style.prompt && style.prompt!.isNotEmpty) {
+            var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
+                appendCommaIfNotExist("{${style.prompt}}"));
+            prompt[style.step ?? 0] = search['result'];
+            if (search['exist'] == true) break;
+          }
+        }
+      }
+    }
+    for(String group in Optional.ranges.keys){
+      var style = Optional.ranges[group]![provider.rangeValueIndex[group]??0];
+      if (!provider.inBList(style.group) &&
+          provider.currentModelSupport(style.wList)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
               appendCommaIfNotExist("{${style.prompt}}"));
@@ -93,10 +112,13 @@ class SDPromptStylePicker extends StatelessWidget {
 
       //槽位 0环境 1场景 2脸模 3胸特征 包括动作 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
       //10 cos 强脸  11 12 13胯特征 包括动作 14部位与衣物关系 19 互动特征
-      //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
 
+      //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
       //A girl [3 sitting on] [1 a seat] [1 in a cafe], wearing a [gorgeous long dress]
+      
 //Upper body support point  Lower body support point
+
+      //todo 1. 10->12 3->13
 
       var result = //环境
           "${sfw ? "SFW," : ""}";

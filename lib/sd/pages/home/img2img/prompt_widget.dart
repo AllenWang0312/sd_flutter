@@ -112,7 +112,7 @@ class SDPromptWidget extends StatelessWidget {
           ],
         ),
         //反向描述
-        Text(AppLocalizations.of(context).negativePrompt + ":"),
+        Text("${AppLocalizations.of(context).negativePrompt}:"),
         Row(
           children: [
             Expanded(

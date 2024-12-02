@@ -32,6 +32,17 @@ class AIPainterModel extends ConfigModel
   // String selectedSDModel = "";
   // Map<String, double> checkedPlugins = Map(); // lora
 
+  bool currentModelSupport(String? wlist) {
+    if (wlist == null || wlist.isEmpty) return true;
+    var wlis = wlist.split(",");
+    for (var item in wlis) {
+      if (selectedSDModel?.contains(item) == true) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void setAgeLevel(String sign, int value) {
     if (value > 0) {
       limit.putIfAbsent(sign, () => value);
@@ -110,19 +121,19 @@ class AIPainterModel extends ConfigModel
     notifyListeners();
   }
 
-  void unCheckRadio(String name,String? bList) {
+  void unCheckRadio(String name, String? bList) {
     int index = checkedRadio.indexOf(name);
     if (index >= 0) {
       checkedRadio.remove(name);
-      if(null!=bList) unRegBList(toList(bList));
+      if (null != bList) unRegBList(toList(bList));
       checkedRadioGroup.removeAt(index);
       notifyListeners();
     }
   }
 
-  void removeCheckedStyles(String item, {String? bList,bool refresh = false}) {
+  void removeCheckedStyles(String item, {String? bList, bool refresh = false}) {
     checkedStyles.remove(item);
-    if(null!=bList) unRegBList(toList(bList));
+    if (null != bList) unRegBList(toList(bList));
     if (refresh) {
       notifyListeners();
     }
@@ -130,13 +141,11 @@ class AIPainterModel extends ConfigModel
 
   void addCheckedStyles(String other, {String? bList, bool refresh = false}) {
     checkedStyles.add(other);
-    if(null!=bList) regBList(toList(bList));
+    if (null != bList) regBList(toList(bList));
     if (refresh) {
       notifyListeners();
     }
   }
-
-
 
   void updateBgWeight(double value) {
     txt2img.bgWeight = value;
@@ -227,6 +236,6 @@ class AIPainterModel extends ConfigModel
   }
 
   bool inBList(String group) {
-    return null!=blistCount[group]&&blistCount[group]!>0;
+    return null != blistCount[group] && blistCount[group]! > 0;
   }
 }

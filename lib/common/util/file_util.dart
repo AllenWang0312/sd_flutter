@@ -46,7 +46,9 @@ int type = 1;
 int weight = 1;
 
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
-    {Map<String, List<PromptStyle>>? groupRecord, bool extend = false}) {
+    {
+    // Map<String, List<PromptStyle>>? groupRecord,
+    bool extend = false}) {
   logt(TAG, "loadPromptStyleFromString");
 
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
@@ -62,6 +64,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
   int weightIndex = colums.indexOf(PromptStyle.WEIGHT);
   int repetIndex = colums.indexOf(PromptStyle.REPET);
   int bListIndex = colums.indexOf(PromptStyle.BLIST);
+  int wListIndex = colums.indexOf(PromptStyle.WLIST);
 
   return csvTable.where((element) {
     return element.length >= 3 && //过滤空行
@@ -85,6 +88,9 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       String? bList = bListIndex >= 0 && bListIndex < dynList.length
           ? dynList[bListIndex]
           : null;
+      String? wList = wListIndex >= 0 && wListIndex < dynList.length
+          ? dynList[wListIndex]
+          : null;
 
       //todo 为空继承上一行的属性
       limitAge = toInt(getValue(dynList, limitIndex, limitAge), 0);
@@ -92,8 +98,6 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       repet = toInt(getValue(dynList, repetIndex, repet), 1);
       type = toInt(getValue(dynList, typeIndex, type), 1);
       weight = toInt(getValue(dynList, weightIndex, weight), 1);
-
-
 
       item = extend
           ? Optional(name,
@@ -105,7 +109,8 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               type: type,
               repet: repet,
               weight: weight,
-              bList: bList)
+              bList: bList,
+              wList: wList)
           : PromptStyle(name,
               limitAge: limitAge,
               prompt: prompt,
@@ -115,19 +120,20 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               type: type,
               repet: repet,
               weight: weight,
-              bList: bList);
+              bList: bList,
+              wList: wList);
       // logt("loadPromptStyleFromString", item.toString());
     } catch (err) {
       logt("loadPromptStyleFromString", dynList.toString());
     }
-    if (null != groupRecord) {
-      if (groupRecord.keys.contains(group)) {
-        groupRecord[group] ??= [];
-        groupRecord[group]?.add(item);
-      } else {
-        groupRecord.putIfAbsent(group, () => [item]);
-      }
-    }
+    // if (null != groupRecord) {
+    //   if (groupRecord.keys.contains(group)) {
+    //     groupRecord[group] ??= [];
+    //     groupRecord[group]?.add(item);
+    //   } else {
+    //     groupRecord.putIfAbsent(group, () => [item]);
+    //   }
+    // }
     return item;
   }).toList();
 }

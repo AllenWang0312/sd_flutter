@@ -16,10 +16,26 @@ bool autoSingle(String element) {
 }
 
 bool isSingle(String element) {
-  return element.endsWith("*") || element.endsWith("^");
+  return element.endsWith("*") ||
+      element.endsWith("^") ||
+      element.endsWith("~");
+}
+
+bool isRangeValue(String element) {
+  return element.endsWith("~");
 }
 
 class Optional extends PromptStyle {
+  static Map<String,List<Optional>> ranges=HashMap();// group to rangeValues;
+
+  static void addRangeValue(String group, Optional value) {
+    if(null==ranges[group]){
+      ranges.putIfAbsent(group, () => []);
+    }
+    ranges[group]!.add(value);
+  }
+
+
   static Widget content(
       AIPainterModel provider, Map<String, Optional>? options, int deep) {
     List<Optional> ops = options!.values.toList();
@@ -141,7 +157,8 @@ class Optional extends PromptStyle {
       super.repet,
       super.negativePrompt,
       super.weight,
-      super.bList}) {
+      super.bList,
+      super.wList}) {
     currentRepet = repet;
   }
 
@@ -382,4 +399,12 @@ class Optional extends PromptStyle {
       }
     }
   }
+
+  static rangeSize(String group) {
+    if(ranges[group]?.isNotEmpty==true){
+      return ranges[group]!.length;
+    }
+    return 0;
+  }
+
 }
