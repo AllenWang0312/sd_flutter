@@ -115,7 +115,9 @@ class _SDWebHomePageState extends State<SDWebHomePage> // with macOSFileDragger
               () =>
               () async =>
           {
-            if (isMobile() && (await checkStoragePermission()))
+            if (
+            // isMobile() &&
+                (await checkStoragePermission()))
               {provider?.updateIndex(5)}
           });
       actions.putIfAbsent(Icons.menu, () => () => {});

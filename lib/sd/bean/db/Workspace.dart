@@ -72,7 +72,7 @@ class Workspace {
   String getDesc() {
    if(UniversalPlatform.isAndroid)
      return removeAndroidPrePathIfIsPublic(dirPath);
-   if(UniversalPlatform.isAndroid)
+   if(UniversalPlatform.isIOS)
      return absPath.substring(absPath.indexOf('/Library'));
    return dirPath;
     // return '记录数：$recordCount, 图片数：$imageCount';

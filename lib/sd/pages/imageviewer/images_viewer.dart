@@ -354,13 +354,13 @@ class SDImagesViewer<T extends UniqueSign> extends StatelessWidget {
                     dynamic result = await saveBytesToLocal(
                         datas[controller.page!.toInt()],
                         "${DateTime.now()}.png",
-                        asyncPath + relativeSaveDirPath!);
+                        asyncPath??"" + relativeSaveDirPath!);
                     Fluttertoast.showToast(msg: result.toString());
                   } else {
                     dynamic result = await saveUrlToLocal(
                         urls![controller.page!.toInt()].getFileLocation(),
                         "${DateTime.now()}.png",
-                        asyncPath + relativeSaveDirPath!);
+                        asyncPath??"" + relativeSaveDirPath!);
                     Fluttertoast.showToast(msg: result.toString());
                   }
                 } else {

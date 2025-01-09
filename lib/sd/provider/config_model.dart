@@ -48,10 +48,12 @@ class ConfigModel extends SPModel {
   String selectedUpScale = DEFAULT_UPSCALE;
 
   Future<void> loadConfig() async {
-    printDir(
-        await getTemporaryDirectory()); // /data/user/0/edu.tjrac.swant.sd/cache  //Library/Caches //应用退出后可能被删除
 
     if (UniversalPlatform.isAndroid) {
+      printDir(
+          await getTemporaryDirectory());
+// /data/user/0/edu.tjrac.swant.sd/cache  //Library/Caches //应用退出后可能被删除
+
       printDir(await getExternalStorageDirectory()); //only for android
       printDirs(await getExternalCacheDirectories()); // only for android
       printDirs(await getExternalStorageDirectories()); //only for android
@@ -74,8 +76,10 @@ class ConfigModel extends SPModel {
       // }else{
       syncPath = (await getApplicationDocumentsDirectory()).path.toString();
       asyncPath = (await getApplicationSupportDirectory()).path.toString();
-
       // }
+    }else{
+      syncPath = (await getApplicationCacheDirectory()).path.toString();
+      asyncPath = (await getDownloadsDirectory())?.path.toString();
     }
 
     // logt(TAG, asyncPath);

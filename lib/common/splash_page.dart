@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:sd/common/third_util.dart';
 import 'package:sd/sd/const/routes.dart';
 import 'package:sd/sd/pages/home/txt2img/NetWorkStateProvider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -112,19 +114,22 @@ class _SplashPageState extends State<SplashPage> {
     );
   }
 
-   getSettings() {
+  getSettings() {
     // provider.networkInitApiOptions();
-    get("$sdHttpService$GET_OPTIONS",
-        exceptionCallback: (e) {
+    get("$sdHttpService$GET_OPTIONS", exceptionCallback: (e) {
       getSettingSuccess = -1;
     }).then((value) async {
-      if(await Permission.manageExternalStorage.request().isGranted){
-        debugPrint("permission mange external storage");
+      if (Platform.isAndroid) {
+        if (await Permission.manageExternalStorage.request().isGranted) {
+          debugPrint("permission mange external storage");
+        }
+      }
+      if (Platform.isIOS) {
+        if (await Permission.mediaLibrary.request().isGranted) {
+          debugPrint("permission media library");
+        }
       }
 
-      if(await Permission.mediaLibrary.request().isGranted){
-        debugPrint("permission media library");
-      }
       if (null != value && null != value.data) {
         // logt(TAG, "get options${value?.data.toString() ?? ""}");
         // Options op = Options.fromJson(value.data);
@@ -136,12 +141,14 @@ class _SplashPageState extends State<SplashPage> {
         remoteFavouriteDir = value.data['outdir_save'];
 
         serviceVersion = await provider.initServiceConfigIfServiceActive();
-        provider.initPromptStyleIfServiceActive(userAge:provider.userInfo.age);
+        provider.initPromptStyleIfServiceActive(userAge: provider.userInfo.age);
         provider.initTranslatesIfServiceActive();
 
         provider.netWorkState = ONLINE;
         provider.updateSDModel(modelName);
         getSettingSuccess = 1; //todo 最后发起的不一定最后完成
+      } else {
+        getSettingSuccess = -1;
       }
     });
   }
