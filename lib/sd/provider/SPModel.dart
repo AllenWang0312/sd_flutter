@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sd/common/util/string_util.dart';
 import 'package:sd/sd/bean/Configs.dart';
-import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/bean/Optional.dart';
+import 'package:sd/sd/bean/PromptStyle.dart';
 import 'package:sd/sd/const/default.dart';
 import 'package:sd/sd/const/sp_key.dart';
 import 'package:sd/sd/http_service.dart';
@@ -50,6 +50,7 @@ class SPModel extends DBModel {
   int scalerWidth = DEFAULT_WIDTH;
   int scalerHeight = DEFAULT_HEIGHT;
 
+  List<String>? require;
   //锁定的单选项group
   List<String> lockedRadioGroup = [];
 
@@ -66,11 +67,15 @@ class SPModel extends DBModel {
   List<String> lockedStyles = [];
 
   Map<String, int> blistCount = HashMap();
-  Map<String, int> rangeValueIndex = HashMap();//todo 记到本地缓存
+  Map<int, int> rangeValueIndex = HashMap(); //todo 记到本地缓存
 
-  void updateRangeValue(String group, int newValue) {
-    // rangeValueIndex[group] = newValue;
-    rangeValueIndex.putIfAbsent(group, () => newValue);
+  void updateRangeValue(int type, int newValue) {
+    //
+    if (rangeValueIndex.keys.contains(type)) {
+      rangeValueIndex[type] = newValue;
+    } else {
+      rangeValueIndex.putIfAbsent(type, () => newValue);
+    }
     notifyListeners();
   }
 
@@ -111,7 +116,7 @@ class SPModel extends DBModel {
     return false;
   }
 
-  void updateCheckRadio(String group, String? name, {String? bList}) {
+  void updateCheckRadio(String group, String? name, {String? require,String? bList}) {
     if (null != name) {
       bool exit = checkedRadioGroup.contains(group);
       if (exit) {
@@ -120,12 +125,14 @@ class SPModel extends DBModel {
         checkedRadioGroup.add(group);
         checkedRadio.add(name);
       }
-      if (null != bList) regBList(toList(bList));
+      if (bList?.isNotEmpty==true) regBList(toList(bList!));
+      this.require = require?.split(" ");
     } else {
       int index = checkedRadioGroup.indexOf(group);
       checkedRadio.removeAt(index);
       checkedRadioGroup.removeAt(index);
-      if (null != bList) unRegBList(toList(bList));
+      if (bList?.isNotEmpty==true) unRegBList(toList(bList!));
+      this.require = null;
     }
     logt(
         TAG,
@@ -354,10 +361,10 @@ class SPModel extends DBModel {
         //txt2img.checkedStyles.contains(name)
         ) {
       checkedStyles.add(name);
-      if (null != bList) regBList(toList(bList));
+      if (bList?.isNotEmpty==true) regBList(toList(bList!));
     } else {
       checkedStyles.remove(name);
-      if (null != bList) unRegBList(toList(bList));
+      if (bList?.isNotEmpty==true) unRegBList(toList(bList!));
     }
     notifyListeners();
   }
@@ -408,7 +415,7 @@ class SPModel extends DBModel {
 
   unCheckStyles(String style, String? bList) {
     checkedStyles.remove(style);
-    if (null != bList) unRegBList(toList(bList));
+    if (bList?.isNotEmpty==true) unRegBList(toList(bList!));
 
     checkedRadio.remove(styles);
     notifyListeners();

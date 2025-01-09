@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:dcache/dcache.dart';
 import 'package:sd/common/util/file_util.dart';
 import 'package:sd/platform/platform.dart';
 import 'package:sd/sd/bean/PromptStyle.dart';
@@ -18,11 +16,11 @@ class DBModel extends NetWorkProvider {
 
   get styles {
     List<PromptStyle> _styles = [];
-    // if (_styles.isEmpty) {
-    for (List<PromptStyle> values in publicStyles.values) {
-      _styles.addAll(values);
+    if (_styles.isEmpty) {
+      for (List<PromptStyle> values in publicStyles.values) {
+        _styles.addAll(values);
+      }
     }
-    // }
     return _styles;
   }
 
@@ -79,7 +77,7 @@ class DBModel extends NetWorkProvider {
 
   Future<void> initPublicStyle(
       List<PromptStyleFileConfig>? styleConfigs, int userAge) async {
-    if(null==styleConfigs||styleConfigs.isEmpty){
+    if (null == styleConfigs || styleConfigs.isEmpty) {
       return initPublicStyleWithNetwork();
     }
     for (PromptStyleFileConfig item in styleConfigs) {

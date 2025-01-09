@@ -26,13 +26,13 @@ bool isRangeValue(String element) {
 }
 
 class Optional extends PromptStyle {
-  static Map<String,List<Optional>> ranges=HashMap();// group to rangeValues;
+  static Map<int,List<PromptStyle>> ranges=HashMap();// group to rangeValues;
 
-  static void addRangeValue(String group, Optional value) {
-    if(null==ranges[group]){
-      ranges.putIfAbsent(group, () => []);
+  static void addRangeValue(int type, PromptStyle value) {
+    if(null==ranges[type]){
+      ranges.putIfAbsent(type, () => []);
     }
-    ranges[group]!.add(value);
+    ranges[type]!.add(value);
   }
 
 
@@ -61,11 +61,11 @@ class Optional extends PromptStyle {
                         TAG, "radio onSelected ${e.group} ${e.name} $newValue");
                     if (newValue != null && newValue) {
                       //勾选
-                      provider.updateCheckRadio(e.group, e.name,
+                      provider.updateCheckRadio(e.group, e.name,require: e.require,
                           bList: e.bList);
                     } else {
                       //取消
-                      provider.updateCheckRadio(e.group, null, bList: e.bList);
+                      provider.updateCheckRadio(e.group, null,require: e.require, bList: e.bList);
                     }
                     // provider.switchChecked(newValue ?? false, e.name);
                   });
@@ -158,7 +158,8 @@ class Optional extends PromptStyle {
       super.negativePrompt,
       super.weight,
       super.bList,
-      super.wList}) {
+      super.wList,
+      super.require}) {
     currentRepet = repet;
   }
 
@@ -231,11 +232,11 @@ class Optional extends PromptStyle {
                               if (isRadio) {
                                 if (newValue) {
                                   //勾选
-                                  provider.updateCheckRadio(group, name,
+                                  provider.updateCheckRadio(group, name,require: require,
                                       bList: bList);
                                 } else {
                                   //取消
-                                  provider.updateCheckRadio(group, null,
+                                  provider.updateCheckRadio(group, null,require: require,
                                       bList: bList);
                                 }
                               } else {
@@ -316,11 +317,11 @@ class Optional extends PromptStyle {
                   int weightIndex = rand.nextInt(weights);
                   logt(TAG, "r radio $weightIndex");
                   int index = offsetIndex(radios, weights, weightIndex);
-                  provider.updateCheckRadio(group, radios[index].name,
+                  provider.updateCheckRadio(group, radios[index].name,require: radios[index].require,
                       bList: radios[index].bList);
                 } else {
                   var next = findNext(radios, checkedName);
-                  provider.updateCheckRadio(group, next.name,
+                  provider.updateCheckRadio(group, next.name,require: next.require,
                       bList: next.bList);
                 }
               }
@@ -388,21 +389,20 @@ class Optional extends PromptStyle {
     return 0;
   }
 
-  findNext(List<Optional> radios, String checkedName) {
+  Optional findNext(List<Optional> radios, String checkedName) {
     for (var i = 0; i < radios.length; i++) {
       if (radios[i].name == checkedName) {
         if (i < radios.length - 1) {
           return radios[i + 1];
-        } else {
-          return radios[0];
         }
       }
     }
+    return radios[0];
   }
 
-  static rangeSize(String group) {
-    if(ranges[group]?.isNotEmpty==true){
-      return ranges[group]!.length;
+  static int rangeSize(int type) {
+    if(ranges[type]?.isNotEmpty==true){
+      return ranges[type]!.length;
     }
     return 0;
   }

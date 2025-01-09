@@ -97,9 +97,6 @@ class SDSamplerWidget extends StatelessWidget {
         ),
       ],
     ));
-    Optional.ranges.keys.forEach((group) {
-      children.add(_buildRangeSelector(provider, group));
-    });
     children.add(Row(
       children: [
         Text("厚涂"),
@@ -166,34 +163,5 @@ class SDSamplerWidget extends StatelessWidget {
     return Column(children: children);
   }
 
-  Widget _buildRangeSelector(AIPainterModel provider, String group) {
-    return Row(
-      children: [
-        Text(group),
-        Expanded(
-          child: Selector<AIPainterModel, int?>(
-              selector: (context, model) => model.rangeValueIndex[group],
-              builder: (context, index, child) {
-                var max = Optional.rangeSize(group) - 1;
-                return Row(children: [
-                  Expanded(
-                    child: Slider(
-                      value: (index ?? 0).toDouble(),
-                      min: 0,
-                      max: max,
-                      divisions: max,
-                      onChanged: (double value) {
-                        // print("steps seek$value");
-                        provider.updateRangeValue(group, value.toInt());
-                        // samplerStepsController.text = samplerSteps.toString();
-                      },
-                    ),
-                  ),
-                  Text(Optional.ranges[group]?[index ?? 0].name ?? "")
-                ]);
-              }),
-        ),
-      ],
-    );
-  }
+
 }

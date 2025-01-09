@@ -46,9 +46,7 @@ int type = 1;
 int weight = 1;
 
 List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
-    {
-    // Map<String, List<PromptStyle>>? groupRecord,
-    bool extend = false}) {
+    {Map<String, List<PromptStyle>>? groupRecord, bool extend = false}) {
   logt(TAG, "loadPromptStyleFromString");
 
   List<List<dynamic>> csvTable = const CsvToListConverter().convert(myData);
@@ -65,6 +63,7 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
   int repetIndex = colums.indexOf(PromptStyle.REPET);
   int bListIndex = colums.indexOf(PromptStyle.BLIST);
   int wListIndex = colums.indexOf(PromptStyle.WLIST);
+  int reqIndex = colums.indexOf(PromptStyle.REQUIRE);
 
   return csvTable.where((element) {
     return element.length >= 3 && //过滤空行
@@ -91,7 +90,8 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       String? wList = wListIndex >= 0 && wListIndex < dynList.length
           ? dynList[wListIndex]
           : null;
-
+      String? require =
+          reqIndex >= 0 && reqIndex < dynList.length ? dynList[reqIndex] : null;
       //todo 为空继承上一行的属性
       limitAge = toInt(getValue(dynList, limitIndex, limitAge), 0);
       step = toInt(getValue(dynList, stepIndex, step), 0);
@@ -100,7 +100,8 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
       weight = toInt(getValue(dynList, weightIndex, weight), 1);
 
       item = extend
-          ? Optional(name,
+          ? Optional(
+              name,
               limitAge: limitAge,
               prompt: prompt,
               negativePrompt: negPrompt,
@@ -110,7 +111,9 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               repet: repet,
               weight: weight,
               bList: bList,
-              wList: wList)
+              wList: wList,
+              require: require,
+            )
           : PromptStyle(name,
               limitAge: limitAge,
               prompt: prompt,
@@ -121,19 +124,20 @@ List<PromptStyle> loadPromptStyleFromString(String myData, int userAge,
               repet: repet,
               weight: weight,
               bList: bList,
-              wList: wList);
+              wList: wList,
+              require: require);
       // logt("loadPromptStyleFromString", item.toString());
     } catch (err) {
       logt("loadPromptStyleFromString", dynList.toString());
     }
-    // if (null != groupRecord) {
-    //   if (groupRecord.keys.contains(group)) {
-    //     groupRecord[group] ??= [];
-    //     groupRecord[group]?.add(item);
-    //   } else {
-    //     groupRecord.putIfAbsent(group, () => [item]);
-    //   }
-    // }
+    if (null != groupRecord) {
+      if (groupRecord.keys.contains(group)) {
+        groupRecord[group] ??= [];
+        groupRecord[group]?.add(item);
+      } else {
+        groupRecord.putIfAbsent(group, () => [item]);
+      }
+    }
     return item;
   }).toList();
 }

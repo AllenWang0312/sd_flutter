@@ -24,6 +24,8 @@ class PromptStyle {
   static var REPET = 'repet';
   static var BLIST = 'blist';
   static var WLIST = 'wlist';
+  static var REQUIRE = 'require';
+
 
   static Map<String,String> bListMap=HashMap();// name to blist;
 
@@ -59,7 +61,7 @@ class PromptStyle {
 
   String? bList;
   String? wList;
-
+String? require;
   int weight = 1;
 
   int repet = 1;
@@ -79,6 +81,8 @@ class PromptStyle {
         this.repet = 1,
         this.bList,
         this.wList,
+        this.require
+
   }) {
     if(null!=bList){
       bListMap.putIfAbsent(name, () => bList!);

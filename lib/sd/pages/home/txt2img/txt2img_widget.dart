@@ -35,6 +35,7 @@ import 'package:sd/sd/provider/AppBarProvider.dart';
 import 'package:sd/sd/widget/GenerateButton.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+import '../../../bean/Optional.dart';
 import '../../../const/default.dart';
 import '../../../widget/restartable_widget.dart';
 
@@ -181,7 +182,11 @@ class SDTXT2IMGWidget extends StatelessWidget {
                   promptStylePicker,
                   // TextButton(onPressed: getSamplers, child: Text("生成")),
                   _segments(model),
-                  _stack(provider, SDSamplerWidget(), SDUpScalerWidget()),
+                  _stack(provider, SDSamplerWidget(),Column(
+                    children:  Optional.ranges.keys.map((type) {
+                      return _buildRangeSelector(provider, type);
+                    }).toList(),
+                  ), SDUpScalerWidget()),
                 ],
               ),
             ),
@@ -203,7 +208,36 @@ class SDTXT2IMGWidget extends StatelessWidget {
       ],
     );
   }
-
+  Widget _buildRangeSelector(AIPainterModel provider, int type) {
+    return Row(
+      children: [
+        // Text(group),
+        Expanded(
+          child: Selector<AIPainterModel, int?>(
+              selector: (context, model) => model.rangeValueIndex[type],
+              builder: (context, index, child) {
+                var max = Optional.rangeSize(type) - 1;
+                return Row(children: [
+                  Expanded(
+                    child: Slider(
+                      value: (index ?? 0).toDouble(),
+                      min: 0.toDouble(),
+                      max: max.toDouble(),
+                      divisions: max,
+                      onChanged: (double value) {
+                        // print("steps seek$value");
+                        provider.updateRangeValue(type, value.toInt());
+                        // samplerStepsController.text = samplerSteps.toString();
+                      },
+                    ),
+                  ),
+                  Text(Optional.ranges[type]?[index ?? 0].name ?? "")
+                ]);
+              }),
+        ),
+      ],
+    );
+  }
   @override
   void dispose() {}
 
@@ -421,17 +455,18 @@ class SDTXT2IMGWidget extends StatelessWidget {
               groupValue: newValue,
               // Callback that sets the selected segmented control.
               onValueChanged: (SetType? value) {
-                if (value == SetType.lora) {
-                  if (isMobile()) {
-                    Navigator.pushNamed(context, ROUTE_PLUGINS);
-                  } else {
-                    showBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return const SDPluginsWidget();
-                        });
-                  }
-                } else if (value != null) {
+                // if (value == SetType.lora) {
+                //   if (isMobile()) {
+                //     Navigator.pushNamed(context, ROUTE_PLUGINS);
+                //   } else {
+                //     showBottomSheet(
+                //         context: context,
+                //         builder: (context) {
+                //           return const SDPluginsWidget();
+                //         });
+                //   }
+                // } else
+                  if (value != null) {
                   model.updateSetIndex(value);
                 }
               },
@@ -478,7 +513,7 @@ class SDTXT2IMGWidget extends StatelessWidget {
             ));
   }
 
-  Widget _stack(AIPainterModel provider, Widget sampler, Widget upScaler) {
+  Widget _stack(AIPainterModel provider, Widget sampler,Widget renwu,Widget upScaler) {
     return Selector<TXT2IMGModel, SetType>(
         selector: (_, model) => model.setIndex,
         shouldRebuild: (pre, next) => pre != next,
@@ -486,6 +521,7 @@ class SDTXT2IMGWidget extends StatelessWidget {
               index: newValue.index,
               children: [
                 _basic(provider, sampler, upScaler),
+                renwu,
                 _advanced(
                     provider,
                     // !sdShare! && provider.generateType == 1

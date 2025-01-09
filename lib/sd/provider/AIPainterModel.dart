@@ -33,6 +33,7 @@ class AIPainterModel extends ConfigModel
   // Map<String, double> checkedPlugins = Map(); // lora
 
   bool currentModelSupport(String? wlist) {
+    return true;
     if (wlist == null || wlist.isEmpty) return true;
     var wlis = wlist.split(",");
     for (var item in wlis) {
@@ -125,7 +126,7 @@ class AIPainterModel extends ConfigModel
     int index = checkedRadio.indexOf(name);
     if (index >= 0) {
       checkedRadio.remove(name);
-      if (null != bList) unRegBList(toList(bList));
+      if (bList?.isNotEmpty==true) unRegBList(toList(bList!));
       checkedRadioGroup.removeAt(index);
       notifyListeners();
     }
@@ -133,7 +134,7 @@ class AIPainterModel extends ConfigModel
 
   void removeCheckedStyles(String item, {String? bList, bool refresh = false}) {
     checkedStyles.remove(item);
-    if (null != bList) unRegBList(toList(bList));
+    if (bList?.isNotEmpty==true) unRegBList(toList(bList!));
     if (refresh) {
       notifyListeners();
     }
@@ -141,7 +142,7 @@ class AIPainterModel extends ConfigModel
 
   void addCheckedStyles(String other, {String? bList, bool refresh = false}) {
     checkedStyles.add(other);
-    if (null != bList) regBList(toList(bList));
+    if (bList?.isNotEmpty==true) regBList(toList(bList!));
     if (refresh) {
       notifyListeners();
     }

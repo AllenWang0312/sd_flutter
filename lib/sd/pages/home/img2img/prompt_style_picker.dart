@@ -8,6 +8,34 @@ import 'package:sd/sd/provider/AIPainterModel.dart';
 import '../../../../common/util/string_util.dart';
 import '../../../http_service.dart';
 
+//lora weight string
+String loraWeight(String prompt) {
+  var weightStart = prompt.lastIndexOf(":");
+  var weightEnd = prompt.lastIndexOf(">");
+  return prompt.substring(weightStart + 1, weightEnd);
+}
+
+//lora weight 加倍
+String boldLora(String prompt, double bold) {
+  if (prompt.startsWith("<lora:")) {
+    var weight = toDouble(loraWeight(prompt), 1.0);
+    var newWeight = weight * bold;
+    return prompt.replaceAll(":$weight>", ":$newWeight>");
+  } else {
+    //描述加lora 整体加强 待验证
+    return "($prompt:$bold)";
+  }
+}
+
+//去除重复多余逗号 只适配英文
+String deleteEmptyPrompt(String prompt) {
+  var newValue = prompt;
+  while (prompt.contains(",,")) {
+    newValue = prompt.replaceAll(",,", ",");
+  }
+  return newValue;
+}
+
 //tag 已选及锁定 状态组件
 class SDPromptStylePicker extends StatelessWidget {
   SDPromptStylePicker();
@@ -35,39 +63,49 @@ class SDPromptStylePicker extends StatelessWidget {
     //循环所有已选择的style  按槽位拼接 lora排他
     for (PromptStyle style in provider.styles) {
       if (provider.checkedStyles.contains(style.name)) {
-        if (!provider.inBList(style.group) &&
-            provider.currentModelSupport(style.wList)) {
-          if (null != style.prompt && style.prompt!.isNotEmpty) {
-            var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
-                appendCommaIfNotExist("{${style.prompt}}"));
-            prompt[style.step ?? 0] = search['result'];
-            if (search['exist'] == true) break;
-          }
-        }
-      }
-      if (provider.checkedRadio.contains(style.name)) {
-        if (!provider.inBList(style.group) &&
-            provider.currentModelSupport(style.wList)) {
-          if (null != style.prompt && style.prompt!.isNotEmpty) {
-            var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
-                appendCommaIfNotExist("{${style.prompt}}"));
-            prompt[style.step ?? 0] = search['result'];
-            if (search['exist'] == true) break;
-          }
-        }
-      }
-    }
-    for(String group in Optional.ranges.keys){
-      var style = Optional.ranges[group]![provider.rangeValueIndex[group]??0];
-      if (!provider.inBList(style.group) &&
-          provider.currentModelSupport(style.wList)) {
+        // if (!provider.inBList(style.group) &&
+        //     provider.currentModelSupport(style.wList)) {
         if (null != style.prompt && style.prompt!.isNotEmpty) {
           var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
               appendCommaIfNotExist("{${style.prompt}}"));
           prompt[style.step ?? 0] = search['result'];
           if (search['exist'] == true) break;
         }
+        // }
       }
+      if (provider.checkedRadio.contains(style.name)) {
+        // if (!provider.inBList(style.group) &&
+        //     provider.currentModelSupport(style.wList)) {
+        if (null != style.prompt && style.prompt!.isNotEmpty) {
+          var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
+              appendCommaIfNotExist("{${style.prompt}}"));
+          prompt[style.step ?? 0] = search['result'];
+          if (search['exist'] == true) break;
+        }
+        // }
+      }
+    }
+    for (int type in Optional.ranges.keys) {
+      var index = 0;
+      if (null != provider.require && type < provider.require!.length) {
+        var c = toInt(provider.require?[type], -1);
+
+        if (c >= 0) {
+          index = c;
+        }
+      }
+      index = provider.rangeValueIndex[type] ?? 0;
+
+      var style = Optional.ranges[type]![index];
+      // if (!provider.inBList(style.group) &&
+      //     provider.currentModelSupport(style.wList)) {
+      if (null != style.prompt && style.prompt!.isNotEmpty) {
+        var search = mixPrompt(style.step ?? 0, prompt[style.step ?? 0],
+            appendCommaIfNotExist("{${style.prompt}}"));
+        prompt[style.step ?? 0] = search['result'];
+        if (search['exist'] == true) break;
+      }
+      // }
     }
     // if(provider.styleFrom != 3){
     //  return "${prompt[0]}"//环境
@@ -84,7 +122,6 @@ class SDPromptStylePicker extends StatelessWidget {
     int poseStep = steps * weight ~/ 10;
 
     if (provider.styleFrom == 4) {
-// <<<<<<< Updated upstream
 //       if(provider.txt2img.shapSteps==provider.txt2img.detailSteps){
 //         return "${prompt[0]}" //环境
 //             "${sfw ? "SFW," : ""}"
@@ -108,14 +145,13 @@ class SDPromptStylePicker extends StatelessWidget {
 //             "${prompt[8]}"; //主角 装饰
 //       }
 //
-// =======
 
       //槽位 0环境 1场景 2脸模 3胸特征 包括动作 4衣服 5点缀 6辅助脸模 7辅助体态 8辅助装饰 9互动动作
       //10 cos 强脸  11 12 13胯特征 包括动作 14部位与衣物关系 19 互动特征
 
       //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
       //A girl [3 sitting on] [1 a seat] [1 in a cafe], wearing a [gorgeous long dress]
-      
+
 //Upper body support point  Lower body support point
 
       //todo 1. 10->12 3->13
@@ -132,19 +168,20 @@ class SDPromptStylePicker extends StatelessWidget {
       result +=
           "${prompt[10].contains("<lora:") ? prompt[10] : prompt[2]},"; // todo 是否挤掉脸模
 
-      var hasActionLora = prompt[19].isNotEmpty;
+      var actionLoraExist=prompt[19].isNotEmpty;
 
-      if (hasActionLora) result += "[[${prompt[3]},${prompt[13]},${prompt[9]}]],";
+      if (actionLoraExist) result += "${prompt[19]},";
+      // result += "[[${prompt[3]},${prompt[13]}]],";
       if (provider.txt2img.shapSteps == provider.txt2img.detailSteps) {
         result +=
             // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${getMainLoop(hasActionLora, prompt)})|";
-        result += "(${prompt[4]},${prompt[14]})]";
+            "[(${prompt[3]},${prompt[13]},${prompt[9]})|";
+        result += "(${prompt[4]},${actionLoraExist?boldLora(prompt[14],0.5):prompt[14]})],";
       } else {
         result +=
             // "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-            "[(${getMainLoop(hasActionLora, prompt)})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
-            "[(${prompt[4]},${prompt[14]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
+            "[(${prompt[3]},${prompt[13]},${prompt[9]})::${provider.txt2img.shapSteps}],\n" //todo 2. 验证[] 里面是否可以再[]
+            "[(${prompt[4]},${actionLoraExist?boldLora(prompt[14],0.5):prompt[14]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],";
       }
 
       //主角 pose 主角衣服
@@ -157,9 +194,9 @@ class SDPromptStylePicker extends StatelessWidget {
           "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
           "${prompt[8]}"; //配角 装饰
 
-      logt("prompt:",result);
+      // result = deleteEmptyPrompt(result);
+      logt("prompt:", result);
       return result;
-// >>>>>>> Stashed changes
     }
 
     //todo 过长的图用天空填充背景
@@ -167,7 +204,7 @@ class SDPromptStylePicker extends StatelessWidget {
         provider.txt2img.width > provider.txt2img.height * 1.7) {
       return "${prompt[0]}"
           "[{beautiful detailed sky,${prompt[1]}}:{"
-          "${prompt[9]}${prompt[2]}"
+          "${prompt[19]},${prompt[9]},${prompt[2]}"
           "[(${prompt[3]}):(${prompt[4]}):$mainStep] "
           "{${prompt[6]}"
           "[(${prompt[7]}):(${prompt[8]}):$mainStep]}${prompt[5]}"
@@ -175,7 +212,8 @@ class SDPromptStylePicker extends StatelessWidget {
     } else {
       return "${prompt[0]}" //环境
           "${sfw ? "SFW," : ""}"
-          "${prompt[3]},${prompt[4]},${prompt[2]},${prompt[13]},${prompt[9]},${prompt[19]},${prompt[14]},${prompt[1]},${prompt[5]}" //主角 主特征 关联动作  场景1
+          "${prompt[19]},${prompt[9]},"
+          "${prompt[3]},${prompt[4]},${prompt[2]},${prompt[13]},${prompt[14]},${prompt[1]},${prompt[5]}" //主角 主特征 关联动作  场景1
           "{${prompt[6]}" //辅助身材
           "[(${prompt[7]}):(${prompt[8]}):$poseStep]"; //辅助特征 辅助装饰
       // ; //主角 装饰
@@ -402,14 +440,6 @@ class SDPromptStylePicker extends StatelessWidget {
     }
   }
 
-  getMainLoop(bool hasActionLora, List<String> prompt) {
-    if (hasActionLora) {
-      return "((${prompt[19]}))";
-    } else {
-      return "${prompt[3]},${prompt[13]},${prompt[9]}";
-    }
-  }
-
 // refreshStyles(BuildContext context) {
 //   post("$sdHttpService$RUN_PREDICT",
 //       formData: {"fn_index": CMD_REFRESH_STYLE}, exceptionCallback: (e) {
@@ -430,10 +460,10 @@ class SDPromptStylePicker extends StatelessWidget {
 const STATIC_PART = [
   1,
   // 2,
-  3,//看不见胸的体位
-  9,
+  // 3,//看不见胸的体位
+  // 9,
   4,
   6,
   8,
-  13,//看不见胯的体位
+  // 13,//看不见胯的体位
 ];

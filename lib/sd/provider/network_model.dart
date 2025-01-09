@@ -61,14 +61,16 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
       if (null != value && null != value.data) {
         csv = value.data.toString();
         List styles = loadPromptStyleFromString(csv!, userAge,
-            // groupRecord: publicStyles,
+            groupRecord: publicStyles,
             extend: true);
         String group='';
         Optional? target;
         for (PromptStyle item in styles) {
 
-          if(isRangeValue(item.name)){
-            Optional.addRangeValue(item.group,item.name);
+          if(isRangeValue(item.name)
+              // &&item is Optional
+          ){
+            Optional.addRangeValue(item.type,item);
 
           }else{
             if(item.group!=group){
