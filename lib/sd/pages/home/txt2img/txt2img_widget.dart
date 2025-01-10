@@ -422,15 +422,15 @@ class SDTXT2IMGWidget extends StatelessWidget {
               // Callback that sets the selected segmented control.
               onValueChanged: (SetType? value) {
                 if (value == SetType.lora) {
-                  if (isMobile()) {
+                  // if (isMobile()) {
                     Navigator.pushNamed(context, ROUTE_PLUGINS);
-                  } else {
-                    showBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return const SDPluginsWidget();
-                        });
-                  }
+                  // } else {
+                  //   showBottomSheet(
+                  //       context: context,
+                  //       builder: (context) {
+                  //         return const SDPluginsWidget();
+                  //       });
+                  // }
                 } else if (value != null) {
                   model.updateSetIndex(value);
                 }

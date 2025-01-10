@@ -26,9 +26,9 @@ bool isRangeValue(String element) {
 }
 
 class Optional extends PromptStyle {
-  static Map<String,List<Optional>> ranges=HashMap();// group to rangeValues;
+  static Map<String,List<PromptStyle>> ranges=HashMap();// group to rangeValues;
 
-  static void addRangeValue(String group, Optional value) {
+  static void addRangeValue(String group, PromptStyle value) {
     if(null==ranges[group]){
       ranges.putIfAbsent(group, () => []);
     }

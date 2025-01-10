@@ -96,9 +96,9 @@ class _SDCreateWorkspaceWidgetState extends State<SDCreateWorkspaceWidget> {
                 if (widget.workspace == null) {
                   if (controller.text.isNotEmpty) {
                     if (await checkStoragePermission()) {
-                      if (createDirIfNotExit(asyncPath+pathController.text+"/"+controller.text)) {
+                      if (createDirIfNotExit(asyncPath??""+pathController.text+"/"+controller.text)) {
                         var nw =
-                            Workspace(asyncPath+pathController.text,controller.text);
+                            Workspace(asyncPath??""+pathController.text,controller.text);
                         int id =
                             await DBController.instance.insertWorkSpace(nw);
 

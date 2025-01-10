@@ -68,7 +68,7 @@ class NetWorkProvider with ChangeNotifier, DiagnosticableTreeMixin {
         for (PromptStyle item in styles) {
 
           if(isRangeValue(item.name)){
-            Optional.addRangeValue(item.group,item.name);
+            Optional.addRangeValue(item.group,item);
 
           }else{
             if(item.group!=group){

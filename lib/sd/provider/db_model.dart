@@ -40,10 +40,10 @@ class DBModel extends NetWorkProvider {
   Future<Workspace> initConfigFromDB(String workSpaceName) async {
     // DBController 操作必须在此之后
     Workspace? ws = await DBController.instance
-        .initDepends(asyncPath + WORKSPACES, workspace: workSpaceName);
+        .initDepends(asyncPath??"" + WORKSPACES, workspace: workSpaceName);
 
     if (ws == null) {
-      ws = Workspace(asyncPath + WORKSPACES, DEFAULT_WORKSPACE_NAME);
+      ws = Workspace(asyncPath??"" + WORKSPACES, DEFAULT_WORKSPACE_NAME);
       createDirIfNotExit(ws.absPath);
       int insertResult = await DBController.instance.insertWorkSpace(ws);
       if (insertResult >= 0) {

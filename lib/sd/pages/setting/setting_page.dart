@@ -154,7 +154,7 @@ class _SettingPageState extends State<SettingPage> {
                         if (datas.isNotEmpty) {
                           workspaces = datas
                               .map((e) =>
-                              Workspace.fromJson(e, asyncPath + WORKSPACES))
+                              Workspace.fromJson(e, asyncPath ??""+ WORKSPACES))
                               .toList();
 
                           return Column(
@@ -406,7 +406,7 @@ class _SettingPageState extends State<SettingPage> {
   Future<void> loadWorkSpacesFromDB() async {
     List? result = await DBController.instance.queryWorkspaces();
     workspaces = result
-        ?.map((e) => Workspace.fromJson(e, asyncPath + WORKSPACES))
+        ?.map((e) => Workspace.fromJson(e, asyncPath??"" + WORKSPACES))
         .toList();
   }
 

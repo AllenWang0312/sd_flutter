@@ -92,12 +92,12 @@ Map<String, Function> PUBLIC_ROUTES = {
       )
 };
 
-StatelessWidget _addSafeIfMobile(StatelessWidget child) {
-  if (isMobile()) {
-    return SafeArea(child: child);
-  }
-  return child;
-}
+// StatelessWidget _addSafeIfMobile(StatelessWidget child) {
+//   if (isMobile()) {
+//     return SafeArea(child: child);
+//   }
+//   return child;
+// }
 
 _swipeBack(BuildContext context, StatelessWidget child) {
   return WillPopScope(
@@ -163,7 +163,7 @@ void main() async {
       }
   }
 
-  logt('isMobile', '${isMobile()}');
+  // logt('isMobile', '${isMobile()}');
 
   // if(UniversalPlatform.isMacOS){
   //   WidgetsFlutterBinding.ensureInitialized();

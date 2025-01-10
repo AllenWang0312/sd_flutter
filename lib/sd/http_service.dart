@@ -99,9 +99,8 @@ Future<Response?> get(url,
     return catchError(response, exceptionCallback);
   } catch (e) {
     logt(TAG, "get err: $e");
-    if (null != exceptionCallback) {
-      exceptionCallback(e);
-    }
+    despatchErrorInfo(400,dioErrorMessage: e.toString(),callback: exceptionCallback);
+
     return Future(() => null);
   }
 }
@@ -125,31 +124,68 @@ Future<Response?> post(url,
       response = await dio.post(url, data: formData);
       logt(TAG, "post:${formData}");
     }
-    return catchError(response, exceptionCallback, provider: provider);
+    return catchError(response, exceptionCallback);
   } catch (e) {
     logt(TAG, "post err:$e");
     provider?.updateNetworkState(REQUEST_ERROR);
-    if (null != exceptionCallback) {
-      exceptionCallback(e);
-    }
+    despatchErrorInfo(400,dioErrorMessage: e.toString(),callback: exceptionCallback);
     return Future(() => null);
   }
 }
 
-Future<Response?> catchError(Response response, Function? callback,
-    {NetWorkStateProvider? provider}) async {
-  if (response.statusCode == 200) {
-    provider?.updateNetworkState(ONLINE);
+Future<Response?> catchError(Response response, Function? callback) async {
+  if (response.statusCode! < 400) {
     return response;
   } else {
-    provider?.updateNetworkState(REQUEST_ERROR);
-    dynamic err = {
-      'code': response.statusCode,
-      'errMsg': response.statusMessage
-    };
-    if (null != callback) {
-      callback(err);
+    despatchErrorInfo(response.statusCode,
+        dioErrorMessage: "网络异常 ${response.statusMessage}", callback: callback);
+    return null;
+  }
+}
+
+void despatchErrorInfo(int? statusCode,
+    {String? dioErrorMessage, Function? callback}) {
+  String? message;
+  switch (statusCode) {
+    case 401:
+    //   message = "您暂无权限查看，如需申请权限请联系管理员";
+      break;
+    case 404:
+      message = "系统错误，请稍后再试";
+      break;
+    case 406:
+      message = "系统错误，请稍后再试";
+      break;
+    case 410:
+      message = "该内容已被管理员删除";
+      break;
+    case 422:
+      message = "您的账户已被停用";
+      break;
+    default:
+    // message = "系统错误，请联系管理员进行反馈，或稍后重试"; //400、403、500、502、503、504
+      break;
+  }
+  if (statusCode == 401 || dioErrorMessage?.contains(" 401 ") == true) {
+    // updateStringCache("userTicket", "");
+    // NativeHelper.toLogin();
+    // NativeHelper.closeCurrent();
+  } else {
+    if (message?.isNotEmpty == true) {
+      Fluttertoast.showToast(msg: message!, gravity: ToastGravity.CENTER);
+    } else {
+      // Fluttertoast.showToast(msg: '请求失败！${dioErrorMessage}');
+      logd('请求失败！${dioErrorMessage}');
     }
+  }
+
+  onError(statusCode, dioErrorMessage, callback: callback);
+}
+
+void onError(int? statusCode, String? statusMessage, {Function? callback}) {
+  dynamic err = {'code': statusCode, 'errMsg': statusMessage};
+  if (null != callback) {
+    callback(err);
   }
 }
 

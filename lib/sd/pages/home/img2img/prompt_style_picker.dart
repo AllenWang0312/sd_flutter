@@ -84,31 +84,6 @@ class SDPromptStylePicker extends StatelessWidget {
     int poseStep = steps * weight ~/ 10;
 
     if (provider.styleFrom == 4) {
-// <<<<<<< Updated upstream
-//       if(provider.txt2img.shapSteps==provider.txt2img.detailSteps){
-//         return "${prompt[0]}" //环境
-//             "${sfw ? "SFW," : ""}"
-//             "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
-//             "[(${prompt[3]})|(${prompt[4]},${prompt[14]},${prompt[13]})]," //主角 pose 主角衣服
-//             "[(${prompt[1]})::${provider.txt2img.steps~/3}],"//前十部画大环境
-//             "[(${prompt[5]}):${provider.txt2img.steps~/3}]," //后十步 画道具 装饰
-//             "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
-//             "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
-//             "${prompt[8]}"; //主角 装饰
-//       }else {
-//         return "${prompt[0]}" //环境
-//             "${sfw ? "SFW," : ""}"
-//             "${prompt[10].contains("<lora:")? prompt[10]:prompt[2]},${prompt[9]}," //主角 主特征 关联动作  场景1
-//             "[(${prompt[3]})::${provider.txt2img.shapSteps}],\n"
-//             "[(${prompt[4]},${prompt[14]},${prompt[13]}):${provider.txt2img.steps - provider.txt2img.detailSteps}]," //主角 pose 主角衣服
-//             "[(${prompt[1]})::10],"//前十部画大环境
-//             "[(${prompt[5]}):${provider.txt2img.steps -10}]," //后十步 画道具 装饰
-//             "[(${prompt[6]})::${provider.txt2img.shapSteps}],\n" //辅助身材 辅助特征 辅助装饰
-//             "[(${prompt[7]}):${provider.txt2img.steps - provider.txt2img.detailSteps}],"
-//             "${prompt[8]}"; //主角 装饰
-//       }
-//
-// =======
 
       //一个女孩在咖啡馆里坐在座位上，身穿华丽的长裙
       //A girl [3 sitting on] [1 a seat] [1 in a cafe], wearing a [gorgeous long dress]
@@ -148,8 +123,8 @@ class SDPromptStylePicker extends StatelessWidget {
           "${prompt[8]}"; //配角 装饰
 
       return result;
-// >>>>>>> Stashed changes
     }
+
 
     //todo 过长的图用天空填充背景
     if (provider.txt2img.height > provider.txt2img.width * 1.7 ||
